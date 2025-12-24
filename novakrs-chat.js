@@ -2,17 +2,21 @@
   console.log("NovaKRS chat loaded");
 
   // =========================
-  // CONFIG
+  // CONFIG (CAMBIO CLAVE AQUÍ)
   // =========================
-  const CHAT_URL = "/api/chat";
+  const BACKEND =
+    location.hostname === "localhost"
+      ? "http://localhost:8001"
+      : "https://api.novakrs.com";
+
+  const CHAT_URL = BACKEND + "/chat";
+
   // =========================
   // STATE (solo UI)
   // =========================
   const session_id = crypto.randomUUID();
-  const started_at = new Date()
-    .toISOString()
-    .slice(11, 19)
-    .replace(/:/g, "") +
+  const started_at =
+    new Date().toISOString().slice(11, 19).replace(/:/g, "") +
     "-" +
     new Date().toISOString().slice(0, 10).replace(/-/g, "");
 
@@ -116,14 +120,18 @@
       });
 
       if (!res.ok) {
-        addAssistantMessage("Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos.");
+        addAssistantMessage(
+          "Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos."
+        );
         return;
       }
 
       const data = await res.json();
       addAssistantMessage(data.reply || "No he podido generar respuesta.");
     } catch (e) {
-      addAssistantMessage("Se ha producido un error de conexión. Inténtalo más tarde.");
+      addAssistantMessage(
+        "Se ha producido un error de conexión. Inténtalo más tarde."
+      );
     }
   }
 
@@ -132,5 +140,3 @@
     if (e.key === "Enter") sendMessage();
   });
 })();
-
-

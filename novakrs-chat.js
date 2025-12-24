@@ -2,25 +2,23 @@
   console.log("NovaKRS chat loaded");
 
   // =========================
-  // CONFIG (CAMBIO CLAVE AQUÍ)
+  // CONFIG
   // =========================
-  const BACKEND =
-    location.hostname === "localhost"
-      ? "http://localhost:8001"
-      : "https://api.novakrs.com";
-
-  const CHAT_URL = BACKEND + "/chat";
+  const CHAT_URL = "/api/chat";
 
   // =========================
-  // STATE (solo UI)
+  // STATE
   // =========================
   const session_id = crypto.randomUUID();
-  const started_at =
-    new Date().toISOString().slice(11, 19).replace(/:/g, "") +
+  const started_at = new Date()
+    .toISOString()
+    .slice(11, 19)
+    .replace(/:/g, "") +
     "-" +
     new Date().toISOString().slice(0, 10).replace(/-/g, "");
 
   let messages = [];
+  let hasStarted = false;
 
   // =========================
   // UI
@@ -60,6 +58,10 @@
 
   launcher.onclick = () => {
     widget.style.display = widget.style.display === "flex" ? "none" : "flex";
+    if (!hasStarted) {
+      sendMessage(true); // fuerza saludo inicial backend
+      hasStarted = true;
+    }
   };
 
   const msgs = widget.querySelector("#msgs");
@@ -91,22 +93,33 @@
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  // =========================
-  // INIT
-  // =========================
-  addAssistantMessage(
-    "Hola, soy el asistente de NovaKRS. Ayudamos a empresas a centrarse en su negocio y no perder tiempo en tareas necesarias pero que no aportan valor. Para orientarte mejor, ¿a qué tipo de negocio te dedicas?"
-  );
+  function showTyping() {
+    const t = document.createElement("div");
+    t.id = "typing";
+    t.style.color = "#6b7280";
+    t.style.marginBottom = "8px";
+    t.innerHTML = "<em>NovaKRS está escribiendo…</em>";
+    msgs.appendChild(t);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function hideTyping() {
+    const t = document.getElementById("typing");
+    if (t) t.remove();
+  }
 
   // =========================
   // SEND
   // =========================
-  async function sendMessage() {
-    const text = input.value.trim();
-    if (!text) return;
+  async function sendMessage(isInit = false) {
+    if (!isInit) {
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+      addUserMessage(text);
+    }
 
-    input.value = "";
-    addUserMessage(text);
+    showTyping();
 
     try {
       const res = await fetch(CHAT_URL, {
@@ -119,23 +132,22 @@
         })
       });
 
+      hideTyping();
+
       if (!res.ok) {
-        addAssistantMessage(
-          "Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos."
-        );
+        addAssistantMessage("Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos.");
         return;
       }
 
       const data = await res.json();
       addAssistantMessage(data.reply || "No he podido generar respuesta.");
-    } catch (e) {
-      addAssistantMessage(
-        "Se ha producido un error de conexión. Inténtalo más tarde."
-      );
+    } catch {
+      hideTyping();
+      addAssistantMessage("Se ha producido un error de conexión. Inténtalo más tarde.");
     }
   }
 
-  send.onclick = sendMessage;
+  send.onclick = () => sendMessage();
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") sendMessage();
   });

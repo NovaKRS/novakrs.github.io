@@ -2,14 +2,21 @@
   console.log("NovaKRS chat loaded");
 
   // =========================
-  // CONFIG (solo rutas públicas)
+  // CONFIG
   // =========================
   const CHAT_URL = "/api/chat";
 
   // =========================
-  // STATE (no confiable, solo UI)
+  // STATE (solo UI)
   // =========================
   const session_id = crypto.randomUUID();
+  const started_at = new Date()
+    .toISOString()
+    .slice(11, 19)
+    .replace(/:/g, "") +
+    "-" +
+    new Date().toISOString().slice(0, 10).replace(/-/g, "");
+
   let messages = [];
 
   // =========================
@@ -18,31 +25,20 @@
   const launcher = document.createElement("div");
   launcher.innerText = "💬 Habla con NovaKRS";
   launcher.style.cssText = `
-    position:fixed;
-    bottom:24px;
-    right:24px;
-    background:#2563eb;
-    color:white;
-    padding:14px 18px;
-    border-radius:999px;
-    cursor:pointer;
-    z-index:9999;
+    position:fixed;bottom:24px;right:24px;
+    background:#2563eb;color:white;
+    padding:14px 18px;border-radius:999px;
+    cursor:pointer;z-index:9999;
     font-weight:600;
   `;
 
   const widget = document.createElement("div");
   widget.style.cssText = `
-    position:fixed;
-    bottom:90px;
-    right:24px;
-    width:360px;
-    height:480px;
-    background:#0b1220;
-    border:1px solid #1f2937;
-    border-radius:12px;
-    display:none;
-    flex-direction:column;
-    z-index:9999;
+    position:fixed;bottom:90px;right:24px;
+    width:360px;height:480px;
+    background:#0b1220;border:1px solid #1f2937;
+    border-radius:12px;display:none;
+    flex-direction:column;z-index:9999;
   `;
 
   widget.innerHTML = `
@@ -51,18 +47,8 @@
     </div>
     <div id="msgs" style="flex:1;padding:12px;overflow-y:auto;font-size:14px;"></div>
     <div style="display:flex;border-top:1px solid #1f2937;">
-      <input
-        id="input"
-        style="flex:1;padding:10px;background:#020617;border:none;color:white;"
-        placeholder="Escribe tu mensaje…"
-        maxlength="500"
-      />
-      <button
-        id="send"
-        style="padding:10px 14px;background:#2563eb;border:none;color:white;"
-      >
-        Enviar
-      </button>
+      <input id="input" style="flex:1;padding:10px;background:#020617;border:none;color:white;" placeholder="Escribe tu mensaje…" maxlength="500"/>
+      <button id="send" style="padding:10px 14px;background:#2563eb;border:none;color:white;">Enviar</button>
     </div>
   `;
 
@@ -78,24 +64,8 @@
   const send = widget.querySelector("#send");
 
   // =========================
-  // UI HELPERS
+  // HELPERS
   // =========================
-  function addAssistantMessage(text) {
-    msgs.innerHTML += `
-      <div style="color:#e5e7eb;margin-bottom:8px;">
-        <strong>NovaKRS:</strong> ${escapeHtml(text)}
-      </div>`;
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function addUserMessage(text) {
-    msgs.innerHTML += `
-      <div style="color:#93c5fd;margin-bottom:8px;">
-        <strong>Tú:</strong> ${escapeHtml(text)}
-      </div>`;
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-
   function escapeHtml(str) {
     return str.replace(/[&<>"']/g, c => ({
       "&": "&amp;",
@@ -104,6 +74,18 @@
       '"': "&quot;",
       "'": "&#039;"
     })[c]);
+  }
+
+  function addAssistantMessage(text) {
+    messages.push({ role: "assistant", content: text });
+    msgs.innerHTML += `<div style="color:#e5e7eb;margin-bottom:8px;"><strong>NovaKRS:</strong> ${escapeHtml(text)}</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function addUserMessage(text) {
+    messages.push({ role: "user", content: text });
+    msgs.innerHTML += `<div style="color:#93c5fd;margin-bottom:8px;"><strong>Tú:</strong> ${escapeHtml(text)}</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
   }
 
   // =========================
@@ -123,32 +105,26 @@
     input.value = "";
     addUserMessage(text);
 
-    // Guardamos solo lo necesario para UI
-    messages.push({ role: "user", content: text });
-
     try {
       const res = await fetch(CHAT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           session_id,
-          message: text
+          started_at,
+          messages
         })
       });
 
       if (!res.ok) {
-        addAssistantMessage(
-          "Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos."
-        );
+        addAssistantMessage("Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos.");
         return;
       }
 
       const data = await res.json();
       addAssistantMessage(data.reply || "No he podido generar respuesta.");
-    } catch (err) {
-      addAssistantMessage(
-        "Se ha producido un error de conexión. Inténtalo más tarde."
-      );
+    } catch (e) {
+      addAssistantMessage("Se ha producido un error de conexión. Inténtalo más tarde.");
     }
   }
 

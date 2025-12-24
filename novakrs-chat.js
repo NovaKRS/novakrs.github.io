@@ -4,7 +4,7 @@
   // =========================
   // CONFIG
   // =========================
-  const CHAT_URL = "https://novanetwork.asuscomm.com/api/chat";
+  const CHAT_URL = "/api/chat";
   // =========================
   // STATE (solo UI)
   // =========================
@@ -132,4 +132,5 @@
     if (e.key === "Enter") sendMessage();
   });
 })();
+
 

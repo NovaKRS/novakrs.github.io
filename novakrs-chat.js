@@ -21,6 +21,7 @@
     new Date().toISOString().slice(0, 10).replace(/-/g, "");
 
   let messages = [];
+  let backendStarted = false;
 
   // =========================
   // UI
@@ -79,8 +80,8 @@
     })[c]);
   }
 
-  function addAssistantMessage(text) {
-    messages.push({ role: "assistant", content: text });
+  function addAssistantMessage(text, store = true) {
+    if (store) messages.push({ role: "assistant", content: text });
     msgs.innerHTML += `<div style="color:#e5e7eb;margin-bottom:8px;"><strong>NovaKRS:</strong> ${escapeHtml(text)}</div>`;
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -105,6 +106,16 @@
     const t = document.getElementById("typing");
     if (t) t.remove();
   }
+
+  // =========================
+  // MENSAJE INICIAL (SOLO UI)
+  // =========================
+  const INITIAL_GREETING =
+    "Hola, soy el asistente de NovaKRS. Ayudamos a empresas a centrarse en su negocio y no perder tiempo en tareas necesarias pero que no aportan valor. Para orientarte mejor, ¿a qué tipo de negocio te dedicas?";
+
+  addAssistantMessage(INITIAL_GREETING);
+  // Importante: este saludo ya cuenta como contexto
+  // pero NO dispara llamada al backend
 
   // =========================
   // SEND
@@ -132,7 +143,8 @@
 
       if (!res.ok) {
         addAssistantMessage(
-          "Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos."
+          "Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos.",
+          false
         );
         return;
       }
@@ -142,7 +154,8 @@
     } catch {
       hideTyping();
       addAssistantMessage(
-        "Se ha producido un error de conexión. Inténtalo más tarde."
+        "Se ha producido un error de conexión. Inténtalo más tarde.",
+        false
       );
     }
   }

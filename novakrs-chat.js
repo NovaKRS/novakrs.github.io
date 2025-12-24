@@ -112,10 +112,14 @@
   // =========================
   const INITIAL_GREETING =
     "Hola, soy el asistente de NovaKRS. Ayudamos a empresas a centrarse en su negocio y no perder tiempo en tareas necesarias pero que no aportan valor. Para orientarte mejor, ¿a qué tipo de negocio te dedicas?";
-
-  addAssistantMessage(INITIAL_GREETING);
-  // Importante: este saludo ya cuenta como contexto
-  // pero NO dispara llamada al backend
+  msgs.innerHTML += `
+    <div style="color:#e5e7eb;margin-bottom:8px;">
+      <strong>NovaKRS:</strong> ${escapeHtml(INITIAL_GREETING)}
+    </div>
+  `;
+  msgs.scrollTop = msgs.scrollHeight;
+  // Importante: este saludo es SOLO UI
+  // NO forma parte del contexto enviado al backend
 
   // =========================
   // SEND
@@ -165,3 +169,4 @@
     if (e.key === "Enter") sendMessage();
   });
 })();
+

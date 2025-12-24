@@ -4,21 +4,23 @@
   // =========================
   // CONFIG
   // =========================
-  const CHAT_URL = "/api/chat";
+  const BACKEND =
+    location.hostname === "localhost"
+      ? "http://localhost:8001"
+      : "https://api.novakrs.com";
+
+  const CHAT_URL = BACKEND + "/chat";
 
   // =========================
   // STATE
   // =========================
   const session_id = crypto.randomUUID();
-  const started_at = new Date()
-    .toISOString()
-    .slice(11, 19)
-    .replace(/:/g, "") +
+  const started_at =
+    new Date().toISOString().slice(11, 19).replace(/:/g, "") +
     "-" +
     new Date().toISOString().slice(0, 10).replace(/-/g, "");
 
   let messages = [];
-  let hasStarted = false;
 
   // =========================
   // UI
@@ -58,10 +60,6 @@
 
   launcher.onclick = () => {
     widget.style.display = widget.style.display === "flex" ? "none" : "flex";
-    if (!hasStarted) {
-      sendMessage(true); // fuerza saludo inicial backend
-      hasStarted = true;
-    }
   };
 
   const msgs = widget.querySelector("#msgs");
@@ -111,14 +109,12 @@
   // =========================
   // SEND
   // =========================
-  async function sendMessage(isInit = false) {
-    if (!isInit) {
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = "";
-      addUserMessage(text);
-    }
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
 
+    input.value = "";
+    addUserMessage(text);
     showTyping();
 
     try {
@@ -135,7 +131,9 @@
       hideTyping();
 
       if (!res.ok) {
-        addAssistantMessage("Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos.");
+        addAssistantMessage(
+          "Ahora mismo no puedo responder. Inténtalo de nuevo en unos minutos."
+        );
         return;
       }
 
@@ -143,11 +141,13 @@
       addAssistantMessage(data.reply || "No he podido generar respuesta.");
     } catch {
       hideTyping();
-      addAssistantMessage("Se ha producido un error de conexión. Inténtalo más tarde.");
+      addAssistantMessage(
+        "Se ha producido un error de conexión. Inténtalo más tarde."
+      );
     }
   }
 
-  send.onclick = () => sendMessage();
+  send.onclick = sendMessage;
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") sendMessage();
   });

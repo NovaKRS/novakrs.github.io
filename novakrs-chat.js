@@ -1,3 +1,4 @@
+// No quitar nunca el escapeHtml. Usar siempre librerías especializadas (como DOMPurify) que permiten HTML "bueno" y bloquean el "malo".
 (() => {
   console.log("NovaKRS chat loaded");
 
@@ -167,5 +168,6 @@
     if (e.key === "Enter") sendMessage();
   });
 })();
+
 
 

@@ -1,4 +1,3 @@
-// No quitar nunca el escapeHtml. Usar siempre librerías especializadas (como DOMPurify) que permiten HTML "bueno" y bloquean el "malo".
 (() => {
   console.log("NovaKRS chat loaded");
 
@@ -69,8 +68,14 @@
   const send = widget.querySelector("#send");
 
   // =========================
-  // HELPERS
+  // HELPERS (SEGURIDAD)
   // =========================
+  
+  /**
+   * IMPORTANTE: No quitar nunca el escapeHtml. 
+   * Si en el futuro necesitas renderizar HTML (negritas, enlaces, etc.), 
+   * NO elimines esta protección. Usa una librería especializada como DOMPurify.
+   */
   function escapeHtml(str) {
     return str.replace(/[&<>"']/g, c => ({
       "&": "&amp;",
@@ -168,6 +173,7 @@
     if (e.key === "Enter") sendMessage();
   });
 })();
+
 
 
 

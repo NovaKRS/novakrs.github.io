@@ -110,13 +110,11 @@
   // =========================
   // MENSAJE INICIAL (SOLO UI)
   // =========================
-  const INITIAL_GREETING =
-    "Hola, soy el asistente de NovaKRS. Ayudamos a empresas a centrarse en su negocio y no perder tiempo en tareas necesarias pero que no aportan valor. Para orientarte mejor, ¿a qué tipo de negocio te dedicas?";
-  msgs.innerHTML += `
-    <div style="color:#e5e7eb;margin-bottom:8px;">
-      <strong>NovaKRS:</strong> ${escapeHtml(INITIAL_GREETING)}
-    </div>
-  `;
+  const INITIAL_GREETING = "Hola, soy el asistente de NovaKRS. Ayudamos a empresas a centrarse en su negocio y no perder tiempo en tareas necesarias pero que no aportan valor. Para orientarte mejor, ¿a qué tipo de negocio te dedicas?";
+  
+  // Agregamos el saludo al historial 'messages' para que el servidor lo conozca
+  addAssistantMessage(INITIAL_GREETING, true);
+  
   msgs.scrollTop = msgs.scrollHeight;
   // Importante: este saludo es SOLO UI
   // NO forma parte del contexto enviado al backend
@@ -169,4 +167,5 @@
     if (e.key === "Enter") sendMessage();
   });
 })();
+
 

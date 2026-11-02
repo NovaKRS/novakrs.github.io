@@ -156,6 +156,10 @@ sup{font-size:.7em}
 .map .lbl.sea-l{fill:var(--river);stroke:var(--sea);font-style:normal}
 .map .lbl.riv-l{fill:var(--river);font-size:18px}
 .chip{font-size:.9rem!important;text-align:left}
+.tipidk{background:var(--chip);border-radius:10px;padding:8px 12px;margin:0}
+.pgrow{display:grid;grid-template-columns:5.5em 1fr auto;gap:10px;align-items:center;margin:6px 0}
+.pbar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}.pbar i{display:block;height:100%;border-radius:6px}.pbar i.pf{background:var(--soft)}.pbar i.pn{background:var(--ok)}
+.profe-chips{gap:6px;margin-bottom:8px}.profe-chips .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 10px;min-height:36px;cursor:pointer;color:inherit}
 .helpbtn{align-self:flex-start;background:none;border:2px dashed var(--line);border-radius:12px;padding:8px 12px;color:var(--soft);font-weight:600;min-height:44px}
 .helpbox{background:var(--progbg);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
 .pendbox{background:var(--midbg);border-radius:14px;padding:12px 14px}.pendbox ul{margin:6px 0;padding-left:1.2em}
@@ -999,6 +1003,7 @@ function render(){
   if(h.startsWith("sim-")) return viewSim(h.slice(4));
   if(h.startsWith("oral-")) return viewOral(h.slice(5));
   if(h==="redondeo") return viewRedondeo();
+  if(h==="progreso") return viewProgreso();
   if(h==="plan") return viewPlan();
   viewHome();
 }
@@ -1021,9 +1026,9 @@ function viewHome(){
       ${ex?`<span class="daytag exam" data-s="${ex.s}">Examen de ${ex.name}</span>`:""}</div>
       ${d.ai?`<p class="small"><span class="aitag">Plan adaptado a tu progreso</span></p>`:d.note?`<p>${esc(d.note)}</p>`:""}
       ${tot?`<div class="dbar" role="progressbar" aria-valuenow="${nDone}" aria-valuemin="0" aria-valuemax="${tot}" aria-label="Bloques hechos hoy"><i style="width:${pct}%" class="${pct>=100?"full":""}"></i></div>
-      <p class="small muted">${nDone>=tot?"¡Plan de hoy completado!":`${nDone} de ${tot} bloques`}</p>`:""}
+      <div class="row" style="justify-content:space-between"><p class="small muted" style="margin:0">${nDone>=tot?"¡Plan de hoy completado!":`${nDone} de ${tot} bloques`}</p>${results.length?`<button class="linkbtn" data-go="progreso">📈 Mi progreso</button>`:""}</div>`:""}
       ${br&&br.d===d.d&&br.noche&&pd.rel==="Hoy"?`<div class="fb ok"><strong>¡Tanda terminada!</strong>La siguiente es el repaso de la noche.</div>`:""}
-      ${pendingList().length?`<div class="pendbox"><b>Pendiente de repasar con papá o mamá (${pendingList().length})</b><ul>${pendingList().map(x=>`<li>${esc(x.materia)}: ${esc(x.detalle)}</li>`).join("")}</ul><p class="small muted">${nDone>=tot?"Antes de dar el día por cerrado, repasadlo juntos.":"Cuando estén, repasadlo juntos. Se marca como hecho en el Informe."}</p></div>`:""}
+      ${pendingList().length?`<div class="pendbox"><b>Para ver juntos (${pendingList().length})</b><ul>${pendingList().map(x=>`<li>${esc(x.materia)}: ${esc(x.detalle)}</li>`).join("")}</ul><p class="small muted">${nDone>=tot?"Antes de cerrar el día, vedlo juntos un momento.":"Cuando papá o mamá estén, lo veis juntos."}</p></div>`:""}
       ${tot&&nDone>=tot&&pd.rel==="Hoy"?`<div class="extra"><h3>¿Te apetece seguir? Es opcional</h3><p class="small muted">Ya has terminado lo de hoy. Si te quedan ganas, aquí tienes algo cortito:</p><div class="row">${extraSuggestions().map((x,k)=>`<button class="btn ghost" data-extra="${k}">${esc(x[0])} · ${x[1]}</button>`).join("")}</div></div>`:""}
       <div class="blocks">${tot?dayHtml(d,true):'<p class="muted">Nada que estudiar. ¡A descansar!</p>'}</div>
       <div class="row"><button class="btn ghost small" data-go="plan">Ver todos los días</button></div>
@@ -1078,48 +1083,71 @@ function viewQuiz(key){
   const qs=state.qs,i=state.i;
   if(i>=qs.length) return quizEnd(key,D);
   const q=qs[i];
+  if(!isPureTest()&&!q.retry&&!q.vf&&!state.answered&&isStuck(q))return stuckCard(key,D,q);
   const prog=qs.map((x,j)=>`<i class="${j<state.ans.length?state.ans[j]:j===i?"cur":""}${x.retry?" re":""}"></i>`).join("");
   $("#app").innerHTML=`<div data-s="${D.s}" class="wrap" style="gap:16px">
     <div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${i+1} de ${qs.length}${i>0?` · <button class="linkbtn" id="qrestart">Empezar de nuevo</button>`:""}</span></div>
     <div class="prog" aria-hidden="true">${prog}</div>
     ${state.note&&i===0?`<p class="small muted">${esc(state.note)}</p>`:""}
+    ${i===0&&!LS.get("idkUsed",false)&&!q.vf?`<p class="tipidk small">Si no sabes una, pulsa <b>«No lo sé»</b>. Es mejor que adivinar: así sabemos qué repasar y te lo explicamos.</p>`:""}
     <section class="card">
-      <span class="qtag">${esc(D.title)} · ${esc(q.t)}${q.retry?" · otra vez":""}</span>
+      <span class="qtag">${esc(D.title)} · ${esc(q.t)}${q.vf?" · ¿verdadero o falso?":q.retry?" · otra vez":""}</span>
+      ${q.vf?`<div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${vfStatement(q,q.vf)}</p>${listenBtn("qlisten")}</div>
+      <div class="opts" id="opts"><button class="opt" data-vf="1">Verdadero</button><button class="opt" data-vf="0">Falso</button></div>`:`
       <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${esc(q.q)}${q.n!==undefined&&!q.o&&/[×:−+]/.test(q.q)?" =":""}</p>${q.o?listenBtn("qlisten"):""}</div>${qImg(q)}
       ${q.opts?`<div class="opts" id="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`
-        :`<form class="numin" id="nf"><input id="nin" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Comprobar</button></form>`}
+        :`<form class="numin" id="nf"><input id="nin" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Comprobar</button></form>`}`}
       <div id="fb"></div><div id="fix"></div>
       <div class="row" id="after"><button class="idk" id="idk">No lo sé</button></div>
     </section></div>`;
   $("#app").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
   const right=q.o?q.o[0]:String(q.n);state.t0=Date.now();
-  const ql=$("#qlisten");if(ql)ql.addEventListener("click",()=>speak(q.q+". Las opciones son: "+q.opts.join(". ")));
+  const ql=$("#qlisten");if(ql)ql.addEventListener("click",()=>speak(q.vf?q.q.replace(/…$/,"")+" "+q.vf+". ¿Verdadero o falso?":q.q+". Las opciones son: "+q.opts.join(". ")));
   const showNext=()=>{$("#after").innerHTML=`<button class="btn" id="next">${i+1<qs.length?"Siguiente →":"Ver resultado"}</button>`;$("#next").addEventListener("click",()=>{state.i++;state.answered=false;state.fixing=false;viewQuiz(key)});$("#next").focus()};
   const finish=(res)=>{
     if(state.answered)return;state.answered=true;state.ans.push(res);qhRecord(q,res==="ok");if(res!=="ns")rushCheck(q);
     if(res!=="ok"&&!q.retry&&!q.gen&&!qs.some(x=>x.retry&&qkey(x)===qkey(q)))qs.push(Object.assign({},q,{retry:true,opts:q.o?shuffle(q.o):null}));
     const cls=res==="ok"?"ok":res==="ns"?"ns":"ko";
-    const head=res==="ok"?"¡Correcto!":"La respuesta correcta es: "+right;
-    $("#fb").innerHTML=`<div class="fb ${cls}"><strong>${esc(head)}</strong>${q.e?esc(q.e):""}</div>`;
+    if(res==="ns")LS.set("idkUsed",true);
+    const head=res==="ok"?"¡Correcto!":(res==="ns"?"Bien por decirlo: así sabemos qué repasar. ":"")+"La respuesta correcta es: "+right;
+    $("#fb").innerHTML=`<div class="fb ${cls}"><strong>${esc(head)}</strong>${EXPL[q.q]&&res!=="ok"?EXPL[q.q]:q.e?esc(q.e):""}</div>`;
     if(res==="ok"){beep(880,.15);showNext();return}
+    if(q.vf){showNext();return}
+    const pure=isPureTest();const rq=!pure&&q.t==="Redondeo"?redFromQ(q):null;
     state.fixing=true;$("#after").innerHTML="";
     /* Corregir antes de seguir: opciones reordenadas y sin marcar; hay que leer la explicación para elegir bien. */
     if(q.o){const re=shuffle(q.o);$("#opts").hidden=true;
-      $("#fix").innerHTML=`<p class="small"><b>Lee la explicación y elige ahora la respuesta correcta para seguir:</b></p><div class="opts">${re.map(o=>`<button class="opt">${esc(o)}</button>`).join("")}</div>`+profeHtml("profe-q");
-      $("#fix").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{if(b.textContent===right){b.classList.add("right");$("#fix").querySelectorAll(".opt").forEach(x=>x.disabled=true);beep(784,.12);showNext()}else{b.classList.add("wrong");b.disabled=true}}))}
-    else{$("#fix").innerHTML=`<p class="small"><b>Escribe ahora el resultado correcto para seguir:</b></p><form class="numin" id="ff"><input id="fin" inputmode="numeric" autocomplete="off" aria-label="Resultado correcto"><button class="btn">OK</button></form>`+profeHtml("profe-q");
-      $("#fin").focus();$("#ff").addEventListener("submit",e=>{e.preventDefault();if(+$("#fin").value.replace(/[^0-9]/g,"")===q.n){$("#fin").disabled=true;beep(784,.12);showNext()}else{$("#fin").value=""}})}
-    bindProfe("profe-q",D.title+" · "+q.t,()=>`Pregunta: ${q.q} | Respuesta correcta: ${right} | Explicación de la app: ${q.e||""}`);
+      $("#fix").innerHTML=(rq?`<div class="row"><button class="btn" id="qred">Hazlo paso a paso con este número</button></div>`:"")+`<p class="small"><b>Lee la explicación y elige ahora la respuesta correcta para seguir:</b></p><div class="opts">${re.map(o=>`<button class="opt">${esc(o)}</button>`).join("")}</div>`+(pure?"":profeHtml("profe-q"));
+      $("#fix").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{if(b.textContent===right){b.classList.add("right");$("#fix").querySelectorAll(".opt").forEach(x=>x.disabled=true);beep(784,.12);showNext()}else{b.classList.add("wrong");b.disabled=true;autoHelp()}}))}
+    else{$("#fix").innerHTML=`<p class="small"><b>Escribe ahora el resultado correcto para seguir:</b></p><form class="numin" id="ff"><input id="fin" inputmode="numeric" autocomplete="off" aria-label="Resultado correcto"><button class="btn">OK</button></form>`+(pure?"":profeHtml("profe-q"));
+      $("#fin").focus();$("#ff").addEventListener("submit",e=>{e.preventDefault();if(+$("#fin").value.replace(/[^0-9]/g,"")===q.n){$("#fin").disabled=true;beep(784,.12);showNext()}else{$("#fin").value="";autoHelp()}})}
+    if(!pure)bindProfe("profe-q",D.title+" · "+q.t,()=>`Pregunta: ${q.q} | Respuesta correcta: ${right} | Ha contestado: ${res==="ns"?"No lo sé":(state.pick||"?")} | Explicación de la app: ${q.e||""}`);
+    const qrd=$("#qred");if(qrd)qrd.addEventListener("click",()=>openRedondeoWith(rq,curHash));
   };
   if(state.answered&&state.fixing){state.answered=false;state.ans.pop()}
   const qr=$("#qrestart");if(qr)qr.addEventListener("click",()=>askConfirm("¿Empezar de nuevo?","Se borrarán las respuestas de esta prueba y empezarás desde la primera pregunta.","Sí, empezar de nuevo",()=>{state={};try{localStorage.removeItem("m1e:st:"+curHash)}catch(e){}viewQuiz(key)}));
-  if(q.opts){$("#opts").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
-    const val=q.opts[+b.dataset.o];const ok=val===q.o[0];
+  /* Ayuda sin tener que pedirla: segundo fallo en la misma pregunta → el profe le explica con un ejemplo */
+  function autoHelp(){if(isPureTest())return;state.autoN=state.autoN||0;if(state.autoN>=3)return;const pb=document.getElementById("profe-q");if(!pb||!pb._ask||pb.dataset.auto)return;pb.dataset.auto=1;state.autoN++;pb._open();pb._ask("Explícamelo con un ejemplo")}
+  if(q.vf){$("#opts").querySelectorAll("[data-vf]").forEach(b=>b.addEventListener("click",()=>{const said=b.dataset.vf==="1",truth=q.vf===right;const ok=said===truth;$("#opts").querySelectorAll(".opt").forEach(x=>x.disabled=true);b.classList.add(ok?"right":"wrong");finish(ok?"ok":"ko")}))}
+  else if(q.opts){$("#opts").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
+    const val=q.opts[+b.dataset.o];const ok=val===q.o[0];state.pick=val;
     $("#opts").querySelectorAll(".opt").forEach(x=>{x.disabled=true});
     b.classList.add(ok?"right":"wrong");finish(ok?"ok":"ko")}))}
   else{$("#nin").focus();$("#nf").addEventListener("submit",e=>{e.preventDefault();const v=$("#nin").value.replace(/[^0-9]/g,"");if(!v)return;$("#nin").disabled=true;finish(+v===q.n?"ok":"ko")})}
-  $("#idk").addEventListener("click",()=>{if(q.opts)$("#opts").querySelectorAll(".opt").forEach(x=>{x.disabled=true});finish("ns")});
+  $("#idk").addEventListener("click",()=>{if(q.opts||q.vf)$("#opts").querySelectorAll(".opt").forEach(x=>{x.disabled=true});finish("ns")});
 }
+function stuckCard(key,D,q){const right=q.o[0];const ex=EXPL[q.q]||esc(q.e||"");
+  $("#app").innerHTML=`<div data-s="${D.s}" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${state.i+1} de ${state.qs.length}</span></div>
+   <section class="card"><span class="qtag">${esc(D.title)} · ${esc(q.t)}</span><h2 style="margin:0">Esta se te resiste: vamos a verla con calma</h2>
+   <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${esc(q.q)}</p>${listenBtn("slisten")}</div>
+   <div class="fb ok"><strong>La respuesta es: ${esc(right)}</strong>${ex}</div>
+   <p class="small muted">Dentro de un rato te la vuelvo a preguntar de otra forma.</p>
+   <div class="row"><button class="btn" id="sgo">Entendido, sigo</button></div>${profeHtml("profe-s")}</section></div>`;
+  $("#app").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  $("#slisten").addEventListener("click",()=>speak(q.q+" La respuesta es: "+right+". "+ex.replace(/<[^>]+>/g,"")));
+  bindProfe("profe-s",D.title+" · "+q.t,()=>`Pregunta que se le resiste: ${q.q} | Respuesta correcta: ${right}`);
+  $("#sgo").addEventListener("click",()=>{const cand=Math.random()<.5?right:q.o[1+Math.floor(Math.random()*(q.o.length-1))];
+    state.qs.push(Object.assign({},q,{retry:true,vf:cand,opts:null}));state.ans.push("ns");logEvent({evento:"pregunta atascada explicada",materia:D.title,sub:q.q});state.i++;viewQuiz(key)});$("#sgo").focus()}
 function quizEnd(key,D){
   const all=state.qs,idx=all.map((q,j)=>j).filter(j=>!all[j].retry),qs=idx.map(j=>all[j]),ans=idx.map(j=>state.ans[j]),ok=ans.filter(a=>a==="ok").length,ns=ans.filter(a=>a==="ns").length;
   const fixed=all.filter((q,j)=>q.retry&&state.ans[j]==="ok").length,retr=all.filter(q=>q.retry).length;
@@ -1234,11 +1262,16 @@ function viewMCD(){
       <p class="small muted">En el examen escribe siempre las escaleras y la descomposición. Si no está el procedimiento, no puntúa.</p>
       <div class="row"><button class="btn" id="newp">Otro ejercicio</button></div>`;
   }
+  const sk=m.phase+m.idx+":"+m.cur+":"+m.pend;if(m.sk!==sk){m.sk=sk;m.t=0}
+  const hp=helpPanel("MCD y mcm",`MCD y mcm de ${A} y ${B} (${m.phase==="fact"?"descomponer "+m.nums[m.idx]:m.phase==="mcd"?"calcular el MCD":"calcular el mcm"})`,()=>{saveResult({key:"mcd",materia:"Receta MCD y mcm",sub:A+" y "+B+" (pendiente)",ok:0,total:1,ns:0,temas:{},fallos:[`MCD y mcm de ${A} y ${B}`],errores:m.errs,cuenta:false});state.m=null;viewMCD()});
+  const mwrong=(hints,solve,onGo)=>{m.t++;m.errs++;const fb=$("#mfb");
+    if(m.t>=3){fb.innerHTML=`<div class="fb ns"><strong>Te lo enseño:</strong>${solve}</div><button class="btn" id="mgo">Entendido, sigo</button>`;$("#mgo").addEventListener("click",()=>{m.helped=true;onGo()});$("#mgo").focus();return}
+    fb.innerHTML=`<div class="fb ko"><strong>Intento ${m.t} de 3: todavía no.</strong>${hints[Math.min(m.t-1,hints.length-1)]}</div>`;if(m.t===2){const hbx=$("#helpbox"),hbo=$("#hb-open");if(hbx&&hbx.hidden){hbx.hidden=false;hbo.hidden=true}}};
   $("#app").innerHTML=`<div data-s="mat" class="wrap" style="gap:16px">
     <button class="back" data-go="inicio">← Volver</button>
     <div class="top"><h1>MCD y mcm de ${A} y ${B}</h1><button class="btn ghost small" id="tb">${m.tablas?"Ocultar":"Ver"} tablas</button></div>
     ${m.tablas?`<div class="tablas">${[2,3,5,7].map(t=>`<div><b>Tabla del ${t}</b><br>${[1,2,3,4,5,6,7,8,9,10].map(k=>t+"×"+k+"="+t*k).join("<br>")}</div>`).join("")}</div>`:""}
-    <section class="card"><div class="ladders">${ladder(0)}${m.idx>=1||m.phase!=="fact"?ladder(1):""}</div>${step}</section>
+    <section class="card"><div class="ladders">${ladder(0)}${m.idx>=1||m.phase!=="fact"?ladder(1):""}</div>${step}${m.phase!=="done"?hp.html:""}</section>
     <section class="card"><div class="row"><button class="btn ghost" data-go="entender">No lo entiendo bien: explícamelo</button></div>${profeHtml("profe-mcd")}</section>
     <section class="card"><h3>La receta</h3><ol style="margin:0;padding-left:1.2em">
       <li>Haz la escalera de cada número: divide entre 2, 3, 5, 7… hasta llegar a 1.</li>
@@ -1249,15 +1282,17 @@ function viewMCD(){
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
   $("#tb").addEventListener("click",()=>{m.tablas=!m.tablas;viewMCD()});
   if(m.phase==="fact"&&!m.pend){a.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{const p=+b.dataset.p;
-    if(m.cur%p===0){m.pend=p;viewMCD()}else{m.errs++;m.ep=(m.ep||0)+1;$("#mfb").innerHTML=`<div class="fb ko"><strong>${m.cur} no se puede dividir entre ${p}.</strong>${CRIT[p]}</div>`}}))}
+    if(m.cur%p===0){m.pend=p;viewMCD()}else{m.ep=(m.ep||0)+1;const good=[2,3,5,7].find(q=>m.cur%q===0)||m.cur;
+      mwrong([`${m.cur} no se puede dividir entre ${p}. ${CRIT[p]}`,`${m.cur} no se puede dividir entre ${p}. Prueba los primos en orden: primero 2, luego 3, luego 5, luego 7.`],`${m.cur} se puede dividir entre <b>${good}</b>. ${CRIT[good]||""}`,()=>{m.pend=good;viewMCD()})}}))}
   const qf=$("#qf");
   if(qf){$("#qin").focus();qf.addEventListener("submit",e=>{e.preventDefault();const v=+$("#qin").value.replace(/[^0-9]/g,"");if(!v)return;
     if(m.phase==="fact"){const r=m.cur/m.pend;if(v===r){m.rows[m.idx].push(m.pend);m.cur=r;m.pend=null;beep(880,.12);
         if(r===1){if(m.idx===0){m.idx=1;m.cur=B}else{m.phase="mcd"}}viewMCD()}
-      else{m.errs++;m.ed=(m.ed||0)+1;$("#mfb").innerHTML=`<div class="fb ko"><strong>Casi. Prueba otra vez.</strong>Truco: ¿qué número por ${m.pend} da ${m.cur}? Puedes abrir «Ver tablas».</div>`}}
-    else if(m.phase==="mcd"){const r=mcdVal(fA,fB);if(v===r){m.phase="mcm";beep(880,.12);viewMCD()}else{m.errs++;m.eg=(m.eg||0)+1;$("#mfb").innerHTML=`<div class="fb ko"><strong>No es ${v}.</strong>Pulsa «Ayuda» para ver cómo se hace.</div>`}}
-    else if(m.phase==="mcm"){const r=mcmVal(fA,fB);if(v===r){m.phase="done";beep(990,.25);saveResult({key:"mcd",materia:"Receta MCD y mcm",sub:A+" y "+B,ok:1,total:1,ns:0,temas:{},fallos:[],errores:m.errs,det:{d:m.ed||0,p:m.ep||0,g:m.eg||0,l:m.el||0}});viewMCD()}else{m.el=(m.el||0)+1;m.errs++;$("#mfb").innerHTML=`<div class="fb ko"><strong>No es ${v}.</strong>Pulsa «Ayuda» para ver cómo se hace.</div>`}}
+      else{m.ed=(m.ed||0)+1;mwrong([`Truco: ¿qué número multiplicado por ${m.pend} da ${m.cur}? Puedes abrir «Ver tablas».`,`Busca en la tabla del ${m.pend} el resultado ${m.cur}: el número por el que multiplicas es la respuesta.`],`${m.cur} : ${m.pend} = <b>${r}</b>, porque ${m.pend} × ${r} = ${m.cur}.`,()=>{m.rows[m.idx].push(m.pend);m.cur=r;m.pend=null;if(r===1){if(m.idx===0){m.idx=1;m.cur=B}else{m.phase="mcd"}}viewMCD()})}}
+    else if(m.phase==="mcd"){const r=mcdVal(fA,fB);if(v===r){m.phase="mcm";beep(880,.12);viewMCD()}else{m.eg=(m.eg||0)+1;const f=mcdF(fA,fB);mwrong([`No es ${v}. Rodea los primos que aparecen en <b>los dos</b> números.`,`No es ${v}. De cada primo común, coge el exponente <b>más pequeño</b> y multiplica. También puedes pulsar «Ayuda».`],factTable(A,B)+`MCD = ${factStr(f)||"1"} = <b>${r}</b><br>${mulSteps(f)}`,()=>{m.phase="mcm";viewMCD()})}}
+    else if(m.phase==="mcm"){const r=mcmVal(fA,fB);if(v===r){m.phase="done";beep(990,.25);saveResult({key:"mcd",materia:"Receta MCD y mcm",sub:A+" y "+B+(m.helped?" (con ayuda)":""),ok:m.helped?0:1,total:1,ns:0,temas:{},fallos:m.helped?[`MCD y mcm de ${A} y ${B}`]:[],cuenta:!m.helped,errores:m.errs,det:{d:m.ed||0,p:m.ep||0,g:m.eg||0,l:m.el||0}});viewMCD()}else{m.el=(m.el||0)+1;const f=mcmF(fA,fB);mwrong([`No es ${v}. En el mcm entran <b>todos</b> los primos, estén en uno o en los dos.`,`No es ${v}. De cada primo, coge el exponente <b>más grande</b> y multiplica. También puedes pulsar «Ayuda».`],factTable(A,B)+`mcm = ${factStr(f)} = <b>${r}</b><br>${mulSteps(f)}<br>Escríbelo para terminar.`,()=>{$("#mfb").innerHTML="";$("#qin").value="";$("#qin").focus()})}}
   })}
+  if(m.phase!=="done")hp.bind(()=>`Está haciendo el MCD y el mcm de ${A} y ${B}. Paso actual: ${m.phase==="fact"?"descomponer en factores":m.phase}. No le des el resultado final; guíale.`);
   bindProfe("profe-mcd","MCD y mcm (1º ESO)",()=>`Está haciendo el MCD y el mcm de ${A} y ${B}. Paso actual: ${m.phase==="fact"?"descomponer en factores":m.phase}. No le des el resultado final; guíale.`);
   const hb=$("#hint");if(hb)hb.addEventListener("click",()=>{const f=m.phase==="mcd"?mcdF(fA,fB):mcmF(fA,fB);$("#mfb").innerHTML=factTable(A,B)+`<div class="fb ns"><strong>${m.phase==="mcd"?"MCD":"mcm"} = ${factStr(f)||"1"}</strong>${mulSteps(f)}</div>`});
   const np=$("#newp");if(np)np.addEventListener("click",()=>{state.m=null;viewMCD()});
@@ -1540,20 +1575,23 @@ function blockMatches(t,key){const k=blockKey(t);if(!k)return false;if(k===key)r
 
 /* ---------- Profe (IA) ---------- */
 function profeHtml(id){return cfg().url?`<div class="profe" id="${id}"><button class="btn ghost small" data-profe-open>Pregúntale al profe</button><div data-profe-body hidden>
-  <div class="profe-log" data-profe-log></div><form class="row" data-profe-form><input class="txtin" data-profe-q placeholder="Escribe tu duda…" aria-label="Tu duda" style="flex:1;min-width:0;max-width:none"><button class="btn small">Enviar</button></form>
+  <div class="row profe-chips">${["No entiendo la pregunta","¿Por qué está mal lo que he puesto?","Explícamelo con un ejemplo"].map(t=>`<button type="button" class="chip" data-profe-chip>${t}</button>`).join("")}</div><div class="profe-log" data-profe-log></div><form class="row" data-profe-form><input class="txtin" data-profe-q placeholder="Escribe tu duda…" aria-label="Tu duda" style="flex:1;min-width:0;max-width:none"><button class="btn small">Enviar</button></form>
   <p class="small muted">El profe te ayuda a entenderlo, pero no te hace los ejercicios.</p></div></div>`:""}
 const PROFE_MAX=6;
 function bindProfe(id,tema,getCtx){const box=document.getElementById(id);if(!box)return;const st={hist:[],n:0};
-  box.querySelector("[data-profe-open]").addEventListener("click",e=>{e.target.hidden=true;box.querySelector("[data-profe-body]").hidden=false;box.querySelector("[data-profe-q]").focus()});
+  const openB=()=>{box.querySelector("[data-profe-open]").hidden=true;box.querySelector("[data-profe-body]").hidden=false};box._open=openB;
+  box.querySelector("[data-profe-open]").addEventListener("click",()=>{openB()});
   const log=box.querySelector("[data-profe-log]");
   const add=(who,txt)=>{const d=document.createElement("div");d.className="pmsg "+who;d.textContent=txt;log.appendChild(d);d.scrollIntoView({block:"nearest"})};
-  box.querySelector("[data-profe-form]").addEventListener("submit",async e=>{e.preventDefault();const inp=box.querySelector("[data-profe-q]");const q=inp.value.trim();if(!q)return;
+  const ask=async q=>{const inp=box.querySelector("[data-profe-q]");
     if(st.n>=PROFE_MAX){add("bot","Ya hemos hablado mucho de esto. Prueba a hacer el ejercicio y, si sigues con dudas, pregúntale a papá o mamá.");return}
     st.n++;inp.value="";add("me",q);const wait=document.createElement("div");wait.className="pmsg bot";wait.textContent="Pensando…";log.appendChild(wait);
     const c=cfg();
     try{const res=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"profe",disp:deviceInfo(),clave:c.clave||"",alumno:c.alumno||"",tema,contexto:getCtx?getCtx():"",pregunta:q,historial:st.hist.slice(-6)})});
       const j=await res.json();if(j.error==="clave"){authFailed();return}wait.remove();const r=j.respuesta||"No he podido contestar. Prueba otra vez.";add("bot",r);st.hist.push({role:"user",content:q},{role:"assistant",content:r})}
-    catch(err){wait.remove();add("bot","No hay conexión con el profe ahora mismo. Pregúntale a papá o mamá.")}});
+    catch(err){wait.remove();add("bot","No hay conexión con el profe ahora mismo. Pregúntale a papá o mamá.")}};box._ask=ask;
+  box.querySelectorAll("[data-profe-chip]").forEach(c=>c.addEventListener("click",()=>ask(c.textContent)));
+  box.querySelector("[data-profe-form]").addEventListener("submit",e=>{e.preventDefault();const q=box.querySelector("[data-profe-q]").value.trim();if(q)ask(q)});
 }
 
 /* ---------- Entender el MCD y el mcm ---------- */
@@ -1774,19 +1812,19 @@ function validatePlan(p,d){if(!p||!Array.isArray(p.bloques))return null;const ca
     out.push([x.asig,texto,min,act||undefined,R,pr,tn])}
   out.sort((a,b)=>a[6]-b[6]);return out.length?{b:out,nota:String(p.nota||"").slice(0,300)}:null}
 const BASE={};PLAN.forEach(d=>{BASE[d.d]=d.b.map(x=>x.slice())});
-function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan3:"+d.d,null);const off=LS.get("aioff:"+d.d,false);
+function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan4:"+d.d,null);const off=LS.get("aioff:"+d.d,false);
   const started=d.b.some((b,i)=>planDone[d.d+"#"+i]||prog[d.d+"#"+i]);
-  if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan3:"+d.d,ai)}}
+  if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan4:"+d.d,ai)}}
   else{d.b=BASE[d.d].map(x=>x.slice());d.ai=false}})}
 let aiBusy=false;
 async function requestAIPlan(ds,force){const c=cfg();const d=PLAN.find(p=>p.d===ds);if(!c.url||!d||!d.b.length||aiBusy||!navigator.onLine)return;
-  const forceSrv=force||!LS.get("aiplan3:"+ds,null);if(!force){if(LS.get("aiplan3:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
+  const forceSrv=force||!LS.get("aiplan4:"+ds,null);if(!force){if(LS.get("aiplan4:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
   aiBusy=true;
   try{const base=BASE[ds].map(b=>`${b[0]} | ${b[1]} | ${b[2]} min | ${b[3]||""}`).join("\n");
     const res=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"plan",disp:deviceInfo(),clave:c.clave||"",fecha:ds,forzar:forceSrv,
       datos:`DÍA A PLANIFICAR: ${d.t}, ${ds}${d.exam?" (hoy por la mañana tiene examen de "+SNAME[d.exam]+")":""}\nMINUTOS MÁXIMOS: ${dayCap(d)}\n${dayKind(d)==="largo"?"ORGANIZACIÓN: día largo, 3 tandas (mañana, mediodía, tarde) de 25 a 35 minutos cada una, con descanso entre ellas.":"ORGANIZACIÓN: día de cole, tanda 1 al llegar del cole (máximo "+tandaCaps(d)[1]+" min) y tanda 2 por la noche: repaso que pueda hacer sola (máximo 20 min, 1 o 2 bloques cuyo texto empiece por «Repaso:»)."}\nAÑADE A CADA BLOQUE el campo "tanda" (número). Cada tanda tiene 2 o 3 bloques. No pases de 25 minutos por bloque.\n\nPLAN BASE PREVISTO PARA ESE DÍA:\n${base}\n\nEVOLUCIÓN HASTA AHORA:\n${compactStats(ds)}\n\nOBLIGATORIO (inclúyelos tal cual, con su "act" y "param"):\n${mandatory(ds).map(m=>`- ${m[1]} · act "${m[3]}" · param ${JSON.stringify(m[5])} · ${m[2]} min`).join("\n")||"- nada"}\n\n${CATALOGO}`})});
     const j=await res.json();if(j.error==="clave"){authFailed();return}let v=validatePlan(j.plan,d);if(v)v=injectMandatory(v,d,ds);
-    if(v){LS.set("aiplan3:"+ds,v);if(force)LS.set("aioff:"+ds,false);logEvent({evento:"plan IA",materia:ds,texto:v.b.map(b=>b[1]+" ("+b[2]+" min)").join(" · ")+" — "+v.nota})}else LS.set("aifail:"+ds,Date.now())}
+    if(v){LS.set("aiplan4:"+ds,v);if(force)LS.set("aioff:"+ds,false);logEvent({evento:"plan IA",materia:ds,texto:v.b.map(b=>b[1]+" ("+b[2]+" min)").join(" · ")+" — "+v.nota})}else LS.set("aifail:"+ds,Date.now())}
   catch(e){LS.set("aifail:"+ds,Date.now())}finally{aiBusy=false;applyAIPlans();softRender()}}
 function tomorrowStr(){const t=new Date();t.setDate(t.getDate()+1);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")}
 async function aiTick(){const t=todayStr(),d=PLAN.find(p=>p.d===t);await requestAIPlan(t);
@@ -1807,7 +1845,7 @@ function viewInforme(){
   a.querySelector("h1").textContent="Informe";
   const t=tomorrowStr(),dt=PLAN.find(p=>p.d===t),dd=PLAN.find(p=>p.d===todayStr());
   const planCard=document.createElement("section");planCard.className="card";
-  const show=(d,label)=>{if(!d)return "";const ai=LS.get("aiplan3:"+d.d,null),off=LS.get("aioff:"+d.d,false);
+  const show=(d,label)=>{if(!d)return "";const ai=LS.get("aiplan4:"+d.d,null),off=LS.get("aioff:"+d.d,false);
     return `<h3>${label}: ${esc(d.t)} ${new Date(d.d+"T12:00").getDate()}</h3>${ai?`<p class="small">${off?"Usando el plan base.":"Plan adaptado por la IA."} ${ai.nota?esc(ai.nota):""}</p>
       <ol class="small" style="margin:0;padding-left:1.2em">${ai.b.map(b=>`<li>${esc(b[1])} · ${b[2]} min${b[4]>1?" · "+b[4]+" "+unitFor(b,b[4]):""}</li>`).join("")}</ol>
       <div class="row"><button class="btn ghost small" data-aitog="${d.d}">${off?"Usar el plan de la IA":"Volver al plan base"}</button><button class="btn ghost small" data-aire="${d.d}">Pedir otro plan</button></div>`
@@ -2127,21 +2165,65 @@ function viewFichaPasos(id){const f=FICHAS[id];const a=$("#app");const md=t=>esc
   const ft=$("#ftest");if(ft)ft.addEventListener("click",()=>{const T=FTEST[id];const bp0=LS.get("bp",null);LS.set("bp",{target:"diag-"+T[0],params:{temas:T[1],n:7},blk:bp0&&bp0.blk||null});logEvent({evento:"ficha leída",materia:f.title,detalle:"errores en comprobaciones: "+st.err});go("diag-"+T[0])});
 }
 
+/* ---------- Preguntas atascadas: explicación de verdad y otra forma de preguntarlas ---------- */
+const EXPL={
+"¿Qué roca se forma cuando el magma se enfría rápido en la superficie?":"Si el magma se enfría <b>rápido</b>, fuera, en un volcán, los cristales no tienen tiempo de crecer y sale una roca de grano muy fino: el <b>basalto</b>. Si se enfría <b>despacio</b>, dentro de la Tierra, los cristales crecen y se ven bien: el <b>granito</b>. Truco: <b>b</b>asalto, <b>b</b>rusco (rápido).",
+"El granito está formado por…":"Mira un trozo de granito: tiene puntitos de tres tipos. Los grises y brillantes son <b>cuarzo</b>, los blancos o rosados son <b>feldespato</b> y los negros que brillan son <b>mica</b>. Como tiene varios minerales, es una roca heterogénea. Truco: <b>C</b>uarzo, <b>F</b>eldespato, <b>M</b>ica → «<b>C</b>ome <b>F</b>resas con <b>M</b>iel».",
+"La corteza continental está formada sobre todo por…":"Los continentes están hechos de una roca más ligera, el <b>granito</b>. El fondo del mar es de <b>basalto</b>, más pesado, que sale por los volcanes del fondo marino. Para recordarlo: continente → granito; océano → basalto.",
+"Una roca formada por un solo mineral, como el mármol, es…":"<b>Homo</b> significa «igual»: toda la roca es del mismo mineral, como el mármol. <b>Hetero</b> significa «distinto»: varios minerales mezclados, como el granito. Un solo mineral → <b>homogénea</b>.",
+"Las dorsales oceánicas son…":"Son grietas enormes en el fondo del mar. Por ellas sale magma que, al enfriarse en el agua, forma <b>basalto</b> nuevo. Por eso el fondo del océano es de basalto.",
+"¿Cuál es la capa más densa de la Tierra?":"«Densa» quiere decir mucha materia apretada en poco sitio. Cuanto más hacia el centro, más densa. El <b>núcleo interno</b> es de hierro y níquel y soporta tanta presión que es sólido: es la capa más densa.",
+"La sal de cocina es el mineral llamado…":"La sal de cocina es la <b>halita</b>. Truco: «hals» significa «sal» en griego; halita = sal.",
+"El campo magnético de la Tierra sirve para…":"La Tierra funciona como un imán gigante. Ese campo magnético hace de <b>escudo</b> contra la radiación dañina del Sol. Las mareas no son cosa del magnetismo: las provoca la Luna.",
+"Los minerales más abundantes de la corteza son…":"Los dos elementos que más hay en la corteza son el oxígeno y el silicio. Juntos forman los <b>silicatos</b> (cuarzo, feldespato, mica…), que son la gran mayoría de la corteza.",
+"¿Qué grosor tiene la corteza oceánica?":"La corteza oceánica es <b>fina</b>: entre 5 y 10 km. La continental es mucho más gruesa: entre 35 y 70 km. Océano → fina; continente → gruesa.",
+"La erosión, el transporte y la sedimentación son la fase … del ciclo de las rocas.":"La erosión, el transporte y la sedimentación pasan <b>fuera</b>, en la superficie, por el agua, el viento o el hielo: es la fase <b>externa</b>. Lo que pasa dentro (magma, calor, presión) es la fase interna.",
+"La galena tiene brillo…":"La galena tiene plomo y brilla como un metal: brillo <b>metálico</b>. El cuarzo brilla como el cristal (vítreo) y el feldespato tiene un brillo como de leche (lechoso).",
+"Cuando la placa oceánica se mete debajo de la continental, se llama…":"«Sub» significa «debajo», como en <i>submarino</i>. La placa oceánica, más pesada, se mete <b>debajo</b> de la continental: <b>sub</b>ducción. Al rozar, hay terremotos y volcanes.",
+"El 1 es … de todos los números":"Cualquier número se puede dividir entre 1 sin que sobre nada (7 : 1 = 7). Por eso el 1 es <b>divisor</b> de todos los números."};
+function isStuck(q){if(q.gen||!q.o)return false;const h=qhGet()[qkey(q)]||[];return h.filter(x=>x===0).length>=2&&h[h.length-1]===0}
+function stuckList(){const h=qhGet();const out=[];Object.keys(DIAG).forEach(k=>DIAG[k].qs&&DIAG[k].qs.forEach(q=>{if(isStuck(q))out.push({k,q,n:(h[qkey(q)]||[]).filter(x=>x===0).length})}));return out}
+function vfStatement(q,cand){const s=q.q.trim();if(!s.includes("…"))return esc(s)+" → <b>"+esc(cand)+"</b>";const c=/^[A-ZÁÉÍÓÚ][a-záéíóúñ]/.test(cand)&&!/^(El|La|Los|Las)$/.test(cand)?cand[0].toLowerCase()+cand.slice(1):cand;return esc(s).replace("…"," <b>"+esc(c)+"</b>").replace(/\s+/g," ").replace(/ <b>/,"&nbsp;<b>").replace(/^&nbsp;/,"")}
+function isPureTest(){return !state.mini||state.mini==="prueba de nivel"}
+/* Pregunta de redondeo → entrenador paso a paso con ese mismo número */
+const REDPOS=[["decena de millón",7],["unidad de millón",6],["millón",6],["centena de millar",5],["decena de millar",4],["unidad de millar",3],["millar",3],["centena",2],["decena",1]];
+function redFromQ(q){const m=/Redondea ([\d.]+) a(?:l| la) (.+)$/.exec(q.q);if(!m)return null;const n=+m[1].replace(/\./g,"");const pos=REDPOS.find(x=>m[2].startsWith(x[0]));if(!pos||!n||String(n).length<=pos[1])return null;return {n,p:pos[1]}}
+function openRedondeoWith(it,ret){LS.set("st:redondeo",{r:{items:[it],i:0,step:0,ok:0,fails:[],tries:0,ret}});go("redondeo")}
+/* Mi progreso */
+function viewProgreso(){const a=$("#app");const rows=[];
+  const order=["bio1","bio2","len1","len2","ing1","ing2","mat0","mat1","gh1","gh2"];
+  order.forEach(k=>{const rs=results.filter(r=>r.key===k&&r.total);if(!rs.length)return;const first=rs[rs.length-1];const rec=rs.slice(0,Math.min(3,rs.length-1||1));
+    const f=Math.round(first.ok/first.total*10),n=Math.round(rec.reduce((s,r)=>s+r.ok/r.total,0)/rec.length*10);rows.push({t:DIAG[k].title,s:DIAG[k].s,f,n,one:rs.length===1})});
+  const tb=results.filter(r=>r.key==="tablas"&&r.total);if(tb.length){const first=tb[tb.length-1];const rec=tb.slice(0,Math.min(3,tb.length-1||1));rows.push({t:"Tablas",s:"mat",f:Math.round(first.ok/first.total*10),n:Math.round(rec.reduce((s,r)=>s+r.ok/r.total,0)/rec.length*10),one:tb.length===1})}
+  const bloques=Object.keys(planDone).filter(k=>planDone[k]).length;
+  const bar=(v,cls)=>`<div class="pbar"><i class="${cls}" style="width:${v*10}%"></i></div>`;
+  a.innerHTML=`<div class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Mi progreso</h1>
+   ${bloques?`<section class="card"><p>Bloques de estudio terminados: <b>${bloques}</b>. Cada uno cuenta.</p></section>`:""}
+   ${rows.length?rows.map(r=>`<section class="card" data-s="${r.s}"><h3>${esc(r.t)}</h3>
+     <div class="pgrow"><span class="small">Al empezar</span>${bar(r.f,"pf")}<b>${r.f} de cada 10</b></div>
+     ${r.one?`<p class="small muted">Cuando vuelvas a practicarlo, aquí verás cuánto has mejorado.</p>`:`<div class="pgrow"><span class="small">Ahora</span>${bar(r.n,"pn")}<b>${r.n} de cada 10</b></div>
+     <p class="small">${r.n>r.f?`Has subido ${r.n-r.f} ${r.n-r.f===1?"punto":"puntos"}. Es lo que pasa cuando practicas paso a paso.`:r.n===r.f?"Igual que al empezar: toca practicarlo con calma, paso a paso.":"Ahora estás practicando lo más difícil, así que es normal que baje un poco."}</p>`}</section>`).join(""):'<section class="card"><p>Cuando hagas tus primeras pruebas, aquí verás cómo vas mejorando.</p></section>'}
+   <p class="small muted">«Ahora» es la media de tus últimas veces.</p></div>`;
+  a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)))}
+
 /* ---------- Pendientes para repasar con papá o mamá ---------- */
 function addPending(materia,detalle){const L=LS.get("pend",[]);L.push({id:"p"+Date.now(),ts:Date.now(),materia,detalle});LS.set("pend",L);logEvent({evento:"pendiente para repasar con un adulto",materia,sub:detalle})}
 function pendingList(){return LS.get("pend",[])}
 function resolvePending(id){const L=pendingList();const it=L.find(x=>x.id===id);LS.set("pend",L.filter(x=>x.id!==id));if(it)logEvent({evento:"pendiente resuelto",materia:it.materia,sub:it.detalle})}
-function helpPanel(materia,detalle,onSkip){return {html:`<div class="helpbox" id="helpbox" hidden><p><b>Pide ayuda a papá o mamá.</b> Enséñales este ejercicio.</p>
-  <div class="row"><button class="btn small" id="hb-ok" type="button">Ya me han ayudado, sigo</button><button class="btn ghost small" id="hb-skip" type="button">No están: dejarlo pendiente y pasar al siguiente</button></div>${profeHtml("profe-help")}</div>
-  <button class="helpbtn" id="hb-open" type="button">🙋 Necesito ayuda</button>`,
+function helpPanel(materia,detalle,onSkip,open){return {html:`<div class="helpbox" id="helpbox" ${open?"":"hidden"}><p><b>Vamos a verlo con alguien.</b> Si papá o mamá están cerca, enséñales este paso. Si no, pregúntale al profe aquí abajo o déjalo para verlo juntos más tarde.</p>
+  <div class="row"><button class="btn small" id="hb-ok" type="button">Ya lo he visto con ellos, sigo</button><button class="btn ghost small" id="hb-skip" type="button">Dejarlo para verlo juntos y pasar al siguiente</button></div>${profeHtml("profe-help")}</div>
+  <button class="helpbtn" id="hb-open" type="button" ${open?"hidden":""}>🙋 Necesito ayuda</button>`,
   bind(ctx){$("#hb-open").addEventListener("click",()=>{$("#helpbox").hidden=false;$("#hb-open").hidden=true});$("#hb-ok").addEventListener("click",()=>{$("#helpbox").hidden=true;$("#hb-open").hidden=false});
     $("#hb-skip").addEventListener("click",()=>{addPending(materia,detalle);onSkip()});bindProfe("profe-help",materia,ctx)}}}
 
 /* ---------- Entrenador de redondeo (versión 2, con pasos guiados, pistas crecientes y salida) ---------- */
-const POS=[["U","unidades",1],["D","decenas",10],["C","centenas",100],["UM","unidades de millar",1e3],["DM","decenas de millar",1e4],["CM","centenas de millar",1e5],["UMi","unidades de millón",1e6],["DMi","decenas de millón",1e7]];
+const POS=[["U","unidades",1],["D","decenas",10],["C","centenas",100],["UM","unidades de millar",1e3],["DM","decenas de millar",1e4],["CM","centenas de millar",1e5],["UMi","unidades de millón",1e6],["DMi","decenas de millón",1e7],["CMi","centenas de millón",1e8],["UMM","unidades de millar de millón",1e9]];
 function newRedItem(){const p=1+Math.floor(Math.random()*5);const len=Math.min(8,p+2+Math.floor(Math.random()*3));let n=0;for(let i=0;i<len;i++)n=n*10+(i===0?1+Math.floor(Math.random()*9):Math.floor(Math.random()*10));return {n,p}}
 function fmtN(n){return n.toLocaleString("es-ES")}
 function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4].map(newRedItem),i:0,step:0,ok:0,fails:[],tries:0};const r=state.r;
+  if(r.i>=r.items.length&&r.ret){const ret=r.ret,itx=r.items[0],ok=r.ok;if(!r.saved){r.saved=true;logEvent({evento:"redondeo paso a paso desde una pregunta",materia:"Redondeo",sub:fmtN(itx.n)+" a las "+POS[itx.p][1]+(ok?" (sin ayuda)":" (con pistas)")})}
+    a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><h1>Redondeo</h1><section class="card"><p>${ok?"¡Bien! Te ha salido a la primera.":"Hecho. Ya has visto cómo se hace paso a paso."} Sigue con el test: esa pregunta te volverá a salir al final, para que la contestes tú.</p><div class="row"><button class="btn" id="rback">Seguir con el test</button></div></section></div>`;
+    $("#rback").addEventListener("click",()=>{state.r=null;try{localStorage.removeItem("m1e:st:redondeo")}catch(e){}go(ret)});return}
   if(r.i>=r.items.length){if(!r.saved){r.saved=true;saveResult({key:"redondeo",materia:"Redondeo",sub:"valor de posición y redondeo",ok:r.ok,total:r.items.length,ns:0,temas:{},fallos:r.fails,cuenta:r.ok>=3})}
     a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Redondeo</h1><section class="card"><span class="big">${r.ok}/${r.items.length}</span><p>${r.ok===r.items.length?"¡Perfecto! Te ha salido todo a la primera.":r.ok>=3?"¡Bien! Esta ronda cuenta.":"Esta ronda no cuenta todavía: necesitas 3 de 5 sin ayuda. ¡Otra!"}</p>${r.fails.length?`<p class="small">Para repasar: ${r.fails.map(esc).join(" · ")}</p>`:""}<div class="row"><button class="btn" id="rag">Otra ronda</button></div></section></div>`;
     a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#rag").addEventListener("click",()=>{state.r=null;viewRedondeo()});return}
@@ -2158,7 +2240,7 @@ function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4]
     carry?`La cifra <span class="tag-or">naranja</span> es un 9 y tiene que subir. ¿Qué pasa?`:`La cifra <span class="tag-or">naranja</span> es un <b>${tD}</b>. ${up?"Como la azul es 5 o más, sube 1.":"Como la azul es menos de 5, se queda igual."} ¿En qué número se convierte?`,
     `Ahora todas las cifras a la derecha de la naranja se convierten en <b>0</b>. Así queda el número (fila de abajo). Escríbelo:`][r.step];
   const C0="Se convierte en 0 y la cifra de su izquierda sube 1";const opts3=carry?shuffle([C0,"Se queda en 9","Se convierte en 10 y no pasa nada más"]):shuffle([...new Set([up?tD+1:tD,up?tD:tD+1,Math.max(0,tD-1)])]).map(String);
-  const h=helpPanel("Redondeo",`Redondear ${fmtN(it.n)} a las ${P[1]}`,()=>{r.fails.push(`${fmtN(it.n)} a las ${P[1]} = ${fmtN(res)} (pendiente)`);r.i++;r.step=0;r.tries=0;r.bad=false;r.hintCol=false;viewRedondeo()});
+  const h=helpPanel("Redondeo",`Redondear ${fmtN(it.n)} a las ${P[1]}`,()=>{r.fails.push(`${fmtN(it.n)} a las ${P[1]} = ${fmtN(res)} (pendiente)`);r.i++;r.step=0;r.tries=0;r.bad=false;r.hintCol=false;r.msg="";viewRedondeo()},r.tries===2);
   a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">Número ${r.i+1} de ${r.items.length} · paso ${Math.min(r.step+1,5)} de 5</span></div>
    <h1>Redondea ${fmtN(it.n)} a las ${P[1]}</h1>
    <section class="card"><div class="scroll"><table class="pv"><tr>${heads}</tr><tr>${cellsTop}</tr>${resRow}</table></div>
@@ -2173,7 +2255,7 @@ function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4]
   const next=()=>{r.step++;r.tries=0;r.msg="";r.hintCol=false;r.show=false;viewRedondeo()};
   const wrong=(hints,solve)=>{r.tries++;r.bad=true;const n=r.tries;
     if(n>=3){r.show=true;r.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>${solve}</div>`;viewRedondeo();setTimeout(()=>{const fb=$("#rfb");if(fb){fb.insertAdjacentHTML("beforeend",`<button class="btn" id="rgo">Entendido, sigo</button>`);$("#rgo").addEventListener("click",next)}},50);return}
-    r.msg=`<div class="fb ko shake"><strong>Intento ${n} de 3: todavía no.</strong>${hints[Math.min(n-1,hints.length-1)]}</div>`;if(r.step===0&&n>=2)r.hintCol=true;viewRedondeo()};
+    r.msg=`<div class="fb ko"><strong>Intento ${n} de 3: todavía no.</strong>${hints[Math.min(n-1,hints.length-1)]}</div>`;if(r.step===0&&n>=2)r.hintCol=true;viewRedondeo()};
   if(r.step<=1)a.querySelectorAll(".dg").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.k;
     if(r.step===0){if(k===kT)next();else wrong([`Esa es la de las ${POS[pos(k)][1]} (${POS[pos(k)][0]}). Busca la columna que pone <b>${P[0]}</b>.`,`Mira la columna que parpadea: pone <b>${P[0]}</b>. Toca la cifra que hay debajo.`],`Es el <b>${tD}</b>, debajo de <b>${P[0]}</b>.`)}
     else{if(k===kR)next();else wrong(["Es la que está pegada a la naranja, por su lado derecho.","Pon el dedo en la naranja y muévelo una casilla a la derecha."],`Es el <b>${look}</b>, justo a la derecha de la naranja.`)}}));
@@ -2194,10 +2276,13 @@ function mandatory(ds){const d=PLAN.find(p=>p.d===ds);if(!d)return [];const out=
   return out}
 function injectMandatory(v,d,ds){const M=mandatory(ds);const tc=tandaCaps(d);const T=Object.keys(tc).map(Number);const used={};v.b.forEach(b=>{used[b[6]]=(used[b[6]]||0)+b[2]});
   const has=m=>v.b.some(b=>b[3]===m[3]&&(!m[3].startsWith("diag:")||!!(b[5]&&b[5].nivel)===!!(m[5]&&m[5].nivel)));
+  M.forEach(m=>v.b.forEach(b=>{if(b[3]===m[3])b.mand=true}));
   M.forEach(m=>{if(has(m))return;
     const pref=m[5]&&m[5].nivel?T.slice().reverse():T;/* pruebas de nivel: mejor en la última tanda; Mates: en la primera */
     let t=pref.find(k=>(used[k]||0)+m[2]<=tc[k]);
-    if(t===undefined){t=pref[0];while((used[t]||0)+m[2]>tc[t]){const cand=v.b.map((b,j)=>j).filter(j=>v.b[j][6]===t&&!v.b[j].mand);if(!cand.length)break;
+    if(t===undefined){t=pref[0];/* primero acortar bloques (mínimo 8 min) y solo si no basta, quitar */
+      let guard=0;while((used[t]||0)+m[2]>tc[t]&&guard++<60){const sh=v.b.filter(b=>b[6]===t&&!b.mand&&b[2]>8).sort((x,y)=>y[2]-x[2])[0];if(!sh)break;sh[2]--;used[t]--}
+      while((used[t]||0)+m[2]>tc[t]){const cand=v.b.map((b,j)=>j).filter(j=>v.b[j][6]===t&&!v.b[j].mand);if(!cand.length)break;
       cand.sort((x,y)=>examDays(v.b[y][0],ds)-examDays(v.b[x][0],ds));const i=cand[0];used[t]-=v.b[i][2];v.b.splice(i,1)}}
     const nb=m.concat([t]);nb.mand=true;v.b.push(nb);used[t]=(used[t]||0)+m[2]});
   v.b.sort((a,b)=>a[6]-b[6]);return v}
@@ -2303,12 +2388,13 @@ function viewFamily(){
    <div class="reslist">${results.length?results.map(r=>`<div class="res"><b>${esc(r.materia)}${r.total?" · "+r.ok+"/"+r.total:""}</b><span class="small muted">${esc(r.sub)} · ${new Date(r.ts).toLocaleString("es-ES",{weekday:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}${r.ns?" · "+r.ns+" «no lo sé»":""}</span></div>`).join(""):'<p class="muted">Todavía no hay resultados. Aparecerán al terminar cada prueba.</p>'}</div>
    <label for="sumtx" class="small muted">Resumen para copiar</label><textarea id="sumtx" readonly>${esc(summaryText())}</textarea>
    <div class="row"><button class="btn" id="copy">Copiar resumen</button><span id="copied" class="small muted"></span></div></section>
-   <section class="card"><h2>Pendiente de repasar con ella</h2>${pendingList().length?`<p class="small muted">Cosas en las que se ha atascado sin poder pedir ayuda. Repasadlas juntos y marcadlas como hechas.</p>${pendingList().map(x=>`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><span><b>${esc(x.materia)}</b> · ${esc(x.detalle)} <span class="small muted">(${new Date(x.ts).toLocaleString("es-ES",{weekday:"short",hour:"2-digit",minute:"2-digit"})})</span></span><button class="btn small" data-pres="${x.id}">Repasado</button></div>`).join("")}`:'<p class="small muted">Nada pendiente.</p>'}</section>
+   <section class="card"><h2>Para ver juntos</h2>${pendingList().length?`<p class="small muted">Pasos en los que se ha atascado sin tener a nadie cerca. Empezad vosotros la conversación («he visto que esto se te resiste, ¿lo vemos?») y marcadlos como repasados.</p>${pendingList().map(x=>`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><span><b>${esc(x.materia)}</b> · ${esc(x.detalle)} <span class="small muted">(${new Date(x.ts).toLocaleString("es-ES",{weekday:"short",hour:"2-digit",minute:"2-digit"})})</span></span><button class="btn small" data-pres="${x.id}">Repasado</button></div>`).join("")}`:'<p class="small muted">Nada pendiente.</p>'}</section>
    <section class="card"><h2>Sesión y avisos</h2>
    <p>Conectado como <b>${esc((auth()||{}).nombre||"—")}</b> en este dispositivo (${esc(deviceInfo().so)} · ${esc(deviceInfo().nav)} · ${esc(deviceInfo().id)}).</p>
    <p class="small muted">Cada resultado, bloque hecho y pregunta al profe se guarda en la hoja «Registro» con el usuario y el dispositivo.</p>
    <label class="row small" style="gap:8px"><input type="checkbox" id="cfs" ${cfg().sonidos===false?"":"checked"} style="width:22px;height:22px"> Avisos sonoros si lleva mucho tiempo o se queda parada (para que lo oigáis)</label>
    <div class="row"><button class="btn" id="cfsave">Guardar</button><button class="btn ghost small" id="cftest">Enviar prueba</button><button class="btn ghost small" id="cfout">Cerrar sesión en este dispositivo</button></div><span id="cfmsg" class="small muted">Pendientes de enviar: ${LS.get("outbox",[]).length}</span></section>
+   <section class="card"><h2>Preguntas que se le resisten</h2>${(()=>{const L=stuckList().sort((a,b)=>b.n-a.n);return L.length?`<p class="small muted">Las ha fallado varias veces. La app ya se las explica y se las pregunta de otra forma; si queréis, sacad alguna en una conversación.</p><ul>${L.slice(0,12).map(x=>`<li><b>${esc(DIAG[x.k].title)}</b> · ${esc(x.q.q)} → <i>${esc(x.q.o[0])}</i> <span class="small muted">(${x.n} fallos)</span></li>`).join("")}</ul>`:'<p class="small muted">Ninguna por ahora.</p>'})()}</section>
    <section class="card"><h2>Copia de seguridad</h2><p class="small muted">Guarda el progreso (plan, resultados, tarjetas, tablas, historia) en un archivo. Sirve para pasarlo a otro ordenador o a una versión nueva de la app.</p>
    <div class="row"><button class="btn" id="bkexp">Descargar copia</button><label class="btn ghost" for="bkimp" style="display:inline-flex;align-items:center">Recuperar copia</label><input type="file" id="bkimp" accept=".json,application/json" hidden></div><span id="bkmsg" class="small muted"></span></section>
    <section class="card"><h2>Cómo acompañarla</h2>

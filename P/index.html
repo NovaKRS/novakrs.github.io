@@ -156,6 +156,17 @@ sup{font-size:.7em}
 .map .lbl.sea-l{fill:var(--river);stroke:var(--sea);font-style:normal}
 .map .lbl.riv-l{fill:var(--river);font-size:18px}
 .chip{font-size:.9rem!important;text-align:left}
+.helpbtn{align-self:flex-start;background:none;border:2px dashed var(--line);border-radius:12px;padding:8px 12px;color:var(--soft);font-weight:600;min-height:44px}
+.helpbox{background:var(--progbg);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.pendbox{background:var(--midbg);border-radius:14px;padding:12px 14px}.pendbox ul{margin:6px 0;padding-left:1.2em}
+.dg.rest{opacity:.55}.dg:disabled{cursor:default}
+.dgr{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:10px;font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums;background:var(--chip)}
+.dgr.chg{background:var(--mat);color:#fff}.dgr.zero{background:var(--okbg);color:var(--ok)}
+.resrow td{padding-top:6px}
+.tag-or{background:var(--mat);color:#fff;border-radius:6px;padding:0 6px;font-weight:600}.tag-bl{background:var(--progbg);color:var(--prog);border:1px solid var(--prog);border-radius:6px;padding:0 6px;font-weight:600}
+th.pulse{color:var(--mat);animation:pulse 1s infinite}
+.shake{animation:shake .35s}@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
 .listen{flex:none;white-space:nowrap}
 .readhint{background:var(--progbg);color:var(--ink);border-radius:10px;padding:8px 12px;font-weight:600}
 .pv{border-collapse:separate;border-spacing:4px;margin:0 auto}.pv th{font-size:.8rem;color:var(--soft);font-weight:600}
@@ -1012,6 +1023,7 @@ function viewHome(){
       ${tot?`<div class="dbar" role="progressbar" aria-valuenow="${nDone}" aria-valuemin="0" aria-valuemax="${tot}" aria-label="Bloques hechos hoy"><i style="width:${pct}%" class="${pct>=100?"full":""}"></i></div>
       <p class="small muted">${nDone>=tot?"¡Plan de hoy completado!":`${nDone} de ${tot} bloques`}</p>`:""}
       ${br&&br.d===d.d&&br.noche&&pd.rel==="Hoy"?`<div class="fb ok"><strong>¡Tanda terminada!</strong>La siguiente es el repaso de la noche.</div>`:""}
+      ${pendingList().length?`<div class="pendbox"><b>Pendiente de repasar con papá o mamá (${pendingList().length})</b><ul>${pendingList().map(x=>`<li>${esc(x.materia)}: ${esc(x.detalle)}</li>`).join("")}</ul><p class="small muted">${nDone>=tot?"Antes de dar el día por cerrado, repasadlo juntos.":"Cuando estén, repasadlo juntos. Se marca como hecho en el Informe."}</p></div>`:""}
       ${tot&&nDone>=tot&&pd.rel==="Hoy"?`<div class="extra"><h3>¿Te apetece seguir? Es opcional</h3><p class="small muted">Ya has terminado lo de hoy. Si te quedan ganas, aquí tienes algo cortito:</p><div class="row">${extraSuggestions().map((x,k)=>`<button class="btn ghost" data-extra="${k}">${esc(x[0])} · ${x[1]}</button>`).join("")}</div></div>`:""}
       <div class="blocks">${tot?dayHtml(d,true):'<p class="muted">Nada que estudiar. ¡A descansar!</p>'}</div>
       <div class="row"><button class="btn ghost small" data-go="plan">Ver todos los días</button></div>
@@ -2115,38 +2127,62 @@ function viewFichaPasos(id){const f=FICHAS[id];const a=$("#app");const md=t=>esc
   const ft=$("#ftest");if(ft)ft.addEventListener("click",()=>{const T=FTEST[id];const bp0=LS.get("bp",null);LS.set("bp",{target:"diag-"+T[0],params:{temas:T[1],n:7},blk:bp0&&bp0.blk||null});logEvent({evento:"ficha leída",materia:f.title,detalle:"errores en comprobaciones: "+st.err});go("diag-"+T[0])});
 }
 
-/* ---------- Entrenador de redondeo y valor de posición ---------- */
+/* ---------- Pendientes para repasar con papá o mamá ---------- */
+function addPending(materia,detalle){const L=LS.get("pend",[]);L.push({id:"p"+Date.now(),ts:Date.now(),materia,detalle});LS.set("pend",L);logEvent({evento:"pendiente para repasar con un adulto",materia,sub:detalle})}
+function pendingList(){return LS.get("pend",[])}
+function resolvePending(id){const L=pendingList();const it=L.find(x=>x.id===id);LS.set("pend",L.filter(x=>x.id!==id));if(it)logEvent({evento:"pendiente resuelto",materia:it.materia,sub:it.detalle})}
+function helpPanel(materia,detalle,onSkip){return {html:`<div class="helpbox" id="helpbox" hidden><p><b>Pide ayuda a papá o mamá.</b> Enséñales este ejercicio.</p>
+  <div class="row"><button class="btn small" id="hb-ok" type="button">Ya me han ayudado, sigo</button><button class="btn ghost small" id="hb-skip" type="button">No están: dejarlo pendiente y pasar al siguiente</button></div>${profeHtml("profe-help")}</div>
+  <button class="helpbtn" id="hb-open" type="button">🙋 Necesito ayuda</button>`,
+  bind(ctx){$("#hb-open").addEventListener("click",()=>{$("#helpbox").hidden=false;$("#hb-open").hidden=true});$("#hb-ok").addEventListener("click",()=>{$("#helpbox").hidden=true;$("#hb-open").hidden=false});
+    $("#hb-skip").addEventListener("click",()=>{addPending(materia,detalle);onSkip()});bindProfe("profe-help",materia,ctx)}}}
+
+/* ---------- Entrenador de redondeo (versión 2, con pasos guiados, pistas crecientes y salida) ---------- */
 const POS=[["U","unidades",1],["D","decenas",10],["C","centenas",100],["UM","unidades de millar",1e3],["DM","decenas de millar",1e4],["CM","centenas de millar",1e5],["UMi","unidades de millón",1e6],["DMi","decenas de millón",1e7]];
 function newRedItem(){const p=1+Math.floor(Math.random()*5);const len=Math.min(8,p+2+Math.floor(Math.random()*3));let n=0;for(let i=0;i<len;i++)n=n*10+(i===0?1+Math.floor(Math.random()*9):Math.floor(Math.random()*10));return {n,p}}
 function fmtN(n){return n.toLocaleString("es-ES")}
-function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4].map(newRedItem),i:0,step:0,err:0,ok:0,fails:[]};const r=state.r;
-  if(r.i>=r.items.length){if(!r.saved){r.saved=true;saveResult({key:"redondeo",materia:"Redondeo",sub:"valor de posición y redondeo",ok:r.ok,total:r.items.length,ns:0,temas:{},fallos:r.fails})}
-    a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Redondeo</h1><section class="card"><span class="big">${r.ok}/${r.items.length}</span><p>${r.ok===r.items.length?"¡Perfecto!":"Números redondeados sin ningún fallo en los pasos."}</p><div class="row"><button class="btn" id="rag">Otra ronda</button></div></section></div>`;
+function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4].map(newRedItem),i:0,step:0,ok:0,fails:[],tries:0};const r=state.r;
+  if(r.i>=r.items.length){if(!r.saved){r.saved=true;saveResult({key:"redondeo",materia:"Redondeo",sub:"valor de posición y redondeo",ok:r.ok,total:r.items.length,ns:0,temas:{},fallos:r.fails,cuenta:r.ok>=3})}
+    a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Redondeo</h1><section class="card"><span class="big">${r.ok}/${r.items.length}</span><p>${r.ok===r.items.length?"¡Perfecto! Te ha salido todo a la primera.":r.ok>=3?"¡Bien! Esta ronda cuenta.":"Esta ronda no cuenta todavía: necesitas 3 de 5 sin ayuda. ¡Otra!"}</p>${r.fails.length?`<p class="small">Para repasar: ${r.fails.map(esc).join(" · ")}</p>`:""}<div class="row"><button class="btn" id="rag">Otra ronda</button></div></section></div>`;
     a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#rag").addEventListener("click",()=>{state.r=null;viewRedondeo()});return}
-  const it=r.items[r.i],digits=String(it.n).split(""),L=digits.length,P=POS[it.p];
-  const posOf=k=>L-1-k;/* índice de cifra -> posición */
-  const cells=digits.map((d,k)=>{const pos=posOf(k);const cls=[r.step>=1&&pos===it.p?"sel":"",r.step>=2&&pos===it.p-1?"look":""].join(" ");return `<td><button class="dg ${cls}" data-k="${k}">${d}</button></td>`}).join("");
-  const heads=digits.map((d,k)=>`<th>${POS[posOf(k)][0]}</th>`).join("");
-  const target=it.p,look=Number(digits[L-target]);const up=look>=5;const res=(Math.floor(it.n/P[2])+(up?1:0))*P[2];
-  const ask=["Toca la cifra de las <b>"+P[1]+"</b>.","Ahora toca la cifra de su <b>derecha</b>: es la que decide.",`La cifra de la derecha es <b>${look}</b>. ¿Qué pasa?`,"Escribe el número redondeado (las cifras de la derecha se convierten en ceros)."][r.step];
-  a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${r.i+1} de ${r.items.length}</span></div>
+  const it=r.items[r.i],ds=String(it.n).split(""),L=ds.length,P=POS[it.p],pos=k=>L-1-k,kT=L-1-it.p,kR=kT+1;
+  const tD=+ds[kT],look=+ds[kR],up=look>=5,res=(Math.floor(it.n/P[2])+(up?1:0))*P[2];
+  const resDs=String(res).padStart(L,"0").slice(-Math.max(L,String(res).length)).split("");
+  const showRes=r.step>=4;const carry=up&&tD===9;
+  const cellsTop=ds.map((d,k)=>{const c=[k===kT&&(r.step>=1||r.show)?"sel":"",k===kR&&(r.step>=2||(r.show&&r.step===1))?"look":"",k>kR&&r.step>=2?"rest":""].join(" ");return `<td><button class="dg ${c}" data-k="${k}" ${r.step>1?"disabled":""}>${d}</button></td>`}).join("");
+  const heads=ds.map((d,k)=>`<th class="${r.hintCol&&k===kT?"pulse":""}">${POS[pos(k)][0]}</th>`).join("");
+  const resRow=showRes?`<tr class="resrow">${String(res).length>L?"":""}${String(res).padStart(L," ").split("").map((d,k)=>`<td><span class="dgr ${k===kT||(carry&&k<kT)?"chg":k>kT?"zero":""}">${d.trim()}</span></td>`).join("")}</tr>`:"";
+  const Q=[`Toca la cifra de las <b>${P[1]}</b> (arriba pone <b>${P[0]}</b>).`,
+    `Muy bien: la cifra <span class="tag-or">naranja</span> es la de las ${P[1]}. Ahora toca la cifra que está <b>justo a su derecha</b>.`,
+    `La cifra <span class="tag-bl">azul</span> es un <b>${look}</b>. ¿Es 5 o más?`,
+    carry?`La cifra <span class="tag-or">naranja</span> es un 9 y tiene que subir. ¿Qué pasa?`:`La cifra <span class="tag-or">naranja</span> es un <b>${tD}</b>. ${up?"Como la azul es 5 o más, sube 1.":"Como la azul es menos de 5, se queda igual."} ¿En qué número se convierte?`,
+    `Ahora todas las cifras a la derecha de la naranja se convierten en <b>0</b>. Así queda el número (fila de abajo). Escríbelo:`][r.step];
+  const C0="Se convierte en 0 y la cifra de su izquierda sube 1";const opts3=carry?shuffle([C0,"Se queda en 9","Se convierte en 10 y no pasa nada más"]):shuffle([...new Set([up?tD+1:tD,up?tD:tD+1,Math.max(0,tD-1)])]).map(String);
+  const h=helpPanel("Redondeo",`Redondear ${fmtN(it.n)} a las ${P[1]}`,()=>{r.fails.push(`${fmtN(it.n)} a las ${P[1]} = ${fmtN(res)} (pendiente)`);r.i++;r.step=0;r.tries=0;r.bad=false;r.hintCol=false;viewRedondeo()});
+  a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">Número ${r.i+1} de ${r.items.length} · paso ${Math.min(r.step+1,5)} de 5</span></div>
    <h1>Redondea ${fmtN(it.n)} a las ${P[1]}</h1>
-   <section class="card"><div class="scroll"><table class="pv"><tr>${heads}</tr><tr>${cells}</tr></table></div>
-   <p class="qtext" style="font-size:1.1rem">${ask}</p>
-   ${r.step===2?`<div class="row"><button class="btn" data-up="1">Es 5 o más: sube</button><button class="btn" data-up="0">Es menos de 5: se queda</button></div>`:""}
-   ${r.step===3?`<form class="numin" id="rf"><input id="rin" inputmode="numeric" autocomplete="off" aria-label="Número redondeado" style="width:14ch"><button class="btn">Comprobar</button></form>`:""}
-   <div id="rfb"></div></section>
-   <section class="card"><h3>La regla</h3><ol style="margin:0;padding-left:1.2em"><li>Busca la cifra de la posición que te piden.</li><li>Mira la cifra de su derecha.</li><li>Si es 5, 6, 7, 8 o 9, la cifra sube 1. Si es 0, 1, 2, 3 o 4, se queda igual.</li><li>Todo lo de la derecha pasa a ser 0.</li></ol></section></div>`;
+   <section class="card"><div class="scroll"><table class="pv"><tr>${heads}</tr><tr>${cellsTop}</tr>${resRow}</table></div>
+   <p class="qtext" style="font-size:1.1rem">${Q}</p>
+   ${r.step===2?`<div class="row"><button class="btn" data-up="1">Sí, es 5 o más</button><button class="btn" data-up="0">No, es menos de 5</button></div>`:""}
+   ${r.step===3?`<div class="opts">${opts3.map(o=>`<button class="opt" data-n="${esc(o)}">${esc(o)}</button>`).join("")}</div>`:""}
+   ${r.step===4?`<form class="numin" id="rf"><input id="rin" inputmode="numeric" autocomplete="off" aria-label="Número redondeado" style="width:14ch"><button class="btn">Comprobar</button></form>`:""}
+   <div id="rfb">${r.msg||""}</div>${h.html}</section>
+   <section class="card"><h3>La regla del redondeo</h3><ol style="margin:0;padding-left:1.2em"><li>Busca la cifra de la posición que te piden (naranja).</li><li>Mira la cifra de su derecha (azul).</li><li>Si la azul es 5, 6, 7, 8 o 9, la naranja sube 1. Si es 0, 1, 2, 3 o 4, la naranja se queda igual.</li><li>Todas las cifras a la derecha de la naranja pasan a ser 0.</li></ol></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
-  const bad=msg=>{r.err++;r.bad=true;$("#rfb").innerHTML=`<div class="fb ko"><strong>Casi.</strong>${msg}</div>`};
-  if(r.step<=1)a.querySelectorAll(".dg").forEach(b=>b.addEventListener("click",()=>{const pos=posOf(+b.dataset.k);
-    if(r.step===0){if(pos===it.p){r.step=1;viewRedondeo()}else bad(`Esa es la de las ${POS[pos][1]}. Mira las letras de arriba: buscas «${P[0]}».`)}
-    else{if(pos===it.p-1){r.step=2;viewRedondeo()}else bad("Es la que está justo a la derecha de la cifra marcada.")}}));
-  a.querySelectorAll("[data-up]").forEach(b=>b.addEventListener("click",()=>{if((b.dataset.up==="1")===up){r.step=3;viewRedondeo()}else bad(up?`${look} es 5 o más: sube.`:`${look} es menos de 5: se queda.`)}));
-  const rf=$("#rf");if(rf){$("#rin").focus();rf.addEventListener("submit",e=>{e.preventDefault();const v=+$("#rin").value.replace(/[^0-9]/g,"");
-    if(v===res){if(!r.bad)r.ok++;else r.fails.push(`${fmtN(it.n)} a las ${P[1]} = ${fmtN(res)}`);beep(880,.15);$("#rfb").innerHTML=`<div class="fb ok"><strong>¡Bien! ${fmtN(res)}</strong></div><button class="btn" id="rnx">Siguiente →</button>`;$("#rin").disabled=true;
-      $("#rnx").addEventListener("click",()=>{r.i++;r.step=0;r.bad=false;viewRedondeo()});$("#rnx").focus()}
-    else bad(`Pista: la cifra de las ${P[1]} ${up?"sube a "+((Number(digits[L-1-target])+1))+" (si era 9, se lleva una a la siguiente)":"se queda igual"} y a su derecha todo son ceros.`)})}
+  h.bind(()=>`Está redondeando ${it.n} a las ${P[1]}. Paso ${r.step+1}: ${Q.replace(/<[^>]+>/g,"")}. No le des el resultado final; guíale.`);
+  const next=()=>{r.step++;r.tries=0;r.msg="";r.hintCol=false;r.show=false;viewRedondeo()};
+  const wrong=(hints,solve)=>{r.tries++;r.bad=true;const n=r.tries;
+    if(n>=3){r.show=true;r.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>${solve}</div>`;viewRedondeo();setTimeout(()=>{const fb=$("#rfb");if(fb){fb.insertAdjacentHTML("beforeend",`<button class="btn" id="rgo">Entendido, sigo</button>`);$("#rgo").addEventListener("click",next)}},50);return}
+    r.msg=`<div class="fb ko shake"><strong>Intento ${n} de 3: todavía no.</strong>${hints[Math.min(n-1,hints.length-1)]}</div>`;if(r.step===0&&n>=2)r.hintCol=true;viewRedondeo()};
+  if(r.step<=1)a.querySelectorAll(".dg").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.k;
+    if(r.step===0){if(k===kT)next();else wrong([`Esa es la de las ${POS[pos(k)][1]} (${POS[pos(k)][0]}). Busca la columna que pone <b>${P[0]}</b>.`,`Mira la columna que parpadea: pone <b>${P[0]}</b>. Toca la cifra que hay debajo.`],`Es el <b>${tD}</b>, debajo de <b>${P[0]}</b>.`)}
+    else{if(k===kR)next();else wrong(["Es la que está pegada a la naranja, por su lado derecho.","Pon el dedo en la naranja y muévelo una casilla a la derecha."],`Es el <b>${look}</b>, justo a la derecha de la naranja.`)}}));
+  a.querySelectorAll("[data-up]").forEach(b=>b.addEventListener("click",()=>{if((b.dataset.up==="1")===up)next();else wrong([`Fíjate bien: la azul es un ${look}. ¿Está entre 5 y 9, o entre 0 y 4?`,`5, 6, 7, 8 y 9 son «5 o más». 0, 1, 2, 3 y 4 son «menos de 5».`],`${look} ${up?"es 5 o más":"es menos de 5"}.`)}));
+  a.querySelectorAll("[data-n]").forEach(b=>b.addEventListener("click",()=>{const v=b.dataset.n,good=carry?v===C0:+v===(up?tD+1:tD);if(good)next();else wrong([up?"Sube 1: súmale 1 a la naranja.":"Se queda igual: no cambia.",up?`${tD} + 1 = ?`:`Sigue siendo ${tD}.`],carry?"El 9 no puede ser 10 en una sola casilla: se pone 0 y la cifra de su izquierda sube 1.":`Se convierte en <b>${up?tD+1:tD}</b>.`)}));
+  const rf=$("#rf");if(rf){$("#rin").focus();rf.addEventListener("submit",e=>{e.preventDefault();const v=+$("#rin").value.replace(/[^0-9]/g,"");if(!$("#rin").value.trim())return;
+    if(v===res){if(!r.bad)r.ok++;else r.fails.push(`${fmtN(it.n)} a las ${P[1]} = ${fmtN(res)}`);beep(880,.15);r.msg=`<div class="fb ok"><strong>¡Bien! ${fmtN(it.n)} redondeado a las ${P[1]} es ${fmtN(res)}.</strong></div>`;
+      $("#rfb").innerHTML=r.msg+`<button class="btn" id="rnx">Siguiente número →</button>`;$("#rin").disabled=true;const hb=$("#hb-open");if(hb)hb.hidden=true;$("#rnx").addEventListener("click",()=>{r.i++;r.step=0;r.tries=0;r.bad=false;r.msg="";viewRedondeo()});$("#rnx").focus()}
+    else wrong(["Copia la fila de abajo de la tabla, cifra a cifra, de izquierda a derecha.","Compara lo que has escrito con la fila de abajo: ¿cuántas cifras tiene cada uno?"],`El número es <b>${fmtN(res)}</b>. Escríbelo para seguir.`)})}
 }
 
 /* ---------- Mínimos obligatorios en el plan de la IA ---------- */
@@ -2267,6 +2303,7 @@ function viewFamily(){
    <div class="reslist">${results.length?results.map(r=>`<div class="res"><b>${esc(r.materia)}${r.total?" · "+r.ok+"/"+r.total:""}</b><span class="small muted">${esc(r.sub)} · ${new Date(r.ts).toLocaleString("es-ES",{weekday:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}${r.ns?" · "+r.ns+" «no lo sé»":""}</span></div>`).join(""):'<p class="muted">Todavía no hay resultados. Aparecerán al terminar cada prueba.</p>'}</div>
    <label for="sumtx" class="small muted">Resumen para copiar</label><textarea id="sumtx" readonly>${esc(summaryText())}</textarea>
    <div class="row"><button class="btn" id="copy">Copiar resumen</button><span id="copied" class="small muted"></span></div></section>
+   <section class="card"><h2>Pendiente de repasar con ella</h2>${pendingList().length?`<p class="small muted">Cosas en las que se ha atascado sin poder pedir ayuda. Repasadlas juntos y marcadlas como hechas.</p>${pendingList().map(x=>`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:6px 0"><span><b>${esc(x.materia)}</b> · ${esc(x.detalle)} <span class="small muted">(${new Date(x.ts).toLocaleString("es-ES",{weekday:"short",hour:"2-digit",minute:"2-digit"})})</span></span><button class="btn small" data-pres="${x.id}">Repasado</button></div>`).join("")}`:'<p class="small muted">Nada pendiente.</p>'}</section>
    <section class="card"><h2>Sesión y avisos</h2>
    <p>Conectado como <b>${esc((auth()||{}).nombre||"—")}</b> en este dispositivo (${esc(deviceInfo().so)} · ${esc(deviceInfo().nav)} · ${esc(deviceInfo().id)}).</p>
    <p class="small muted">Cada resultado, bloque hecho y pregunta al profe se guarda en la hoja «Registro» con el usuario y el dispositivo.</p>
@@ -2285,6 +2322,7 @@ function viewFamily(){
   const aib=$("#aibtn");if(aib)aib.addEventListener("click",async()=>{const c=cfg();aib.disabled=true;$("#aiout").innerHTML='<p class="muted">Analizando…</p>';
     try{const r=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"consejo",disp:deviceInfo(),clave:c.clave||"",alumno:c.alumno||"",datos:analysisText()+"\n\nRESULTADOS DE HOY:\n"+summaryText().split("\n").filter(l=>l.includes(new Date().toLocaleDateString("es-ES",{day:"numeric",month:"numeric"})+",")||l.startsWith("   ")).join("\n")})});const j=await r.json();if(j.error==="clave"){authFailed();return}$("#aiout").innerHTML=`<div class="fb ns" style="white-space:pre-wrap">${esc(j.respuesta||"Sin respuesta.")}</div>`}
     catch(e){$("#aiout").innerHTML='<p class="muted">No se ha podido conectar.</p>'}aib.disabled=false});
+  $("#app").querySelectorAll("[data-pres]").forEach(b=>b.addEventListener("click",()=>{resolvePending(b.dataset.pres);viewInforme()}));
   $("#cfsave").addEventListener("click",()=>{LS.set("cfg",{sonidos:$("#cfs").checked});$("#cfmsg").textContent="Guardado."});
   $("#cftest").addEventListener("click",()=>{logEvent({evento:"prueba",materia:"Prueba de conexión"});$("#cfmsg").textContent="Prueba enviada. Mira si aparece una fila nueva en la hoja.";const ex=LS.get("results",[]);if(!LS.get("sentOld",false)&&ex.length){ex.slice().reverse().forEach(r=>logEvent(Object.assign({evento:"resultado",historico:true},r)));LS.set("sentOld",true)}});
   $("#cfout").addEventListener("click",()=>askConfirm("¿Cerrar sesión?","Para volver a usar la app en este dispositivo habrá que escribir la contraseña. El progreso guardado aquí no se borra.","Sí, cerrar sesión",()=>{LS.set("auth",null);try{sessionStorage.removeItem("m1e:pin")}catch(e){}go("inicio");showLogin()}));

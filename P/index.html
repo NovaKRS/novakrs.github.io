@@ -11,7 +11,7 @@
   --bg:#EEF3F1; --card:#FFFFFF; --ink:#1D2B33; --soft:#5A6B73; --line:#D4DEDB; --chip:#E3EBE8;
   --accent:#0F766E; --accent-ink:#FFFFFF;
   --bio:#2F8A4E; --len:#C8463E; --ing:#2D66C4; --mat:#C9741A; --gh:#8A5A2B;
-  --sea:#D3E6F0; --land:#FBF7EA; --landhov:#F1E5BD; --ctx:#E3E3DF; --border:#8C8A7E; --river:#2D66C4; --mount:#8A5A2B;
+  --dg1:#C9B79A; --dg2:#D98E4A; --dg3:#E8B04A; --dg4:#F2D06B; --at0:#BFE0F2; --at1:#9CCBEA; --at2:#7FA9D9; --at3:#5E83C2; --at4:#3D5C9E; --sea:#D3E6F0; --land:#FBF7EA; --landhov:#F1E5BD; --ctx:#E3E3DF; --border:#8C8A7E; --river:#2D66C4; --mount:#8A5A2B;
   --ok:#2F8A4E; --okbg:#E1F2E6; --ko:#D4572A; --kobg:#FBE5DA; --prog:#4F5BD5; --progbg:#E7E9FB; --mid:#B7791F; --midbg:#FBF0DA;
   --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
   --body:"Lexend","Verdana",system-ui,sans-serif;
@@ -20,14 +20,14 @@
   --bg:#141B1E; --card:#1D262A; --ink:#E8EEF0; --soft:#9DB0B6; --line:#2E3A3F; --chip:#263135;
   --accent:#34B3A6; --accent-ink:#0E1517;
   --bio:#5CC07E; --len:#F07A70; --ing:#6E9BEA; --mat:#EBA14F; --gh:#C99764;
-  --sea:#17303D; --land:#2C3430; --landhov:#3E4A3F; --ctx:#232A2D; --border:#6E7A72; --river:#6E9BEA; --mount:#C99764;
+  --dg1:#6B5A42; --dg2:#9A5A26; --dg3:#B07E26; --dg4:#C9A23C; --at0:#2A4F66; --at1:#2C4A75; --at2:#2E4482; --at3:#2F3D8C; --at4:#2B3374; --sea:#17303D; --land:#2C3430; --landhov:#3E4A3F; --ctx:#232A2D; --border:#6E7A72; --river:#6E9BEA; --mount:#C99764;
   --ok:#5CC07E; --okbg:#1D3527; --ko:#FF8A5C; --kobg:#42261B; --prog:#9AA6FF; --progbg:#262B4D; --mid:#E2B252; --midbg:#3A3020;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141B1E; --card:#1D262A; --ink:#E8EEF0; --soft:#9DB0B6; --line:#2E3A3F; --chip:#263135;
   --accent:#34B3A6; --accent-ink:#0E1517;
   --bio:#5CC07E; --len:#F07A70; --ing:#6E9BEA; --mat:#EBA14F; --gh:#C99764;
-  --sea:#17303D; --land:#2C3430; --landhov:#3E4A3F; --ctx:#232A2D; --border:#6E7A72; --river:#6E9BEA; --mount:#C99764;
+  --dg1:#6B5A42; --dg2:#9A5A26; --dg3:#B07E26; --dg4:#C9A23C; --at0:#2A4F66; --at1:#2C4A75; --at2:#2E4482; --at3:#2F3D8C; --at4:#2B3374; --sea:#17303D; --land:#2C3430; --landhov:#3E4A3F; --ctx:#232A2D; --border:#6E7A72; --river:#6E9BEA; --mount:#C99764;
   --ok:#5CC07E; --okbg:#1D3527; --ko:#FF8A5C; --kobg:#42261B; --prog:#9AA6FF; --progbg:#262B4D; --mid:#E2B252; --midbg:#3A3020;
   color-scheme:dark}
 *{box-sizing:border-box}
@@ -156,6 +156,16 @@ sup{font-size:.7em}
 .map .lbl.sea-l{fill:var(--river);stroke:var(--sea);font-style:normal}
 .map .lbl.riv-l{fill:var(--river);font-size:18px}
 .chip{font-size:.9rem!important;text-align:left}
+.dgbox{background:var(--chip);border-radius:14px;padding:10px;overflow-x:auto}
+.dgm{display:block;width:100%;height:auto;max-width:640px;margin:0 auto}.dgm.small{max-width:260px}
+.dgl{font-family:var(--body);font-size:22px;font-weight:600;fill:var(--ink)}.dgl.hl{fill:var(--mat);font-size:28px}
+.dgs{font-family:var(--body);font-size:15px;fill:var(--ink)}
+.pts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}.pts li{padding:8px 10px;border-radius:10px}
+.pts li.ok{background:var(--okbg)}.pts li.ko{background:var(--kobg)}
+.pts-chk{display:flex;flex-direction:column;gap:10px}
+.transcript{min-height:110px;background:var(--chip);border-radius:12px;padding:12px;font-size:1.05rem;line-height:1.6}
+.recdot{color:var(--ko);font-weight:600;animation:pulse 1.2s infinite}
+
 .lvl{font-size:.8rem;font-weight:600;border-radius:99px;padding:1px 8px;align-self:flex-start}
 .lvl.v{background:var(--okbg);color:var(--ok)}.lvl.a{background:var(--midbg);color:var(--mid)}.lvl.r{background:var(--kobg);color:var(--ko)}.lvl.n{background:var(--chip);color:var(--soft)}
 .prog i.done{background:var(--soft)}
@@ -298,7 +308,7 @@ const PLAN=[
   ["gh","Prueba de nivel: Edad de los Metales",10,"diag:gh2",1,{nivel:true},1],
   ["mat","Tablas de multiplicar",5,"tablas",2,{},1],
   ["bio","Repaso: mini-prueba de la Tierra",8,"diag:bio1",1,{},2],
-  ["len","Repaso: tarjetas de Lengua",8,"tarjetas-len",1,{},2]]},
+  ["bio","Repaso: explica las capas de la Tierra",8,"oral:tierra",1,{},2]]},
  {d:"2026-11-05",t:"Jueves",b:[
   ["bio","Biología: las rocas y su ciclo",15,"ficha-rocas",1,{},1],
   ["bio","Biología: la atmósfera y sus capas",15,"ficha-atmosfera",1,{},1],
@@ -333,7 +343,7 @@ const PLAN=[
  {d:"2026-11-09",t:"Lunes · festivo · entreno",note:"Mejor estudiar por la mañana: tienes entreno por la tarde.",b:[
   ["bio","Mini-prueba: la Tierra",8,"diag:bio1",1,{},1],
   ["bio","Mini-prueba: la atmósfera",8,"diag:bio2",1,{},1],
-  ["bio","Fichas de Biología",10,"fichas",1,{},1],
+  ["bio","Explica los tipos de rocas",8,"oral:rocas",1,{},1],
   ["len","Tarjetas de Lengua",10,"tarjetas-len",1,{},2],
   ["len","Mini-prueba de Lengua: ejercicios",8,"diag:len2",1,{},2],
   ["mat","Tablas de multiplicar",5,"tablas",2,{},2],
@@ -345,16 +355,18 @@ const PLAN=[
   ["bio","Simulacro de examen: Biología",15,"sim:bio",1,{},1],
   ["bio","Repaso de fallos: la atmósfera",8,"diag:bio2",1,{fallos:true},1],
   ["mat","Tablas de multiplicar",5,"tablas",2,{},1],
-  ["len","Repaso: explica 2 temas de Lengua en voz alta",15,"ficha-lengua",1,{},2]]},
+  ["len","Repaso: explica las lenguas de España",8,"oral:lenguas",1,{},2],
+  ["len","Repaso: explica los niveles y registros",8,"oral:niveles",1,{},2]]},
  {d:"2026-11-11",t:"Miércoles · entreno",note:"Mañana es el examen de Biología: repaso ligero y a dormir pronto.",b:[
   ["bio","Fichas de Biología (solo repasar)",15,"fichas",1,{},1],
   ["len","Tarjetas de Lengua",8,"tarjetas-len",1,{},1],
   ["bio","Repaso: fallos de la Tierra",8,"diag:bio1",1,{fallos:true},2],
-  ["bio","Repaso: fallos de la atmósfera",8,"diag:bio2",1,{fallos:true},2]]},
+  ["bio","Repaso: explica las capas de la atmósfera",8,"oral:atmosfera",1,{},2]]},
  {d:"2026-11-12",t:"Jueves",exam:"bio",note:"¡Examen de Biología! Por la tarde, Lengua.",b:[
   ["len","Simulacro de examen: Lengua",15,"sim:len",1,{},1],
   ["len","Lengua: los temas para desarrollar",15,"ficha-lengua",1,{},1],
-  ["len","Repaso: fallos de Lengua",8,"diag:len2",1,{fallos:true},2]]},
+  ["len","Repaso: explica cómo nació la escritura",8,"oral:escritura",1,{},2],
+  ["len","Repaso: explica los dialectos",8,"oral:dialectos",1,{},2]]},
  {d:"2026-11-13",t:"Viernes",exam:"len",note:"¡Examen de Lengua! Tarde libre: te lo has ganado.",b:[]},
  {d:"2026-11-14",t:"Sábado",b:[
   ["ing","Inglés: escribe tu historia de miedo",20,"historia",1,{},1],
@@ -363,7 +375,7 @@ const PLAN=[
   ["mat","MCD y mcm: 2 ejercicios",15,"mcd",2,{},2],
   ["mat","Mini-prueba de Mates",8,"diag:mat1",1,{},2],
   ["gh","Mini-prueba de Prehistoria",8,"diag:gh1",1,{},3],
-  ["gh","Mini-prueba: Edad de los Metales",8,"diag:gh2",1,{},3],
+  ["gh","Historia: la Edad de los Metales (ficha)",15,"ficha-metales",1,{},3],
   ["gh","Mapa: capitales de Europa",10,"mapas",2,{set:"eur",modo:"cap"},3]]},
  {d:"2026-11-15",t:"Domingo",b:[
   ["ing","Simulacro de examen: Inglés",15,"sim:ing",1,{},1],
@@ -384,7 +396,7 @@ const PLAN=[
   ["gh","Simulacro de examen: Geografía e Historia",15,"sim:gh",1,{},1],
   ["gh","Mapa: lo que más falla",10,"mapas",2,{},1],
   ["gh","Repaso: tarjetas de la Prehistoria",10,"tarjetas-gh",1,{},2],
-  ["gh","Repaso: mapa de Europa",8,"mapas",1,{set:"eur",modo:"cap"},2]]},
+  ["gh","Repaso: explica Paleolítico y Neolítico",8,"oral:prehistoria",1,{},2]]},
  {d:"2026-11-18",t:"Miércoles",exam:"gh",note:"¡Último examen! Misión cumplida.",b:[]}
 ];
 
@@ -965,6 +977,7 @@ function render(){
   if(h==="informe") return viewInforme();
   if(h.startsWith("tarea-")) return viewTarea(h.slice(6));
   if(h.startsWith("sim-")) return viewSim(h.slice(4));
+  if(h.startsWith("oral-")) return viewOral(h.slice(5));
   if(h==="plan") return viewPlan();
   viewHome();
 }
@@ -1045,7 +1058,7 @@ function viewQuiz(key){
     <div class="prog" aria-hidden="true">${prog}</div>
     <section class="card">
       <span class="qtag">${esc(D.title)} · ${esc(q.t)}</span>
-      <p class="qtext">${esc(q.q)}${q.n!==undefined&&!q.o&&/[×:−+]/.test(q.q)?" =":""}</p>
+      <p class="qtext">${esc(q.q)}${q.n!==undefined&&!q.o&&/[×:−+]/.test(q.q)?" =":""}</p>${qImg(q)}
       ${q.opts?`<div class="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`
         :`<form class="numin" id="nf"><input id="nin" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Comprobar</button></form>`}
       <div id="fb"></div>
@@ -1074,7 +1087,7 @@ function viewQuiz(key){
 function quizEnd(key,D){
   const qs=state.qs,ans=state.ans,ok=ans.filter(a=>a==="ok").length,ns=ans.filter(a=>a==="ns").length;
   const temas={};qs.forEach((q,j)=>{temas[q.t]=temas[q.t]||{ok:0,total:0};temas[q.t].total++;if(ans[j]==="ok")temas[q.t].ok++});
-  if(!state.saved){state.saved=true;saveResult({key,materia:D.title,sub:D.sub+(state.mini?" · "+state.mini:""),ok,total:qs.length,ns,temas,fallos:qs.filter((q,j)=>ans[j]!=="ok").map(q=>q.q)})}
+  if(!state.saved){state.saved=true;saveResult({key,materia:D.title,sub:D.sub+(state.mini?" · "+state.mini:""),ok,total:qs.length,ns,temas,fallos:qs.filter((q,j)=>ans[j]!=="ok").map(q=>qkey(q))})}
   const pct=ok/qs.length;
   const msg=pct>=.75?"¡Muy bien! Esto ya lo dominas bastante.":pct>=.5?"¡Bien! Vas por buen camino. Ahora sabemos qué repasar.":"Ya sabemos por dónde empezar. Cada bloque de estudio sumará.";
   $("#app").innerHTML=`<div data-s="${D.s}" class="wrap" style="gap:16px">
@@ -1439,8 +1452,8 @@ function viewFicha(id){
   }else{
     const f=FICHAS[id];const md=t=>esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
     a.innerHTML=`<div data-s="${f.s}" class="wrap" style="gap:16px"><button class="back" data-go="fichas">← Fichas</button><span class="qtag">${SNAME[f.s]}</span><h1>${esc(f.title)}</h1>
-     ${f.sec.map((s,i)=>`<section class="card ficha"><h2><span class="num">${i+1}</span> ${esc(s[0])}</h2><ul>${s[1].map(x=>`<li>${md(x)}</li>`).join("")}</ul></section>`).join("")}
-     <section class="card"><h3>Ahora tú</h3><p>${esc(f.draw)}</p><div class="row"><button class="btn" data-go="${f.test}">Ponerme a prueba</button></div></section></div>`;
+     ${f.sec.map((s,i)=>`<section class="card ficha"><h2><span class="num">${i+1}</span> ${esc(s[0])}</h2>${s[2]?diagram(s[2]):""}<ul>${s[1].map(x=>`<li>${md(x)}</li>`).join("")}</ul></section>`).join("")}
+     <section class="card"><h3>Ahora tú</h3><p>${esc(f.draw)}</p><div class="row"><button class="btn" data-go="${f.test}">Ponerme a prueba</button>${Object.entries(ORAL).filter(([k,o])=>o.ficha===id).map(([k,o])=>`<button class="btn ghost" data-go="oral-${k}">Explícalo: ${esc(o.title)}</button>`).join("")}</div></section></div>`;
   }
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
 }
@@ -1478,7 +1491,7 @@ async function flushLog(){const c=cfg();if(!c.url||flushing||!navigator.onLine)r
 window.addEventListener("online",flushLog);setTimeout(flushLog,1500);
 
 /* ---------- Marcar bloques solos ---------- */
-function blockKey(t){if(!t)return null;if(t.startsWith("diag:"))return t.slice(5);if(t.startsWith("sim:"))return "sim-"+t.slice(4);if(t.startsWith("tarjetas-"))return "deck-"+t.slice(9);
+function blockKey(t){if(!t)return null;if(t.startsWith("diag:"))return t.slice(5);if(t.startsWith("sim:"))return "sim-"+t.slice(4);if(t.startsWith("oral:"))return "oral-"+t.slice(5);if(t.startsWith("tarjetas-"))return "deck-"+t.slice(9);
   if(t.startsWith("ficha-")){const f=FICHAS[t.slice(6)];return f?f.test.replace("diag-",""):null}return t}
 function blockMatches(t,key){const k=blockKey(t);if(!k)return false;if(k===key)return true;if(k==="mapas")return key.startsWith("mapa-");if(k==="fichas")return key==="bio1"||key==="bio2";return false}
 
@@ -1576,7 +1589,7 @@ window.addEventListener("pagehide",persist);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)persist()});
 
 /* ---------- Sesiones: rondas, reloj, avisos ---------- */
-function targetOf(b){return b[3]?(b[3].startsWith("diag:")?"diag-"+b[3].slice(5):b[3].startsWith("sim:")?"sim-"+b[3].slice(4):b[3]==="verbs"?"verbos":b[3]):null}
+function targetOf(b){return b[3]?(b[3].startsWith("diag:")?"diag-"+b[3].slice(5):b[3].startsWith("sim:")?"sim-"+b[3].slice(4):b[3].startsWith("oral:")?"oral-"+b[3].slice(5):b[3]==="verbs"?"verbos":b[3]):null}
 function roundsFor(b){if(b[4])return b[4];const t=b[3]||"",m=b[2];
   if(t==="verbs")return m>=15?4:3;if(t==="tablas")return 2;if(t==="mcd")return m>=15?2:1;if(t==="mapas")return m>=15?2:1;return 1}
 function unitFor(b,n){const t=b[3]||"";const u=t==="mcd"?["ejercicio","ejercicios"]:t==="tipo"||t==="verbs"||t==="tablas"||t==="mapas"?["ronda","rondas"]:t.startsWith("tarjetas-")?["repaso","repasos"]:["vez","veces"];return n===1?u[0]:u[1]}
@@ -1667,7 +1680,7 @@ function order(d){const drills=[],papa=[],groups={},subs=[];
 function takeParams(target){const bp=LS.get("bp",null);if(!bp||bp.target!==target)return null;LS.set("bp",null);return bp.params||{}}
 
 /* ---------- Plan del día generado por la IA ---------- */
-const AI_TARGETS=["sim:bio","sim:len","sim:ing","sim:mat","sim:gh","diag:bio1","diag:bio2","diag:mat0","diag:mat1","diag:len1","diag:len2","diag:ing1","diag:ing2","diag:gh1","diag:gh2","ficha-tierra","ficha-minerales","ficha-rocas","ficha-atmosfera","ficha-tiempo","ficha-contaminacion","ficha-lengua","tarjetas-len","tarjetas-gh","tarjetas-hal","verbs","tablas","mcd","tipo","mapas","historia",""];
+const AI_TARGETS=["oral:lenguas","oral:dialectos","oral:niveles","oral:escritura","oral:tierra","oral:rocas","oral:atmosfera","oral:invernadero","oral:prehistoria","oral:metales","ficha-prehistoria","ficha-metales","sim:bio","sim:len","sim:ing","sim:mat","sim:gh","diag:bio1","diag:bio2","diag:mat0","diag:mat1","diag:len1","diag:len2","diag:ing1","diag:ing2","diag:gh1","diag:gh2","ficha-tierra","ficha-minerales","ficha-rocas","ficha-atmosfera","ficha-tiempo","ficha-contaminacion","ficha-lengua","tarjetas-len","tarjetas-gh","tarjetas-hal","verbs","tablas","mcd","tipo","mapas","historia",""];
 const CATALOGO=`ACTIVIDADES (campo "act"):
 - "diag:bio1" prueba Biología: Tierra, minerales y rocas (16 preguntas, ~12 min) · "diag:bio2" prueba atmósfera, tiempo y contaminación (12, ~10 min)
 - "diag:len1" prueba Lengua teoría (17, ~12 min) · "diag:len2" Lengua ejercicios: signos, comunicación, niveles, letra h (17, ~12 min)
@@ -1682,6 +1695,8 @@ const CATALOGO=`ACTIVIDADES (campo "act"):
 - "mcd" ejercicio guiado de MCD y mcm (~8 min por ejercicio) · "tipo" juego ¿MCD o mcm? (10 problemas, ~8 min)
 - "mapas" ronda de 10 (~5 min). param {"set":"esp"|"espf"|"eur"|"eurf","modo":"find"|"cap"|"what"} (esp=comunidades, espf=relieve España, eur=países Europa, eurf=relieve Europa; cap solo para esp/eur; what solo para espf/eurf)
 - "historia" escribir la historia de miedo en inglés (20 min)
+- "oral:lenguas","oral:dialectos","oral:niveles","oral:escritura" (Lengua), "oral:tierra","oral:rocas","oral:atmosfera","oral:invernadero" (Biología), "oral:prehistoria","oral:metales" (Historia): EXPLICAR UN TEMA EN VOZ ALTA y la app comprueba las ideas clave (~8 min). Muy útil para las preguntas de desarrollo; ideal en el repaso de la noche.
+- "ficha-prehistoria","ficha-metales": fichas de Historia con esquema (15 min)
 - "sim:bio","sim:len","sim:ing","sim:mat","sim:gh" SIMULACRO DE EXAMEN de toda la asignatura (20 preguntas, nota al final, ~15 min): solo en los 1-3 días antes de su examen.
 - param {"nivel":true} en una "diag:" = PRUEBA DE NIVEL (15 preguntas, ~10 min). Si una unidad aparece como «sin hacer» en la evolución, su primer bloque debe ser la prueba de nivel.
 - "" tarea sin pantalla (explicar en voz alta, dibujar…), describirla en "texto"`;
@@ -1773,7 +1788,7 @@ function tandas(d){const kind=dayKind(d);const map={};
   return ks.map((k,j)=>({n:j+1,idx:map[k],noche:kind!=="largo"&&j>0,label:kind==="largo"?`Tanda ${j+1}`:j===0?"Al llegar del cole":"Repaso de la noche (mejor con papá o mamá, si pueden)"}))}
 function seq(d){return tandas(d).flatMap(t=>t.idx)}
 function rowHtml(d,i,interactive){const b=d.b[i],id=d.d+"#"+i,done=!!planDone[id],R=roundsFor(b),n=Math.min(prog[id]||0,R);
-  const kind=b[3]&&b[3].startsWith("sim:")?"20 preguntas, nota al final":b[3]&&b[3].startsWith("diag:")?(b[3]==="diag:mat0"?"10 operaciones":b[5]&&(b[5].sim||b[5].nivel)?"15 preguntas":b[5]&&b[5].fallos?"repaso de fallos":"8 preguntas"):"";
+  const kind=b[3]&&b[3].startsWith("oral:")?"explicarlo en voz alta":b[3]&&b[3].startsWith("sim:")?"20 preguntas, nota al final":b[3]&&b[3].startsWith("diag:")?(b[3]==="diag:mat0"?"10 operaciones":b[5]&&(b[5].sim||b[5].nivel)?"15 preguntas":b[5]&&b[5].fallos?"repaso de fallos":"8 preguntas"):"";
   const meta=[SNAME[b[0]],R>1?`${R} ${unitFor(b,R)}`:kind,`unos ${b[2]} min`].filter(Boolean).join(" · ");
   const cls=`blk${done?" done":n?" ip":""}${interactive?" rowbtn":""}`;
   const inner=`<span class="sticon" aria-hidden="true"></span><span class="bt"><span class="btx">${esc(b[1])}</span><span class="min">${esc(meta)}</span>${!done&&n?`<span class="ipchip">${n} de ${R} hechos</span>`:""}</span>${interactive?'<span class="chev" aria-hidden="true">›</span>':""}`;
@@ -1814,17 +1829,18 @@ function breakPill(el){const br=LS.get("brk",null);if(!br||br.d!==todayStr()||br
 
 /* ---------- Selección de preguntas, cálculo generado y simulacros ---------- */
 function qhGet(){return LS.get("qh",{})}
-function qhRecord(q,ok){if(q.gen)return;const h=qhGet();h[q.q]=(h[q.q]||[]).concat(ok?1:0).slice(-5);LS.set("qh",h)}
+function qkey(q){return q.q+(q.img?" ["+q.img.hl+"]":"")}
+function qhRecord(q,ok){if(q.gen)return;const h=qhGet();const k=qkey(q);h[k]=(h[k]||[]).concat(ok?1:0).slice(-5);LS.set("qh",h)}
 function genMat0(){const ts=LS.get("tablas",{});const pick=()=>{const all=[];for(let a=2;a<=9;a++)for(let b=2;b<=9;b++){const lv=tLevel(ts[a+"x"+b]);const w=lv==="r"?4:lv==="a"?3:lv==="v"?1:2;for(let k=0;k<w;k++)all.push([a,b])}return all[Math.floor(Math.random()*all.length)]};
   const out=[];for(let i=0;i<4;i++){const [a,b]=pick();out.push({t:"Multiplicar",q:`${a} × ${b}`,n:a*b,gen:1})}
   for(let i=0;i<3;i++){const [a,b]=pick();out.push({t:"Dividir",q:`${a*b} : ${a}`,n:b,gen:1})}
   for(let i=0;i<3;i++){let x,y;do{x=100+Math.floor(Math.random()*800);y=10+Math.floor(Math.random()*(x-20))}while(x%10>=y%10||y<20);out.push({t:"Restar",q:`${x} − ${y}`,n:x-y,gen:1})}
   return shuffle(out)}
-function scoreQ(q,h){const r=h[q.q];if(!r||!r.length)return 2+Math.random();if(r[r.length-1]===0)return 3+Math.random();return Math.random()*(r.slice(-2).every(x=>x)?.6:1.2)}
+function scoreQ(q,h){const r=h[qkey(q)];if(!r||!r.length)return 2+Math.random();if(r[r.length-1]===0)return 3+Math.random();return Math.random()*(r.slice(-2).every(x=>x)?.6:1.2)}
 function pickQs(key,mode){const D=DIAG[key];if(key==="mat0")return genMat0();const h=qhGet();
   if(mode==="completa"){const by={};D.qs.forEach(q=>{(by[q.t]=by[q.t]||[]).push(q)});Object.values(by).forEach(a=>a.sort((x,y)=>scoreQ(y,h)-scoreQ(x,h)));
     const out=[];const ks=shuffle(Object.keys(by));while(out.length<15&&ks.some(k=>by[k].length))for(const k of ks){if(by[k].length&&out.length<15)out.push(by[k].shift())}return shuffle(out)}
-  let pool=D.qs.slice();if(mode==="fallos"){const lr=lastResult(key);const f=new Set(lr&&lr.fallos||[]);pool.sort((x,y)=>((f.has(y.q)||((h[y.q]||[]).slice(-1)[0]===0))?10:0)+scoreQ(y,h)-(((f.has(x.q)||((h[x.q]||[]).slice(-1)[0]===0))?10:0)+scoreQ(x,h)))}
+  let pool=D.qs.slice();if(mode==="fallos"){const lr=lastResult(key);const f=new Set(lr&&lr.fallos||[]);pool.sort((x,y)=>((f.has(qkey(y))||((h[qkey(y)]||[]).slice(-1)[0]===0))?10:0)+scoreQ(y,h)-(((f.has(qkey(x))||((h[qkey(x)]||[]).slice(-1)[0]===0))?10:0)+scoreQ(x,h)))}
   else pool.sort((x,y)=>scoreQ(y,h)-scoreQ(x,h));
   return shuffle(pool.slice(0,8))}
 function mkState(key,mode,blk){return {qs:pickQs(key,mode).map(q=>Object.assign({},q,{opts:q.o?shuffle(q.o):null})),i:0,ans:[],answered:false,mini:mode==="completa"?null:mode==="fallos"?"repaso de fallos":"mini-prueba",blk}}
@@ -1837,7 +1853,7 @@ function viewSim(s){if(!SIMU[s])return go("inicio");const a=$("#app");
   const st=state,qs=st.qs;
   if(st.i>=qs.length){const ok=st.ans.filter(x=>x.ok).length,nota=Math.round(ok/qs.length*100)/10;
     if(!st.saved){st.saved=true;const temas={};qs.forEach((q,j)=>{const k=DIAG[q.u].title+" · "+q.t;temas[k]=temas[k]||{ok:0,total:0};temas[k].total++;if(st.ans[j].ok)temas[k].ok++;qhRecord(q,st.ans[j].ok)});
-      saveResult({key:"sim-"+s,materia:"Simulacro de "+SNAME[s],sub:"nota "+nota.toLocaleString("es-ES"),ok,total:qs.length,ns:st.ans.filter(x=>x.ns).length,temas,fallos:qs.filter((q,j)=>!st.ans[j].ok).map(q=>q.q)})}
+      saveResult({key:"sim-"+s,materia:"Simulacro de "+SNAME[s],sub:"nota "+nota.toLocaleString("es-ES"),ok,total:qs.length,ns:st.ans.filter(x=>x.ns).length,temas,fallos:qs.filter((q,j)=>!st.ans[j].ok).map(q=>qkey(q))})}
     const bad=qs.map((q,j)=>({q,a:st.ans[j]})).filter(x=>!x.a.ok);
     a.innerHTML=`<div data-s="${s}" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button>
       <section class="card"><span class="qtag">Simulacro de examen · ${SNAME[s]}</span><div class="row" style="gap:18px"><span class="big">${nota.toLocaleString("es-ES")}</span><p>${nota>=7?"¡Muy bien! Vas preparada.":nota>=5?"¡Aprobado! Repasa los fallos para subir nota.":"Todavía no. Repasa los fallos de abajo: es justo lo que hay que estudiar."}<br><span class="small muted">${ok} de ${qs.length} bien</span></p></div></section>
@@ -1846,7 +1862,7 @@ function viewSim(s){if(!SIMU[s])return go("inicio");const a=$("#app");
   const q=qs[st.i];
   a.innerHTML=`<div data-s="${s}" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${st.i+1} de ${qs.length}</span></div>
     <div class="prog" aria-hidden="true">${qs.map((x,j)=>`<i class="${j<st.i?"done":j===st.i?"cur":""}"></i>`).join("")}</div>
-    <section class="card"><span class="qtag">Simulacro · ${SNAME[s]} · sin correcciones hasta el final</span><p class="qtext">${esc(q.q)}${q.n!==undefined&&/[×:−]/.test(q.q)?" =":""}</p>
+    <section class="card"><span class="qtag">Simulacro · ${SNAME[s]} · sin correcciones hasta el final</span><p class="qtext">${esc(q.q)}${q.n!==undefined&&/[×:−]/.test(q.q)?" =":""}</p>${qImg(q)}
     ${q.opts?`<div class="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="sf"><input id="sin" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Siguiente</button></form>`}
     <div class="row"><button class="idk" id="sidk">No lo sé</button></div></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
@@ -1855,6 +1871,171 @@ function viewSim(s){if(!SIMU[s])return go("inicio");const a=$("#app");
   else{$("#sin").focus();$("#sf").addEventListener("submit",e=>{e.preventDefault();const v=$("#sin").value.replace(/[^0-9]/g,"");if(!v)return;next(v,+v===q.n)})}
   $("#sidk").addEventListener("click",()=>next("",false,true))}
 function levelOf(key){const r=results.find(x=>x.key===key&&x.total>=10&&!/mini|fallos/.test(x.sub||""))||results.find(x=>x.key===key);if(!r||!r.total)return null;const p=r.ok/r.total;return {p,cls:p>=.75?"v":p>=.5?"a":"r",txt:`${r.ok}/${r.total}`}}
+
+/* Esquemas dentro de las fichas y fichas de Historia */
+FICHAS.tierra.sec[2][2]="tierra";FICHAS.rocas.sec[4][2]="ciclo";FICHAS.atmosfera.sec[2][2]="atm";
+Object.assign(FICHAS,{
+ prehistoria:{s:"gh",title:"Paleolítico, Neolítico y arte",test:"diag-gh1",draw:"Haz una tabla de dos columnas, Paleolítico y Neolítico, con un dibujo en cada fila: vivienda, comida, herramientas y arte.",sec:[
+  ["La Prehistoria",["Va desde los primeros seres humanos hasta la **invención de la escritura**.","Tres etapas: **Paleolítico**, **Neolítico** y **Edad de los Metales**.","Los primeros homínidos aparecieron en **África**. Nuestra especie es el **Homo sapiens**.","En **Atapuerca** (Burgos) hay restos muy antiguos de antepasados humanos."]],
+  ["Paleolítico (piedra antigua)",["**Nómadas**: iban de un sitio a otro.","**Cazadores, pescadores y recolectores**: economía depredadora.","Herramientas de **piedra tallada**. Gran avance: el **fuego**.","Vivían en cuevas y cabañas, en grupos (clanes y tribus)."]],
+  ["Neolítico (piedra nueva)",["Empiezan la **agricultura** y la **ganadería**, en **Oriente Próximo**: economía productora.","**Sedentarios**: viven en **poblados**.","Piedra **pulida**, **cerámica** y **tejidos**.","Con los **excedentes**, algunos se dedican a otros oficios: **especialización del trabajo**."]],
+  ["El arte",["**Arte rupestre**: pinturas en las cuevas. En España, **Altamira** (Cantabria).","Colores: **ocre** con grasa (rojos, amarillos) y **carbón** (negro).","Paleolítico: **animales**, realistas, muchos colores. Neolítico: **personas**, esquemáticas, en negro.","**Arte mobiliar**: objetos y estatuillas, como las **Venus** (fertilidad de la naturaleza)."]]]},
+ metales:{s:"gh",title:"La Edad de los Metales",test:"diag-gh2",draw:"Dibuja una línea del tiempo con las tres fases y dibuja un menhir, un dolmen y un crómlech.",sec:[
+  ["Fases",["Empieza con la **metalurgia**, hacia el **5000 a. C.**","**Cobre** (5000–3000 a. C.): blando y fácil de moldear.","**Bronce** (3000–2000 a. C.): **cobre + estaño**, más resistente.","**Hierro** (desde el 2000 a. C.): el más fuerte, para armas y herramientas."]],
+  ["Técnicas",["**Moldeado en frío**: golpear sin calentar.","**Forja**: calentar al rojo y golpear sobre un yunque.","**Fundición**: fundir y echar en un molde.","**Siderurgia**: hornos especiales para el hierro."]],
+  ["Sociedad y comercio",["La metalurgia es trabajo de **especialistas**, que viven de los **excedentes**.","**Jerarquización social**: quien controla el metal manda. Aparecen los primeros **reyes** (de la clase militar).","Crece el **comercio**: se inventan la **rueda** y la **navegación de cabotaje** (sin perder de vista la costa)."]],
+  ["Los megalitos",["**Megalito**: gran losa de piedra.","**Menhir**: piedra clavada en vertical. Marca el territorio.","**Dolmen**: piedras verticales con una encima. Es una **tumba**.","**Crómlech**: piedras en círculo, como **Stonehenge**. Relacionado con la **astronomía**."],"mega"]]}
+});
+
+/* ---------- Esquemas (SVG propios) para fichas y preguntas con imagen ---------- */
+const DIAGRAMS={
+ tierra:{parts:[["corteza","Corteza"],["manto","Manto"],["next","Núcleo externo"],["nint","Núcleo interno"]],
+  draw(hl,hide){const R={corteza:[270,250],manto:[250,150],next:[150,85],nint:[85,0]};const cx=300,cy=290;let s="";
+    const col={corteza:"var(--dg1)",manto:"var(--dg2)",next:"var(--dg3)",nint:"var(--dg4)"};
+    for(const [k] of this.parts){const [ro]=R[k];s+=`<path d="M${cx-ro},${cy} A${ro},${ro} 0 0 1 ${cx+ro},${cy} Z" fill="${hl===k?"var(--mat)":col[k]}" stroke="var(--card)" stroke-width="3"/>`}
+    const ly={corteza:28,manto:95,next:170,nint:245};const lx={corteza:[300,22],manto:[300,90],next:[300,170],nint:[300,250]};
+    this.parts.forEach(([k,l])=>{const [px,py]=lx[k];const txt=hide?(hl===k?"?":""):l;if(!txt)return;s+=`<line x1="${px}" y1="${py}" x2="585" y2="${ly[k]}" stroke="var(--ink)" stroke-width="1.5"/><text x="590" y="${ly[k]+6}" class="dgl${hl===k?" hl":""}">${txt}</text>`});
+    return `<svg viewBox="0 0 760 300" class="dgm" role="img" aria-label="Capas de la Tierra">${s}</svg>`}},
+ atm:{parts:[["tropo","Troposfera","0–10 km"],["estrato","Estratosfera","10–50 km"],["meso","Mesosfera","50–80 km"],["termo","Termosfera","80–500 km"],["exo","Exosfera","+500 km"]],
+  draw(hl,hide){let s="";const H=62,W=520;const icons={tropo:`<circle cx="430" cy="300" r="12" fill="#fff"/><circle cx="445" cy="296" r="15" fill="#fff"/><circle cx="462" cy="301" r="11" fill="#fff"/>`,
+      estrato:`<rect x="20" y="232" width="${W-20}" height="8" rx="4" fill="var(--ok)" opacity=".7"/><text x="${W-6}" y="229" text-anchor="end" class="dgs">${hide?"":"ozono"}</text>`,
+      meso:`<line x1="400" y1="150" x2="460" y2="185" stroke="var(--mat)" stroke-width="3"/><circle cx="462" cy="186" r="4" fill="var(--mat)"/>`,
+      termo:`<path d="M60 115 q30 -18 60 0 t60 0 t60 0" fill="none" stroke="var(--ok)" stroke-width="4"/>`,
+      exo:`<rect x="440" y="38" width="22" height="12" fill="var(--soft)"/><rect x="420" y="41" width="18" height="6" fill="var(--prog)"/><rect x="464" y="41" width="18" height="6" fill="var(--prog)"/>`};
+    this.parts.forEach(([k,l,km],i)=>{const y=20+(4-i)*H;s+=`<rect x="10" y="${y}" width="${W}" height="${H-4}" rx="8" fill="${hl===k?"var(--mat)":`var(--at${i})`}"/>`+icons[k];
+      const txt=hide?(hl===k?"?":""):`${l} · ${km}`;if(txt)s+=`<text x="${W+20}" y="${y+H/2+4}" class="dgl${hl===k?" hl":""}">${txt}</text>`});
+    s+=`<rect x="10" y="${20+5*H}" width="${W}" height="14" rx="4" fill="var(--dg2)"/>`;
+    return `<svg viewBox="0 0 880 360" class="dgm" role="img" aria-label="Capas de la atmósfera">${s}</svg>`}},
+ ciclo:{parts:[["mag","Magmáticas"],["sed","Sedimentarias"],["met","Metamórficas"]],
+  draw(hl,hide){const B={mag:[290,20],sed:[60,250],met:[520,250]};let s=`<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="var(--ink)"/></marker></defs>`;
+    const arr=(x1,y1,x2,y2,t,tx,ty)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--ink)" stroke-width="2" marker-end="url(#ar)"/><text x="${tx}" y="${ty}" class="dgs" text-anchor="middle">${t}</text>`;
+    s+=arr(300,90,170,245,"erosión y sedimentación",165,160)+arr(240,290,515,290,"presión y temperatura",380,280)+arr(610,245,450,90,"fusión → magma → enfriamiento",600,160)+arr(560,320,200,320,"erosión",380,345);
+    this.parts.forEach(([k,l])=>{const [x,y]=B[k];s+=`<rect x="${x}" y="${y}" width="200" height="64" rx="12" fill="${hl===k?"var(--mat)":"var(--dg1)"}"/><text x="${x+100}" y="${y+40}" text-anchor="middle" class="dgl${hl===k?" hl":""}">${hide?(hl===k?"?":"···"):l}</text>`});
+    return `<svg viewBox="0 0 780 360" class="dgm" role="img" aria-label="Ciclo de las rocas">${s}</svg>`}},
+ mega:{parts:[["menhir","Menhir"],["dolmen","Dolmen"],["cromlech","Crómlech"]],
+  draw(hl,hide,only){const st=k=>hl===k?"var(--mat)":"var(--dg2)";const g={
+     menhir:x=>`<rect x="${x+70}" y="60" width="40" height="150" rx="14" fill="${st("menhir")}"/>`,
+     dolmen:x=>`<rect x="${x+30}" y="110" width="30" height="100" rx="6" fill="${st("dolmen")}"/><rect x="${x+120}" y="110" width="30" height="100" rx="6" fill="${st("dolmen")}"/><rect x="${x+15}" y="85" width="150" height="30" rx="8" fill="${st("dolmen")}"/>`,
+     cromlech:x=>{const cx=x+90,cy=170;let r=`<ellipse cx="${cx}" cy="${cy}" rx="84" ry="26" fill="none" stroke="var(--dg3)" stroke-width="3" opacity=".7"/>`;const ps=[];for(let i=0;i<12;i++){const a=i/12*Math.PI*2;ps.push([Math.cos(a),Math.sin(a)])}
+       ps.sort((a,b)=>a[1]-b[1]).forEach(([c,sn])=>{const h=30+12*(sn+1),w=14+4*(sn+1);r+=`<rect x="${cx+c*84-w/2}" y="${cy+sn*26-h}" width="${w}" height="${h}" rx="4" fill="${st("cromlech")}" stroke="var(--chip)" stroke-width="2"/>`});return r}};
+    const ks=only?[only]:this.parts.map(p=>p[0]);let s=`<rect x="0" y="210" width="${ks.length*230}" height="10" fill="var(--dg3)"/>`;
+    ks.forEach((k,i)=>{s+=g[k](i*230+20);const l=this.parts.find(p=>p[0]===k)[1];s+=`<text x="${i*230+110}" y="250" text-anchor="middle" class="dgl${hl===k?" hl":""}">${hide?(hl===k?"?":""):l}</text>`});
+    return `<svg viewBox="0 0 ${ks.length*230} 265" class="dgm${only?" small":""}" role="img" aria-label="Megalitos">${s}</svg>`}}
+};
+function diagram(id,hl,hide,only){const D=DIAGRAMS[id];return D?`<div class="dgbox">${D.draw(hl,hide,only)}</div>`:""}
+/* Preguntas con imagen: el mismo concepto también está preguntado sin imagen en el banco. */
+const IMGQ={
+ bio1:[["tierra","corteza","¿Qué capa de la Tierra está marcada?",["Corteza","Manto","Núcleo externo"]],["tierra","manto","¿Qué capa de la Tierra está marcada?",["Manto","Corteza","Núcleo interno"]],
+  ["tierra","next","¿Qué capa está marcada? Es líquida.",["Núcleo externo","Núcleo interno","Manto"]],["tierra","nint","¿Qué capa está marcada?",["Núcleo interno","Núcleo externo","Corteza"]],
+  ["ciclo","sed","En el ciclo de las rocas, ¿qué tipo de roca va en la caja marcada?",["Sedimentarias","Metamórficas","Magmáticas"]],["ciclo","met","¿Qué tipo de roca va en la caja marcada?",["Metamórficas","Sedimentarias","Magmáticas"]],["ciclo","mag","¿Qué tipo de roca va en la caja marcada?",["Magmáticas","Metamórficas","Sedimentarias"]]],
+ bio2:[["atm","tropo","¿Qué capa de la atmósfera está marcada?",["Troposfera","Estratosfera","Mesosfera"]],["atm","estrato","¿Qué capa está marcada? Tiene la capa de ozono.",["Estratosfera","Troposfera","Termosfera"]],
+  ["atm","meso","¿Qué capa de la atmósfera está marcada?",["Mesosfera","Estratosfera","Exosfera"]],["atm","termo","¿Qué capa de la atmósfera está marcada?",["Termosfera","Mesosfera","Exosfera"]],["atm","exo","¿Qué capa de la atmósfera está marcada?",["Exosfera","Termosfera","Troposfera"]]],
+ gh2:[["mega","menhir","¿Qué monumento megalítico es este?",["Menhir","Dolmen","Crómlech"],1],["mega","dolmen","¿Qué monumento megalítico es este?",["Dolmen","Menhir","Crómlech"],1],["mega","cromlech","¿Qué monumento megalítico es este?",["Crómlech","Dolmen","Menhir"],1]]};
+for(const k in IMGQ)IMGQ[k].forEach(([d,hl,q,o,only])=>DIAG[k].qs.push({t:DIAG[k].qs.find(x=>/Tierra|Rocas|Capas|Megalitos/.test(x.t)&&(d==="tierra"?x.t==="La Tierra":d==="ciclo"?x.t==="Rocas":d==="atm"?x.t==="Capas":x.t==="Megalitos")).t,q,o,img:{d,hl,only:only?hl:null},e:"Fíjate también en el esquema de la ficha."}));
+function qImg(q){return q.img?diagram(q.img.d,q.img.hl,true,q.img.only):""}
+
+/* ---------- Explicar en voz alta (D), por escrito (C) o con un adulto (B) ---------- */
+/* Cada punto clave se da por dicho si aparece al menos una palabra de CADA grupo (sin tildes ni mayúsculas). */
+const ORAL={
+ lenguas:{s:"len",title:"Las lenguas de España",ficha:"lengua",pide:"Explica qué lenguas se hablan en España, dónde y de dónde vienen.",p:[
+  ["El castellano es oficial en toda España",[["castellano","espanol"],["toda","oficial"]]],
+  ["El catalán se habla en Cataluña, Baleares y la Comunidad Valenciana",[["catalan","valenciano"],["cataluna","baleares","valencia"]]],
+  ["El gallego se habla en Galicia",[["gallego"],["galicia"]]],
+  ["El euskera se habla en el País Vasco y Navarra",[["euskera","vasco"],["pais vasco","navarra","euskadi"]]],
+  ["Castellano, catalán y gallego vienen del latín",[["latin"]]],
+  ["El euskera no viene del latín: es más antiguo",[["euskera","vasco"],["no viene","antes","antigu","no es del latin","no procede"]]]]},
+ dialectos:{s:"len",title:"Dialectos y español de América",ficha:"lengua",pide:"Explica qué es un dialecto, di algunos dialectos del castellano y cómo es el español de América.",p:[
+  ["Un dialecto es una variedad de una lengua en una zona",[["variedad","forma de hablar","manera de hablar"],["zona","region","lugar","sitio"]]],
+  ["Dialectos del castellano: andaluz, canario, extremeño, murciano",[["andaluz","canario","extremeno","murciano"]]],
+  ["Seseo y ceceo",[["seseo","ceceo"]]],
+  ["El español llegó a América con Colón, en 1492",[["america"],["1492","colon"]]],
+  ["En América: ustedes, seseo o americanismos (carro, computadora…)",[["ustedes","americanismo","carro","computadora","papa","vos"]]]]},
+ niveles:{s:"len",title:"Niveles de uso y registros",ficha:"lengua",pide:"Explica los niveles de uso de la lengua y los registros, con un ejemplo de cada uno.",p:[
+  ["Nivel culto: personas instruidas, claro y preciso",[["culto"]]],
+  ["Nivel estándar: el de los medios de comunicación",[["estandar"],["medios","tele","radio","periodico","noticias"]]],
+  ["Nivel coloquial: el de la vida diaria",[["coloquial"],["diari","amigos","familia","casa"]]],
+  ["Nivel vulgar: no respeta las normas (vulgarismos)",[["vulgar"]]],
+  ["Registros formal e informal, según la situación",[["formal"],["informal"]]]]},
+ escritura:{s:"len",title:"La escritura y la comunicación",ficha:"lengua",pide:"Explica cómo nació la escritura y qué tipos de comunicación hay.",p:[
+  ["La escritura nació por una necesidad social",[["necesidad","comercio","cuentas","contar"]]],
+  ["Pictogramas: dibujos de objetos",[["pictograma"]]],
+  ["Ideogramas: símbolos de ideas",[["ideograma"]]],
+  ["La escritura cuneiforme nació en Mesopotamia (Uruk)",[["cuneiforme","uruk","mesopotamia"]]],
+  ["Comunicación verbal (palabras) y no verbal (gestos, imágenes)",[["no verbal"],["gesto","imagen","senal","dibujo"]]]]},
+ tierra:{s:"bio",title:"Las capas de la Tierra",ficha:"tierra",pide:"Explica las capas de la Tierra, de fuera hacia dentro, con algún dato de cada una.",p:[
+  ["La corteza: la capa de fuera, donde vivimos",[["corteza"]]],
+  ["Corteza continental (granito) y oceánica (basalto)",[["continental","oceanica","granito","basalto"]]],
+  ["El manto, con corrientes de convección",[["manto"]]],
+  ["El núcleo externo es líquido",[["externo"],["liquido"]]],
+  ["El núcleo interno es sólido, de hierro y níquel",[["interno"],["solido","hierro","niquel"]]]]},
+ rocas:{s:"bio",title:"Los tipos de rocas y su ciclo",ficha:"rocas",pide:"Explica los tres tipos de rocas, cómo se forman y el ciclo de las rocas.",p:[
+  ["Sedimentarias: trozos que se acumulan y se compactan",[["sedimentari"]]],
+  ["Magmáticas: el magma se enfría (volcánicas y plutónicas)",[["magmatic","igne","volcanic","plutonic"],["magma","enfria"]]],
+  ["Metamórficas: otra roca cambia por presión o temperatura",[["metamorfic"],["presion","temperatura","cambi","transforma"]]],
+  ["Ejemplos: granito, basalto, pizarra, caliza, arenisca…",[["granito","basalto","pizarra","caliza","arenisca","marmol","conglomerado"]]],
+  ["Ciclo: cualquier roca puede convertirse en otra",[["ciclo"]]]]},
+ atmosfera:{s:"bio",title:"Las capas de la atmósfera",ficha:"atmosfera",pide:"Explica las capas de la atmósfera de abajo arriba y qué pasa en cada una.",p:[
+  ["Troposfera: donde están el tiempo, la lluvia y el viento",[["troposfera"]]],
+  ["Estratosfera: la capa de ozono",[["estratosfera"],["ozono"]]],
+  ["Mesosfera: estrellas fugaces",[["mesosfera"]]],
+  ["Termosfera o ionosfera: auroras",[["termosfera","ionosfera"]]],
+  ["Exosfera: el límite con el espacio",[["exosfera"]]]]},
+ invernadero:{s:"bio",title:"Contaminación y efecto invernadero",ficha:"contaminacion",pide:"Explica qué es el efecto invernadero, qué problemas causa la contaminación y qué soluciones hay.",p:[
+  ["El efecto invernadero es necesario: sin él haría −18 °C",[["invernadero"],["necesari","18","frio","calor"]]],
+  ["Si aumenta, provoca calentamiento global y cambio climático",[["calentamiento","cambio climatico"]]],
+  ["Lluvia ácida",[["lluvia acida","acida"]]],
+  ["Los CFC destruyen la capa de ozono",[["cfc","ozono"]]],
+  ["Soluciones: renovables, transporte público, plantar árboles, filtros",[["renovable","transporte","arbol","bosque","filtro","electric"]]]]},
+ prehistoria:{s:"gh",title:"Paleolítico y Neolítico",ficha:"prehistoria",pide:"Explica las diferencias entre el Paleolítico y el Neolítico.",p:[
+  ["Paleolítico: nómadas, cazadores y recolectores",[["nomada","cazador","recolector","caza"]]],
+  ["Paleolítico: piedra tallada y dominio del fuego",[["tallada","fuego"]]],
+  ["Neolítico: agricultura y ganadería",[["agricultura","ganaderia","cultiv"]]],
+  ["Neolítico: sedentarios, viven en poblados",[["sedentari","poblado"]]],
+  ["Neolítico: piedra pulida, cerámica y tejidos",[["pulida","ceramica","tejid"]]]]},
+ metales:{s:"gh",title:"La Edad de los Metales y los megalitos",ficha:"metales",pide:"Explica la Edad de los Metales: sus fases, cómo cambió la sociedad y qué son los megalitos.",p:[
+  ["Empieza con la metalurgia, hacia el 5000 a. C.",[["metalurgia","5000"]]],
+  ["Fases: cobre, bronce y hierro",[["cobre"],["bronce"],["hierro"]]],
+  ["El bronce es una mezcla de cobre y estaño",[["estano","aleacion","mezcla"]]],
+  ["Jerarquización: quien controla el metal manda",[["jerarqui","poder","manda","rey","privilegi"]]],
+  ["Megalitos: menhir, dolmen y crómlech",[["menhir","dolmen","cromlech"]]]]}
+};
+function normTxt(t){return " "+String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9ñ ]/g," ").replace(/\s+/g," ")+" "}
+function scoreOral(id,txt){const n=normTxt(txt);return ORAL[id].p.map(([_,groups])=>groups.every(g=>g.some(w=>n.includes(normTxt(w).trim()))))}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null;
+function viewOral(id){const O=ORAL[id];if(!O)return go("inicio");const a=$("#app");
+  if(!state.mode)state.mode=SR?"voz":"escrito";state.txt=state.txt||"";
+  const modes=[[SR?"voz":null,"Hablar"],["escrito","Escribir"],["adulto","Con papá o mamá"]].filter(m=>m[0]);
+  const head=`<button class="back" data-go="inicio">← Volver</button><span class="qtag">${SNAME[O.s]} · Explícalo</span><h1>${esc(O.title)}</h1>
+    <section class="card"><p class="qtext" style="font-size:1.15rem">${esc(O.pide)}</p><p class="small muted">Cuéntalo como si se lo explicaras a alguien que no lo sabe. Hay ${O.p.length} ideas clave.</p>
+    <div class="seg">${modes.map(m=>`<button data-m="${m[0]}" aria-pressed="${state.mode===m[0]}">${m[1]}</button>`).join("")}</div></section>`;
+  let body="";
+  if(state.done){const hits=state.hits;const ok=hits.filter(Boolean).length;
+    body=`<section class="card"><div class="row" style="gap:18px"><span class="big">${ok}/${O.p.length}</span><p>${ok===O.p.length?"¡Lo has explicado completo!":ok>=O.p.length/2?"¡Bien! Te han faltado algunas ideas:":"Te han faltado varias ideas. Repasa la ficha y vuelve a intentarlo."}</p></div>
+      <ul class="pts">${O.p.map((p,i)=>`<li class="${hits[i]?"ok":"ko"}">${hits[i]?"✓":"✗"} ${esc(p[0])}</li>`).join("")}</ul>
+      ${state.mode!=="adulto"&&state.txt?`<details><summary class="small">Ver lo que has dicho</summary><p class="small muted">${esc(state.txt)}</p></details>`:""}
+      <div class="row"><button class="btn" id="oagain">Otra vez</button><button class="btn ghost" data-go="ficha-${O.ficha}">Ver la ficha</button></div></section>`}
+  else if(state.mode==="voz"){body=`<section class="card"><div class="row"><button class="btn" id="orec">${rec?"Terminar":"Empezar a hablar"}</button>${rec?'<span class="recdot">Escuchando…</span>':""}</div>
+      <div class="transcript" id="otr">${esc(state.txt)||'<span class="muted">Aquí aparecerá lo que digas.</span>'}</div>
+      <p class="small muted">La primera vez el navegador pedirá permiso para usar el micrófono. Pulsa «Terminar» cuando acabes.</p></section>`}
+  else if(state.mode==="escrito"){body=`<section class="card"><p class="small muted">Escribe frases cortas con las ideas que recuerdes. La ortografía no cuenta.</p><textarea id="otx" rows="6" style="font-size:1.05rem">${esc(state.txt)}</textarea><div class="row"><button class="btn" id="ochk">Comprobar</button></div></section>`}
+  else{body=`<section class="card"><p><b>Para papá o mamá:</b> ella lo explica en voz alta y vosotros marcáis cada idea que diga, aunque sea con otras palabras. No hace falta saberse el tema.</p>
+      <div class="pts-chk">${O.p.map((p,i)=>`<label class="row" style="gap:10px"><input type="checkbox" data-pt="${i}" style="width:24px;height:24px"> ${esc(p[0])}</label>`).join("")}</div><div class="row"><button class="btn" id="oadl">Terminar</button></div></section>`}
+  a.innerHTML=`<div data-s="${O.s}" class="wrap" style="gap:16px">${head}${body}</div>`;
+  a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{stopRec();go(b.dataset.go)}));
+  a.querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{stopRec();state.mode=b.dataset.m;viewOral(id)}));
+  const finish=(hits,txt)=>{state.done=true;state.hits=hits;state.txt=txt||"";const ok=hits.filter(Boolean).length;
+    saveResult({key:"oral-"+id,materia:"Explicar: "+O.title,sub:{voz:"hablando",escrito:"por escrito",adulto:"con un adulto"}[state.mode],ok,total:O.p.length,ns:0,temas:{},fallos:O.p.filter((p,i)=>!hits[i]).map(p=>p[0]),texto:txt?txt.slice(0,1500):undefined});viewOral(id)};
+  const ag=$("#oagain");if(ag)ag.addEventListener("click",()=>{state={mode:state.mode};viewOral(id)});
+  const ck=$("#ochk");if(ck)ck.addEventListener("click",()=>{const t=$("#otx").value.trim();if(t.length<10)return;finish(scoreOral(id,t),t)});
+  const ad=$("#oadl");if(ad)ad.addEventListener("click",()=>finish(O.p.map((p,i)=>a.querySelector(`[data-pt="${i}"]`).checked),""));
+  const rb=$("#orec");if(rb)rb.addEventListener("click",()=>{if(rec){stopRec();const t=state.txt.trim();if(t.length<10){viewOral(id);return}finish(scoreOral(id,t),t)}else startRec(id)});
+}
+function startRec(id){try{rec=new SR();rec.lang="es-ES";rec.continuous=true;rec.interimResults=true;let base=state.txt?state.txt+" ":"";
+  rec.onresult=e=>{let fin="",tmp="";for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)fin+=r[0].transcript+" ";else tmp+=r[0].transcript}base+=fin;state.txt=base;const el=$("#otr");if(el)el.innerHTML=esc(base)+(tmp?`<span class="muted">${esc(tmp)}</span>`:"")};
+  rec.onerror=e=>{if(e.error==="not-allowed"||e.error==="service-not-allowed"){rec=null;state.mode="escrito";viewOral(id);const t=document.createElement("p");t.className="small";t.style.color="var(--ko)";t.textContent="No se ha podido usar el micrófono. Puedes escribirlo o hacerlo con papá o mamá.";$("#app").appendChild(t)}};
+  rec.onend=()=>{if(rec){try{rec.start()}catch(err){}}};rec.start();viewOral(id)}catch(err){rec=null;state.mode="escrito";viewOral(id)}}
+function stopRec(){if(rec){const r=rec;rec=null;try{r.stop()}catch(e){}}}
 
 /* ---------- Tablas ---------- */
 const TQ=20;

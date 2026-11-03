@@ -156,6 +156,11 @@ sup{font-size:.7em}
 .map .lbl.sea-l{fill:var(--river);stroke:var(--sea);font-style:normal}
 .map .lbl.riv-l{fill:var(--river);font-size:18px}
 .chip{font-size:.9rem!important;text-align:left}
+.dg.sm{width:31px;height:46px;font-size:1.3rem;padding:0}.pvsm th{font-size:.75rem;padding:0 1px}.pvsm td{padding:2px 1px}.dotnum{display:flex;gap:4px;align-items:flex-end;flex-wrap:nowrap;padding:4px 0}.dotnum .sep{font-size:1.8rem;font-weight:700;line-height:1;padding:0 1px}
+span.dg{display:inline-grid;place-items:center}.dg.sel{background:var(--mat);color:#fff;border-color:var(--mat)}
+.cblines{font-size:1.25rem;font-variant-numeric:tabular-nums;line-height:1.9;overflow-x:auto}.cbl{white-space:nowrap}.cbl.cur{font-size:1.35rem}
+.cbop{min-width:40px;min-height:44px;margin:0 4px;border-radius:10px;border:2px solid var(--mat);background:var(--card);color:var(--ink);font-size:1.3rem;font-weight:700;cursor:pointer}.cbop.sel{background:var(--mat);color:#fff;animation:pulse 1s infinite}
+u.cbu{text-decoration-color:var(--mat);text-decoration-thickness:3px;text-underline-offset:5px}
 .tipidk{background:var(--chip);border-radius:10px;padding:8px 12px;margin:0}
 .pgrow{display:grid;grid-template-columns:5.5em 1fr auto;gap:10px;align-items:center;margin:6px 0}
 .pbar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}.pbar i{display:block;height:100%;border-radius:6px}.pbar i.pf{background:var(--soft)}.pbar i.pn{background:var(--ok)}
@@ -334,15 +339,15 @@ const PLAN=[
   ["bio","Repaso: mini-prueba de la Tierra",8,"diag:bio1",1,{},2],
   ["bio","Repaso: explica las capas de la Tierra",8,"oral:tierra",1,{},2]]},
  {d:"2026-11-05",t:"Jueves",b:[
-  ["bio","Biología: las rocas y su ciclo",15,"ficha-rocas",1,{},1],
-  ["bio","Biología: la atmósfera y sus capas",15,"ficha-atmosfera",1,{},1],
-  ["mat","Tablas de multiplicar",5,"tablas",2,{},1],
+  ["bio","Biología: las rocas y su ciclo",12,"ficha-rocas",1,{},1],
+  ["bio","Biología: la atmósfera y sus capas",12,"ficha-atmosfera",1,{},1],
+  ["mat","Prueba de nivel: números enteros",10,"diag:mat2",1,{nivel:true},1],
   ["bio","Repaso: fallos de la atmósfera",8,"diag:bio2",1,{fallos:true},2],
   ["ing","Repaso: verbos irregulares",8,"verbs",3,{fam:"en1"},2]]},
  {d:"2026-11-06",t:"Viernes",b:[
-  ["bio","Biología: tiempo, clima y aparatos",15,"ficha-tiempo",1,{},1],
-  ["bio","Biología: contaminación y soluciones",15,"ficha-contaminacion",1,{},1],
-  ["mat","Tablas de multiplicar",5,"tablas",2,{},1],
+  ["bio","Biología: tiempo, clima y aparatos",12,"ficha-tiempo",1,{},1],
+  ["bio","Biología: contaminación y soluciones",12,"ficha-contaminacion",1,{},1],
+  ["mat","Operaciones combinadas paso a paso",10,"combinadas",1,{},1],
   ["ing","Repaso: mini-prueba de gramática inglesa",8,"diag:ing1",1,{},2],
   ["len","Repaso: tarjetas de Lengua",8,"tarjetas-len",1,{},2]]},
  {d:"2026-11-07",t:"Sábado",b:[
@@ -350,7 +355,8 @@ const PLAN=[
   ["bio","Fichas: repasa lo que has fallado",15,"fichas",1,{},1],
   ["len","Mini-prueba de Lengua: ejercicios",8,"diag:len2",1,{},2],
   ["mat","Tablas de multiplicar",5,"tablas",2,{},2],
-  ["mat","MCD y mcm: 2 ejercicios",15,"mcd",2,{},2],
+  ["mat","Operaciones combinadas paso a paso",12,"combinadas",1,{},2],
+  ["mat","Prueba de nivel: potencias",8,"diag:mat3",1,{nivel:true},2],
   ["gh","Mini-prueba de Prehistoria",8,"diag:gh1",1,{},3],
   ["gh","Mapa: comunidades de España",10,"mapas",2,{set:"esp",modo:"find"},3],
   ["ing","Verbos irregulares",8,"verbs",3,{fam:"en2"},3]]},
@@ -360,7 +366,7 @@ const PLAN=[
   ["bio","Fichas de Biología",10,"fichas",1,{},1],
   ["len","Lengua: los temas para desarrollar",15,"ficha-lengua",1,{},2],
   ["len","Mini-prueba de Lengua: teoría",8,"diag:len1",1,{},2],
-  ["mat","Tablas de multiplicar",5,"tablas",2,{},2],
+  ["mat","Signos con enteros",5,"diag:ent0",1,{},2],
   ["ing","Mini-prueba de vocabulario inglés",8,"diag:ing2",1,{},3],
   ["gh","Tarjetas de la Prehistoria",10,"tarjetas-gh",1,{},3],
   ["gh","Mapa: países de Europa",10,"mapas",2,{set:"eur",modo:"find"},3]]},
@@ -371,14 +377,14 @@ const PLAN=[
   ["len","Tarjetas de Lengua",10,"tarjetas-len",1,{},2],
   ["len","Mini-prueba de Lengua: ejercicios",8,"diag:len2",1,{},2],
   ["mat","Tablas de multiplicar",5,"tablas",2,{},2],
-  ["mat","MCD y mcm: 1 ejercicio",8,"mcd",1,{},2],
+  ["mat","Operaciones combinadas paso a paso",10,"combinadas",1,{},2],
   ["gh","Mini-prueba: Edad de los Metales",8,"diag:gh2",1,{},3],
   ["ing","Verbos irregulares",8,"verbs",3,{fam:"n"},3],
   ["gh","Mapa: relieve y ríos de España",10,"mapas",2,{set:"espf",modo:"what"},3]]},
  {d:"2026-11-10",t:"Martes",b:[
   ["bio","Simulacro de examen: Biología",15,"sim:bio",1,{},1],
   ["bio","Repaso de fallos: la atmósfera",8,"diag:bio2",1,{fallos:true},1],
-  ["mat","Tablas de multiplicar",5,"tablas",2,{},1],
+  ["mat","Operaciones combinadas paso a paso",10,"combinadas",1,{},1],
   ["len","Repaso: explica las lenguas de España",8,"oral:lenguas",1,{},2],
   ["len","Repaso: explica los niveles y registros",8,"oral:niveles",1,{},2]]},
  {d:"2026-11-11",t:"Miércoles · entreno",note:"Mañana es el examen de Biología: repaso ligero y a dormir pronto.",b:[
@@ -395,26 +401,27 @@ const PLAN=[
  {d:"2026-11-14",t:"Sábado",b:[
   ["ing","Inglés: escribe tu historia de miedo",20,"historia",1,{},1],
   ["ing","Mini-prueba de gramática inglesa",8,"diag:ing1",1,{},1],
-  ["mat","Tablas de multiplicar",5,"tablas",2,{},2],
-  ["mat","MCD y mcm: 2 ejercicios",15,"mcd",2,{},2],
-  ["mat","Mini-prueba de Mates",8,"diag:mat1",1,{},2],
+  ["mat","Operaciones combinadas paso a paso",12,"combinadas",1,{},2],
+  ["mat","Mini-prueba: enteros",8,"diag:mat2",1,{},2],
+  ["mat","Mini-prueba: potencias",7,"diag:mat3",1,{},2],
+  ["mat","Mini-prueba: tema 1",8,"diag:mat1",1,{},2],
   ["gh","Mini-prueba de Prehistoria",8,"diag:gh1",1,{},3],
   ["gh","Historia: la Edad de los Metales (ficha)",15,"ficha-metales",1,{},3],
   ["gh","Mapa: capitales de Europa",10,"mapas",2,{set:"eur",modo:"cap"},3]]},
  {d:"2026-11-15",t:"Domingo",b:[
   ["ing","Simulacro de examen: Inglés",15,"sim:ing",1,{},1],
   ["ing","Verbos: todas las familias",8,"verbs",3,{fam:"all"},1],
-  ["mat","Tablas de multiplicar",5,"tablas",2,{},2],
+  ["mat","Operaciones combinadas paso a paso",10,"combinadas",1,{},2],
   ["mat","¿MCD o mcm? (juego)",8,"tipo",1,{},2],
   ["mat","Simulacro de examen: Mates",15,"sim:mat",1,{},2],
   ["gh","Tarjetas de la Prehistoria",10,"tarjetas-gh",1,{},3],
   ["gh","Mapa: relieve y ríos de Europa",10,"mapas",2,{set:"eurf",modo:"what"},3],
   ["gh","Repaso de fallos: Edad de los Metales",8,"diag:gh2",1,{fallos:true},3]]},
  {d:"2026-11-16",t:"Lunes · entreno",exam:"ing",note:"¡Examen de Inglés! Por la tarde, Mates.",b:[
-  ["mat","Tablas de multiplicar",5,"tablas",2,{},1],
   ["mat","Simulacro de examen: Mates",15,"sim:mat",1,{},1],
-  ["mat","MCD y mcm: 1 ejercicio",8,"mcd",1,{},1],
-  ["mat","Repaso: cálculo rápido",5,"diag:mat0",1,{},2],
+  ["mat","Operaciones combinadas paso a paso",10,"combinadas",1,{},1],
+  ["mat","Repaso: signos con enteros",5,"diag:ent0",1,{},2],
+  ["mat","Repaso: mini-prueba de potencias",7,"diag:mat3",1,{},2],
   ["mat","Repaso: ¿MCD o mcm?",8,"tipo",1,{},2]]},
  {d:"2026-11-17",t:"Martes",exam:"mat",note:"¡Examen de Mates! Por la tarde, Historia.",b:[
   ["gh","Simulacro de examen: Geografía e Historia",15,"sim:gh",1,{},1],
@@ -1004,6 +1011,8 @@ function render(){
   if(h.startsWith("oral-")) return viewOral(h.slice(5));
   if(h==="redondeo") return viewRedondeo();
   if(h==="progreso") return viewProgreso();
+  if(h==="posiciones") return viewPosiciones();
+  if(h==="combinadas") return viewCombinadas();
   if(h==="plan") return viewPlan();
   viewHome();
 }
@@ -1042,7 +1051,7 @@ function viewHome(){
     <section class="card"><h2>Simulacros de examen</h2><p class="muted small">Como un examen: sin correcciones hasta el final. Al terminar ves tu nota y repasas los fallos.</p>
       <div class="tiles">${["bio","len","ing","mat","gh"].map(simTile).join("")}</div></section>
     <section class="card"><h2>Pruebas completas por unidad</h2><p class="muted small">15 preguntas, con la explicación de cada fallo. Si no sabes una respuesta, pulsa «No lo sé».</p>
-      <div class="tiles">${tile("bio1","diag-bio1")}${tile("bio2","diag-bio2")}${tile("mat0","diag-mat0")}${tile("mat1","diag-mat1")}
+      <div class="tiles">${tile("bio1","diag-bio1")}${tile("bio2","diag-bio2")}${tile("mat0","diag-mat0")}${tile("mat1","diag-mat1")}${tile("ent0","diag-ent0")}${tile("mat2","diag-mat2")}${tile("mat3","diag-mat3")}
 ${tile("len1","diag-len1")}${tile("len2","diag-len2")}${tile("ing1","diag-ing1")}${tile("ing2","diag-ing2")}${tile("gh1","diag-gh1")}${tile("gh2","diag-gh2")}</div></section>
     <section class="card"><h2>Entrenamientos</h2>
       <div class="tiles">
@@ -1054,7 +1063,9 @@ ${tile("len1","diag-len1")}${tile("len2","diag-len2")}${tile("ing1","diag-ing1")
         <button class="tile" data-s="ing" data-go="historia"><b>Mi historia de miedo</b><span>Escribe tu historia paso a paso con past simple y past continuous.</span></button>
         <button class="tile" data-s="ing" data-go="verbos"><b>Verbos irregulares</b><span>Por familias: aprende, elige o escribe. 10 minutos al día.</span></button>
         <button class="tile" data-s="mat" data-go="tablas"><b>Tablas de multiplicar</b><span>5 minutos al día para ganar soltura. Insiste en las que más cuestan.</span></button>
-        <button class="tile" data-s="mat" data-go="redondeo"><b>Redondeo paso a paso</b><span>Valor de posición y redondeo, con la tabla de posiciones.</span></button>
+        <button class="tile" data-s="mat" data-go="combinadas"><b>Operaciones combinadas</b><span>Con enteros, paso a paso y en el orden correcto, como en el examen.</span></button>
+        <button class="tile" data-s="mat" data-go="posiciones"><b>Posiciones</b><span>Unidades, decenas, centenas, unidades de millar… Antes del redondeo.</span></button>
+        <button class="tile" data-s="mat" data-go="redondeo"><b>Redondeo paso a paso</b><span>${posMastered()?"Redondear usando la tabla de posiciones.":"Se desbloquea al dominar las posiciones."}</span></button>
         <button class="tile" data-s="mat" data-go="entender"><b>Entender el MCD y el mcm</b><span>Qué son, con listas y ejemplos, y por qué funciona la receta.</span></button>
         <button class="tile" data-s="mat" data-go="mcd"><b>Receta MCD y mcm</b><span>Paso a paso: factorizar, MCD y mcm, con ayudas.</span></button>
         <button class="tile" data-s="mat" data-go="tipo"><b>¿MCD o mcm?</b><span>Lee el problema y descubre qué hay que calcular.</span></button>
@@ -1117,7 +1128,7 @@ function viewQuiz(key){
     state.fixing=true;$("#after").innerHTML="";
     /* Corregir antes de seguir: opciones reordenadas y sin marcar; hay que leer la explicación para elegir bien. */
     if(q.o){const re=shuffle(q.o);$("#opts").hidden=true;
-      $("#fix").innerHTML=(rq?`<div class="row"><button class="btn" id="qred">Hazlo paso a paso con este número</button></div>`:"")+`<p class="small"><b>Lee la explicación y elige ahora la respuesta correcta para seguir:</b></p><div class="opts">${re.map(o=>`<button class="opt">${esc(o)}</button>`).join("")}</div>`+(pure?"":profeHtml("profe-q"));
+      $("#fix").innerHTML=(rq?`<div class="row"><button class="btn" id="qred">${posMastered()?"Hazlo paso a paso con este número":"Practica primero las posiciones"}</button></div>`:"")+`<p class="small"><b>Lee la explicación y elige ahora la respuesta correcta para seguir:</b></p><div class="opts">${re.map(o=>`<button class="opt">${esc(o)}</button>`).join("")}</div>`+(pure?"":profeHtml("profe-q"));
       $("#fix").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{if(b.textContent===right){b.classList.add("right");$("#fix").querySelectorAll(".opt").forEach(x=>x.disabled=true);beep(784,.12);showNext()}else{b.classList.add("wrong");b.disabled=true;autoHelp()}}))}
     else{$("#fix").innerHTML=`<p class="small"><b>Escribe ahora el resultado correcto para seguir:</b></p><form class="numin" id="ff"><input id="fin" inputmode="numeric" autocomplete="off" aria-label="Resultado correcto"><button class="btn">OK</button></form>`+(pure?"":profeHtml("profe-q"));
       $("#fin").focus();$("#ff").addEventListener("submit",e=>{e.preventDefault();if(+$("#fin").value.replace(/[^0-9]/g,"")===q.n){$("#fin").disabled=true;beep(784,.12);showNext()}else{$("#fin").value="";autoHelp()}})}
@@ -1644,7 +1655,7 @@ function viewEntender(){
 }
 
 /* ---------- Guardar ejercicios a medias ---------- */
-const RESUMABLE=h=>/^(diag-|sim-|ficha-|verbos$|mcd$|tipo$|tablas$|mapas$|tarjetas-|redondeo$)/.test(h);
+const RESUMABLE=h=>/^(diag-|sim-|ficha-|verbos$|mcd$|tipo$|tablas$|mapas$|tarjetas-|redondeo$|posiciones$|combinadas$)/.test(h);
 function isFinished(h,st){
   if(h.startsWith("diag-")||h.startsWith("sim-"))return !st.qs||!!st.saved||st.i>=st.qs.length;
   if(h==="verbos")return !st.vq||!!st.vq.saved;
@@ -1655,6 +1666,8 @@ function isFinished(h,st){
   if(h.startsWith("tarjetas-"))return !st.fc||!!st.fc.saved;
   if(h.startsWith("ficha-"))return !st.fid||st.step>=(FICHAS[st.fid]?FICHAS[st.fid].sec.length:0);
   if(h==="redondeo")return !st.r||!!st.r.saved;
+  if(h==="posiciones")return !st.ps||!!st.ps.saved;
+  if(h==="combinadas")return !st.cb||!!st.cb.saved;
   return true}
 let curHash=location.hash.replace("#","")||"inicio";
 function persist(){if(!RESUMABLE(curHash))return;try{if(isFinished(curHash,state))localStorage.removeItem("m1e:st:"+curHash);else LS.set("st:"+curHash,state)}catch(e){}}
@@ -1762,7 +1775,7 @@ function order(d){const drills=[],papa=[],groups={},subs=[];
 function takeParams(target){const bp=LS.get("bp",null);if(!bp||bp.target!==target)return null;LS.set("bp",null);return bp.params||{}}
 
 /* ---------- Plan del día generado por la IA ---------- */
-const AI_TARGETS=["redondeo","oral:lenguas","oral:dialectos","oral:niveles","oral:escritura","oral:tierra","oral:rocas","oral:atmosfera","oral:invernadero","oral:prehistoria","oral:metales","ficha-prehistoria","ficha-metales","sim:bio","sim:len","sim:ing","sim:mat","sim:gh","diag:bio1","diag:bio2","diag:mat0","diag:mat1","diag:len1","diag:len2","diag:ing1","diag:ing2","diag:gh1","diag:gh2","ficha-tierra","ficha-minerales","ficha-rocas","ficha-atmosfera","ficha-tiempo","ficha-contaminacion","ficha-lengua","tarjetas-len","tarjetas-gh","tarjetas-hal","verbs","tablas","mcd","tipo","mapas","historia",""];
+const AI_TARGETS=["posiciones","combinadas","diag:ent0","diag:mat2","diag:mat3","redondeo","oral:lenguas","oral:dialectos","oral:niveles","oral:escritura","oral:tierra","oral:rocas","oral:atmosfera","oral:invernadero","oral:prehistoria","oral:metales","ficha-prehistoria","ficha-metales","sim:bio","sim:len","sim:ing","sim:mat","sim:gh","diag:bio1","diag:bio2","diag:mat0","diag:mat1","diag:len1","diag:len2","diag:ing1","diag:ing2","diag:gh1","diag:gh2","ficha-tierra","ficha-minerales","ficha-rocas","ficha-atmosfera","ficha-tiempo","ficha-contaminacion","ficha-lengua","tarjetas-len","tarjetas-gh","tarjetas-hal","verbs","tablas","mcd","tipo","mapas","historia",""];
 const CATALOGO=`ACTIVIDADES (campo "act"):
 - "diag:bio1" prueba Biología: Tierra, minerales y rocas (16 preguntas, ~12 min) · "diag:bio2" prueba atmósfera, tiempo y contaminación (12, ~10 min)
 - "diag:len1" prueba Lengua teoría (17, ~12 min) · "diag:len2" Lengua ejercicios: signos, comunicación, niveles, letra h (17, ~12 min)
@@ -1777,7 +1790,11 @@ const CATALOGO=`ACTIVIDADES (campo "act"):
 - "mcd" ejercicio guiado de MCD y mcm (~8 min por ejercicio) · "tipo" juego ¿MCD o mcm? (10 problemas, ~8 min)
 - "mapas" ronda de 10 (~5 min). param {"set":"esp"|"espf"|"eur"|"eurf","modo":"find"|"cap"|"what"} (esp=comunidades, espf=relieve España, eur=países Europa, eurf=relieve Europa; cap solo para esp/eur; what solo para espf/eurf)
 - "historia" escribir la historia de miedo en inglés (20 min)
-- "redondeo" entrenador guiado de valor de posición y redondeo (5 números, ~8 min)
+- "posiciones" entrenador de valor de posición (10 preguntas, ~8 min). Hasta que lo domine (2 rondas de 8/10), el redondeo está bloqueado.
+- "redondeo" entrenador guiado de redondeo (3 números, ~8 min). Solo si ya domina las posiciones.
+- "combinadas" operaciones combinadas con enteros paso a paso, como en el examen (2 operaciones, ~10 min). Es su punto más débil en Mates (sacó 0,8 en el control de enteros): ponlo a menudo.
+- "diag:ent0" cálculo rápido con signos (10, ~5 min) · "diag:mat2" Mates tema 2: números enteros (problemas, orden, jerarquía) · "diag:mat3" Mates tema 3: potencias de la misma base
+- El examen de Mates del 17 entra: tema 1 (naturales), tema 2 (enteros) y tema 3 (solo potencias de la misma base).
 - "oral:lenguas","oral:dialectos","oral:niveles","oral:escritura" (Lengua), "oral:tierra","oral:rocas","oral:atmosfera","oral:invernadero" (Biología), "oral:prehistoria","oral:metales" (Historia): EXPLICAR UN TEMA EN VOZ ALTA y la app comprueba las ideas clave (~8 min). Muy útil para las preguntas de desarrollo; ideal en el repaso de la noche.
 - "ficha-prehistoria","ficha-metales": fichas de Historia con esquema (15 min)
 - "sim:bio","sim:len","sim:ing","sim:mat","sim:gh" SIMULACRO DE EXAMEN de toda la asignatura (20 preguntas, nota al final, ~15 min): solo en los 1-3 días antes de su examen.
@@ -1795,7 +1812,7 @@ function compactStats(ds){
   const ts=LS.get("tablas",{});const bad=Object.entries(ts).filter(([k,v])=>v.slice(-3).includes("x")).map(([k])=>k.replace("x","×"));const slow=Object.entries(ts).filter(([k,v])=>!v.slice(-3).includes("x")&&v.slice(-3).includes("s")).map(([k])=>k.replace("x","×"));
   if(Object.keys(ts).length)L.push(`tablas: falla ${bad.slice(0,10).join(" ")||"ninguna"} · lentas ${slow.slice(0,12).join(" ")||"ninguna"}`);
   const mc=(last.mcd||[]).slice(-4);if(mc.length)L.push(`mcd: errores por ejercicio ${mc.map(r=>r.errores).join(", ")}; detalle último ${JSON.stringify(mc[mc.length-1].det||{})}`);
-  Object.keys(last).filter(k=>k.startsWith("mapa-")||k.startsWith("deck-")||k==="tipo"||k==="historia").forEach(k=>{const r=last[k][last[k].length-1];L.push(`${k}: último ${r.ok}/${r.total}`)});
+  Object.keys(last).filter(k=>k.startsWith("mapa-")||k.startsWith("deck-")||k==="tipo"||k==="historia"||k==="posiciones"||k==="combinadas"||k==="redondeo").forEach(k=>{const r=last[k][last[k].length-1];L.push(`${k}: último ${r.ok}/${r.total}`)});
   const ses=LS.get("sesiones",[]).slice(-12);if(ses.length)L.push("sesiones recientes: "+ses.map(s=>`${s.fecha.slice(5)} ${s.bloque.slice(0,28)} ${s.real}/${s.estimado}min parones ${s.parones}`).join(" | "));
   const y=new Date(ds+"T12:00");y.setDate(y.getDate()-1);const ys=y.getFullYear()+"-"+String(y.getMonth()+1).padStart(2,"0")+"-"+String(y.getDate()).padStart(2,"0");const yd=PLAN.find(p=>p.d===ys);
   if(yd){const pend=yd.b.filter((b,i)=>!planDone[ys+"#"+i]).map(b=>b[1]);L.push("pendiente del día anterior (sin hacer): "+(pend.join(" | ")||"nada"))}
@@ -1812,19 +1829,19 @@ function validatePlan(p,d){if(!p||!Array.isArray(p.bloques))return null;const ca
     out.push([x.asig,texto,min,act||undefined,R,pr,tn])}
   out.sort((a,b)=>a[6]-b[6]);return out.length?{b:out,nota:String(p.nota||"").slice(0,300)}:null}
 const BASE={};PLAN.forEach(d=>{BASE[d.d]=d.b.map(x=>x.slice())});
-function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan4:"+d.d,null);const off=LS.get("aioff:"+d.d,false);
+function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan5:"+d.d,null);const off=LS.get("aioff:"+d.d,false);
   const started=d.b.some((b,i)=>planDone[d.d+"#"+i]||prog[d.d+"#"+i]);
-  if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan4:"+d.d,ai)}}
+  if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan5:"+d.d,ai)}}
   else{d.b=BASE[d.d].map(x=>x.slice());d.ai=false}})}
 let aiBusy=false;
 async function requestAIPlan(ds,force){const c=cfg();const d=PLAN.find(p=>p.d===ds);if(!c.url||!d||!d.b.length||aiBusy||!navigator.onLine)return;
-  const forceSrv=force||!LS.get("aiplan4:"+ds,null);if(!force){if(LS.get("aiplan4:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
+  const forceSrv=force||!LS.get("aiplan5:"+ds,null);if(!force){if(LS.get("aiplan5:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
   aiBusy=true;
   try{const base=BASE[ds].map(b=>`${b[0]} | ${b[1]} | ${b[2]} min | ${b[3]||""}`).join("\n");
     const res=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"plan",disp:deviceInfo(),clave:c.clave||"",fecha:ds,forzar:forceSrv,
       datos:`DÍA A PLANIFICAR: ${d.t}, ${ds}${d.exam?" (hoy por la mañana tiene examen de "+SNAME[d.exam]+")":""}\nMINUTOS MÁXIMOS: ${dayCap(d)}\n${dayKind(d)==="largo"?"ORGANIZACIÓN: día largo, 3 tandas (mañana, mediodía, tarde) de 25 a 35 minutos cada una, con descanso entre ellas.":"ORGANIZACIÓN: día de cole, tanda 1 al llegar del cole (máximo "+tandaCaps(d)[1]+" min) y tanda 2 por la noche: repaso que pueda hacer sola (máximo 20 min, 1 o 2 bloques cuyo texto empiece por «Repaso:»)."}\nAÑADE A CADA BLOQUE el campo "tanda" (número). Cada tanda tiene 2 o 3 bloques. No pases de 25 minutos por bloque.\n\nPLAN BASE PREVISTO PARA ESE DÍA:\n${base}\n\nEVOLUCIÓN HASTA AHORA:\n${compactStats(ds)}\n\nOBLIGATORIO (inclúyelos tal cual, con su "act" y "param"):\n${mandatory(ds).map(m=>`- ${m[1]} · act "${m[3]}" · param ${JSON.stringify(m[5])} · ${m[2]} min`).join("\n")||"- nada"}\n\n${CATALOGO}`})});
     const j=await res.json();if(j.error==="clave"){authFailed();return}let v=validatePlan(j.plan,d);if(v)v=injectMandatory(v,d,ds);
-    if(v){LS.set("aiplan4:"+ds,v);if(force)LS.set("aioff:"+ds,false);logEvent({evento:"plan IA",materia:ds,texto:v.b.map(b=>b[1]+" ("+b[2]+" min)").join(" · ")+" — "+v.nota})}else LS.set("aifail:"+ds,Date.now())}
+    if(v){LS.set("aiplan5:"+ds,v);if(force)LS.set("aioff:"+ds,false);logEvent({evento:"plan IA",materia:ds,texto:v.b.map(b=>b[1]+" ("+b[2]+" min)").join(" · ")+" — "+v.nota})}else LS.set("aifail:"+ds,Date.now())}
   catch(e){LS.set("aifail:"+ds,Date.now())}finally{aiBusy=false;applyAIPlans();softRender()}}
 function tomorrowStr(){const t=new Date();t.setDate(t.getDate()+1);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")}
 async function aiTick(){const t=todayStr(),d=PLAN.find(p=>p.d===t);await requestAIPlan(t);
@@ -1845,7 +1862,7 @@ function viewInforme(){
   a.querySelector("h1").textContent="Informe";
   const t=tomorrowStr(),dt=PLAN.find(p=>p.d===t),dd=PLAN.find(p=>p.d===todayStr());
   const planCard=document.createElement("section");planCard.className="card";
-  const show=(d,label)=>{if(!d)return "";const ai=LS.get("aiplan4:"+d.d,null),off=LS.get("aioff:"+d.d,false);
+  const show=(d,label)=>{if(!d)return "";const ai=LS.get("aiplan5:"+d.d,null),off=LS.get("aioff:"+d.d,false);
     return `<h3>${label}: ${esc(d.t)} ${new Date(d.d+"T12:00").getDate()}</h3>${ai?`<p class="small">${off?"Usando el plan base.":"Plan adaptado por la IA."} ${ai.nota?esc(ai.nota):""}</p>
       <ol class="small" style="margin:0;padding-left:1.2em">${ai.b.map(b=>`<li>${esc(b[1])} · ${b[2]} min${b[4]>1?" · "+b[4]+" "+unitFor(b,b[4]):""}</li>`).join("")}</ol>
       <div class="row"><button class="btn ghost small" data-aitog="${d.d}">${off?"Usar el plan de la IA":"Volver al plan base"}</button><button class="btn ghost small" data-aire="${d.d}">Pedir otro plan</button></div>`
@@ -1920,7 +1937,7 @@ function genMat0(){const ts=LS.get("tablas",{});const pick=()=>{const all=[];for
   for(let i=0;i<3;i++){let x,y;do{x=100+Math.floor(Math.random()*800);y=10+Math.floor(Math.random()*(x-20))}while(x%10>=y%10||y<20);out.push({t:"Restar",q:`${x} − ${y}`,n:x-y,gen:1})}
   return shuffle(out)}
 function scoreQ(q,h){const r=h[qkey(q)];if(!r||!r.length)return 2+Math.random();if(r[r.length-1]===0)return 3+Math.random();return Math.random()*(r.slice(-2).every(x=>x)?.6:1.2)}
-function pickQs(key,mode){const D=DIAG[key];if(key==="mat0")return genMat0();const h=qhGet();
+function pickQs(key,mode){const D=DIAG[key];if(key==="mat0")return genMat0();if(key==="ent0")return genEnt0();const h=qhGet();
   if(mode==="completa"){const by={};D.qs.forEach(q=>{(by[q.t]=by[q.t]||[]).push(q)});Object.values(by).forEach(a=>a.sort((x,y)=>scoreQ(y,h)-scoreQ(x,h)));
     const out=[];const ks=shuffle(Object.keys(by));while(out.length<15&&ks.some(k=>by[k].length))for(const k of ks){if(by[k].length&&out.length<15)out.push(by[k].shift())}return shuffle(out)}
   let pool=D.qs.slice();if(mode==="fallos"){const lr=lastResult(key);const f=new Set(lr&&lr.fallos||[]);pool.sort((x,y)=>((f.has(qkey(y))||((h[qkey(y)]||[]).slice(-1)[0]===0))?10:0)+scoreQ(y,h)-(((f.has(qkey(x))||((h[qkey(x)]||[]).slice(-1)[0]===0))?10:0)+scoreQ(x,h)))}
@@ -1930,7 +1947,8 @@ function mkState(key,mode,blk){return {qs:pickQs(key,mode).map(q=>Object.assign(
 const SIMU={bio:["bio1","bio2"],len:["len1","len2"],ing:["ing1","ing2"],mat:["mat1"],gh:["gh1","gh2"]};
 function viewSim(s){if(!SIMU[s])return go("inicio");const a=$("#app");
   {const bp0=LS.get("bp",null);const bp=takeParams("sim-"+s);if(bp||!state.qs){let qs=[];const h=qhGet();
-    if(s==="mat"){qs=genMat0().slice(0,4).map(q=>Object.assign({u:"mat0"},q));const by={};DIAG.mat1.qs.forEach(q=>{(by[q.t]=by[q.t]||[]).push(q)});Object.values(by).forEach(x=>x.sort((p,q)=>scoreQ(q,h)-scoreQ(p,h)));const ks=Object.keys(by);while(qs.length<20)for(const k of ks){if(by[k].length&&qs.length<20)qs.push(Object.assign({u:"mat1"},by[k].shift()))}}
+    if(s==="mat"){qs=genMat0().slice(0,2).map(q=>Object.assign({u:"mat0"},q)).concat(genEnt0().slice(0,3).map(q=>Object.assign({u:"ent0"},q)));
+      [["mat1",6],["mat2",6],["mat3",3]].forEach(([u,n])=>{const by={};DIAG[u].qs.forEach(q=>{(by[q.t]=by[q.t]||[]).push(q)});Object.values(by).forEach(x=>x.sort((p,q)=>scoreQ(q,h)-scoreQ(p,h)));const ks=shuffle(Object.keys(by));let c=0;while(c<n)for(const k of ks){if(by[k].length&&c<n){qs.push(Object.assign({u},by[k].shift()));c++}}})}
     else SIMU[s].forEach(u=>{const by={};DIAG[u].qs.forEach(q=>{(by[q.t]=by[q.t]||[]).push(q)});Object.values(by).forEach(x=>x.sort((p,q)=>scoreQ(q,h)-scoreQ(p,h)));const ks=shuffle(Object.keys(by));let n=0;while(n<10)for(const k of ks){if(by[k].length&&n<10){qs.push(Object.assign({u},by[k].shift()));n++}}});
     state={qs:shuffle(qs).map(q=>Object.assign({},q,{opts:q.o?shuffle(q.o):null})),i:0,ans:[],blk:bp0&&bp0.blk||null}}}
   const st=state,qs=st.qs;
@@ -2086,7 +2104,7 @@ function scoreOral(id,txt){const n=normTxt(txt);return ORAL[id].p.map(([_,groups
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 let rec=null;
 function viewOral(id){const O=ORAL[id];if(!O)return go("inicio");const a=$("#app");
-  if(!state.mode)state.mode=SR?"voz":"escrito";state.txt=state.txt||"";
+  if(!state.mode)state.mode=SR&&!LS.get("voiceBad",false)?"voz":"escrito";state.txt=state.txt||"";
   const modes=[[SR?"voz":null,"Hablar"],["escrito","Escribir"],["adulto","Con papá o mamá"]].filter(m=>m[0]);
   const head=`<button class="back" data-go="inicio">← Volver</button><span class="qtag">${SNAME[O.s]} · Explícalo</span><h1>${esc(O.title)}</h1>
     <section class="card"><p class="qtext" style="font-size:1.15rem">${esc(O.pide)}</p><p class="small muted">Cuéntalo como si se lo explicaras a alguien que no lo sabe. Hay ${O.p.length} ideas clave.</p>
@@ -2095,21 +2113,27 @@ function viewOral(id){const O=ORAL[id];if(!O)return go("inicio");const a=$("#app
   if(state.done){const hits=state.hits;const ok=hits.filter(Boolean).length;
     body=`<section class="card"><div class="row" style="gap:18px"><span class="big">${ok}/${O.p.length}</span><p>${ok===O.p.length?"¡Lo has explicado completo!":ok>=O.p.length/2?"¡Bien! Te han faltado algunas ideas:":"Te han faltado varias ideas. Repasa la ficha y vuelve a intentarlo."}</p></div>
       <ul class="pts">${O.p.map((p,i)=>`<li class="${hits[i]?"ok":"ko"}">${hits[i]?"✓":"✗"} ${esc(p[0])}</li>`).join("")}</ul>
+      ${state.mode==="voz"&&ok===0?`<div class="fb ns"><strong>Parece que el micrófono no te ha entendido bien.</strong>No pasa nada: prueba a escribirlo o hazlo con papá o mamá.</div><div class="row"><button class="btn small" data-m="escrito">Escribirlo</button><button class="btn ghost small" data-m="adulto">Con papá o mamá</button></div>`:""}
       ${state.mode!=="adulto"&&state.txt?`<details><summary class="small">Ver lo que has dicho</summary><p class="small muted">${esc(state.txt)}</p></details>`:""}
       <div class="row"><button class="btn" id="oagain">Otra vez</button><button class="btn ghost" data-go="ficha-${O.ficha}">Ver la ficha</button></div></section>`}
   else if(state.mode==="voz"){body=`<section class="card"><div class="row"><button class="btn" id="orec">${rec?"Terminar":"Empezar a hablar"}</button>${rec?'<span class="recdot">Escuchando…</span>':""}</div>
       <div class="transcript" id="otr">${esc(state.txt)||'<span class="muted">Aquí aparecerá lo que digas.</span>'}</div>
       <p class="small muted">La primera vez el navegador pedirá permiso para usar el micrófono. Pulsa «Terminar» cuando acabes.</p></section>`}
-  else if(state.mode==="escrito"){body=`<section class="card"><p class="small muted">Escribe frases cortas con las ideas que recuerdes. La ortografía no cuenta.</p><textarea id="otx" rows="6" style="font-size:1.05rem">${esc(state.txt)}</textarea><div class="row"><button class="btn" id="ochk">Comprobar</button></div></section>`}
+  else if(state.mode==="escrito"){body=`<section class="card"><p class="small muted">Escribe frases cortas con las ideas que recuerdes. La ortografía no cuenta.</p><textarea id="otx" rows="6" style="font-size:1.05rem" spellcheck="false">${esc(state.txt)}</textarea><div class="row"><button class="btn" id="ochk">Comprobar</button></div></section>`}
   else{body=`<section class="card"><p><b>Para papá o mamá:</b> ella lo explica en voz alta y vosotros marcáis cada idea que diga, aunque sea con otras palabras. No hace falta saberse el tema.</p>
       <div class="pts-chk">${O.p.map((p,i)=>`<label class="row" style="gap:10px"><input type="checkbox" data-pt="${i}" style="width:24px;height:24px"> ${esc(p[0])}</label>`).join("")}</div><div class="row"><button class="btn" id="oadl">Terminar</button></div></section>`}
   a.innerHTML=`<div data-s="${O.s}" class="wrap" style="gap:16px">${head}${body}</div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{stopRec();go(b.dataset.go)}));
-  a.querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{stopRec();state.mode=b.dataset.m;viewOral(id)}));
+  a.querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{stopRec();const m=b.dataset.m;if(state.done)state={mode:m};else state.mode=m;viewOral(id)}));
   const finish=(hits,txt)=>{state.done=true;state.hits=hits;state.txt=txt||"";const ok=hits.filter(Boolean).length;
+    if(state.mode==="voz"){const vb=ok===0?(LS.get("voiceZero",0)+1):0;LS.set("voiceZero",vb);if(vb>=2)LS.set("voiceBad",true)}
     saveResult({key:"oral-"+id,materia:"Explicar: "+O.title,sub:{voz:"hablando",escrito:"por escrito",adulto:"con un adulto"}[state.mode],ok,total:O.p.length,ns:0,temas:{},fallos:O.p.filter((p,i)=>!hits[i]).map(p=>p[0]),texto:txt?txt.slice(0,1500):undefined});viewOral(id)};
   const ag=$("#oagain");if(ag)ag.addEventListener("click",()=>{state={mode:state.mode};viewOral(id)});
-  const ck=$("#ochk");if(ck)ck.addEventListener("click",()=>{const t=$("#otx").value.trim();if(t.length<10)return;finish(scoreOral(id,t),t)});
+  const otx=$("#otx");if(otx){["paste","drop"].forEach(ev=>otx.addEventListener(ev,e=>{e.preventDefault();const n=document.getElementById("onopaste");if(!n)otx.insertAdjacentHTML("afterend",'<p class="small" id="onopaste" style="color:var(--ko)">Aquí no se puede pegar: escríbelo con tus palabras.</p>')}))}
+  const ck=$("#ochk");if(ck)ck.addEventListener("click",()=>{const t=$("#otx").value.trim();if(t.length<10)return;
+    const copied=/[✓✗]/.test(t)||O.p.filter(p=>p[0].length>12&&t.toLowerCase().includes(p[0].toLowerCase().slice(0,18))).length>=2;
+    if(copied){const n=document.getElementById("onopaste");const msg="Parece copiado de la lista. Explícalo con tus palabras, aunque sea con frases cortas.";if(n)n.textContent=msg;else otx.insertAdjacentHTML("afterend",`<p class="small" id="onopaste" style="color:var(--ko)">${msg}</p>`);logEvent({evento:"explicación copiada",materia:O.title});return}
+    finish(scoreOral(id,t),t)});
   const ad=$("#oadl");if(ad)ad.addEventListener("click",()=>finish(O.p.map((p,i)=>a.querySelector(`[data-pt="${i}"]`).checked),""));
   const rb=$("#orec");if(rb)rb.addEventListener("click",()=>{if(rec){stopRec();const t=state.txt.trim();if(t.length<10){viewOral(id);return}finish(scoreOral(id,t),t)}else startRec(id)});
 }
@@ -2165,6 +2189,210 @@ function viewFichaPasos(id){const f=FICHAS[id];const a=$("#app");const md=t=>esc
   const ft=$("#ftest");if(ft)ft.addEventListener("click",()=>{const T=FTEST[id];const bp0=LS.get("bp",null);LS.set("bp",{target:"diag-"+T[0],params:{temas:T[1],n:7},blk:bp0&&bp0.blk||null});logEvent({evento:"ficha leída",materia:f.title,detalle:"errores en comprobaciones: "+st.err});go("diag-"+T[0])});
 }
 
+/* ====================== Mates: temas 1, 2 y 3 ====================== */
+function fmtZ(v){return v<0?"−"+(-v):String(v)}
+function zIn(v){return v<0?"("+fmtZ(v)+")":String(v)}
+
+/* ---------- Bancos nuevos ---------- */
+DIAG.ent0={s:"mat",title:"Mates: signos",sub:"Sumas, restas, multiplicaciones y divisiones con enteros",qs:[]};
+DIAG.mat2={s:"mat",title:"Mates: enteros",sub:"Tema 2: números enteros",qs:[
+{t:"Ordenar y comparar",q:"¿Qué número es mayor?",o:["−3","−8","−12"],e:"En los negativos, el que está más cerca del 0 es el mayor: −3 > −8 > −12."},
+{t:"Ordenar y comparar",q:"Ordena de menor a mayor: 4, −6, 0, −1",o:["−6, −1, 0, 4","−1, −6, 0, 4","0, −1, 4, −6"],e:"En la recta, de izquierda a derecha: −6, −1, 0, 4."},
+{t:"Ordenar y comparar",q:"¿Cuál es verdad?",o:["−5 < −2","−5 > −2","−5 = 5"],e:"−5 está más a la izquierda que −2 en la recta, así que es menor."},
+{t:"Ordenar y comparar",q:"¿Qué número está entre −5 y −3?",o:["−4","−2","−6"],e:"En la recta: −5, −4, −3."},
+{t:"Valor absoluto y opuesto",q:"El valor absoluto de −9, |−9|, es…",o:["9","−9","0"],e:"El valor absoluto es la distancia al 0: nunca es negativo."},
+{t:"Valor absoluto y opuesto",q:"El opuesto de −7 es…",o:["7","−7","0"],e:"El opuesto tiene el mismo número con el signo cambiado."},
+{t:"Valor absoluto y opuesto",q:"El opuesto de 12 es…",o:["−12","12","0"],e:"Se cambia el signo."},
+{t:"Sumas y restas",q:"−6 + 9 =",o:["3","−3","−15"],e:"Signos distintos: se restan (9 − 6 = 3) y gana el signo del que tiene más valor, el 9, que es +."},
+{t:"Sumas y restas",q:"−7 − 5 =",o:["−12","−2","12"],e:"Estás en −7 y bajas 5 más: −12."},
+{t:"Sumas y restas",q:"4 − (−6) =",o:["10","−2","−10"],e:"Restar un negativo es sumar: 4 + 6 = 10."},
+{t:"Sumas y restas",q:"−3 − (−8) =",o:["5","−11","−5"],e:"Restar un negativo es sumar: −3 + 8 = 5."},
+{t:"Sumas y restas",q:"−10 + 4 − 6 =",o:["−12","0","−20"],e:"De izquierda a derecha: −10 + 4 = −6; −6 − 6 = −12."},
+{t:"Sumas y restas",q:"−(−5) es igual a…",o:["5","−5","0"],e:"Menos por menos, más."},
+{t:"Multiplicar y dividir",q:"(−4) · (−6) =",o:["24","−24","−10"],e:"Signos iguales → resultado positivo."},
+{t:"Multiplicar y dividir",q:"(−35) : 7 =",o:["−5","5","−28"],e:"Signos distintos → resultado negativo."},
+{t:"Multiplicar y dividir",q:"(−2) · 3 · (−5) =",o:["30","−30","−4"],e:"(−2) · 3 = −6; (−6) · (−5) = 30."},
+{t:"Multiplicar y dividir",q:"(−48) : (−8) =",o:["6","−6","−40"],e:"Signos iguales → positivo."},
+{t:"Jerarquía",q:"En −9 − 3 · 2, ¿qué se hace primero?",o:["3 · 2","−9 − 3","Da igual"],e:"Antes se multiplica y se divide; después se suma y se resta."},
+{t:"Jerarquía",q:"−9 − 3 · 2 =",o:["−15","−24","−3"],e:"3 · 2 = 6; −9 − 6 = −15."},
+{t:"Jerarquía",q:"En [5 − (2 + 4)] · 3, ¿qué se hace primero?",o:["2 + 4","5 − 2","4 · 3"],e:"Primero lo de dentro del paréntesis más interior."},
+{t:"Jerarquía",q:"12 : (−3) + 2 · (−4) =",o:["−12","4","−4"],e:"12 : (−3) = −4; 2 · (−4) = −8; −4 − 8 = −12."},
+{t:"Jerarquía",q:"(−2 + 5) · (−4) =",o:["−12","12","−22"],e:"(−2 + 5) = 3; 3 · (−4) = −12."},
+{t:"Jerarquía",q:"¿Cómo se escribe bien el procedimiento?",o:["Una operación por línea, reescribiendo toda la expresión y empezando cada línea con =","Todo seguido en una línea: 5 · 2 = 10 + 3 = 13 − 4…","Solo el resultado final"],e:"Encadenar «=» con operaciones distintas está mal escrito y el profesor no lo puntúa."},
+{t:"Problemas",q:"El Teide mide 3.718 m y una fosa marina está a −4.000 m. ¿Qué diferencia de nivel hay?",o:["7.718 m","282 m","−282 m"],e:"¿Cruza el 0? Sí: 3.718 − (−4.000) = 3.718 + 4.000 = 7.718 m."},
+{t:"Problemas",q:"Por la mañana había −4 °C y a mediodía 9 °C. ¿Cuántos grados subió?",o:["13 °C","5 °C","−13 °C"],e:"Cruza el 0: de −4 a 0 son 4 y de 0 a 9 son 9. 9 − (−4) = 13."},
+{t:"Problemas",q:"Un congelador está a 6 °C y baja 2 °C cada 10 minutos. ¿Cuánto tarda en llegar a −10 °C?",o:["80 minutos","30 minutos","20 minutos"],e:"De 6 a −10 hay 16 grados (cruza el 0). 16 : 2 = 8 veces; 8 · 10 = 80 minutos."},
+{t:"Problemas",q:"Arquímedes nació en el 287 a. C. y murió en el 212 a. C. ¿Cuántos años vivió?",o:["75 años","499 años","−75 años"],e:"−212 − (−287) = −212 + 287 = 75 años."},
+{t:"Problemas",q:"Julio César murió en el 44 a. C. ¿Cuántos años han pasado hasta 2026?",o:["2.070 años","1.982 años","2.026 años"],e:"Cruza el año 0: 2026 − (−44) = 2026 + 44 = 2.070."},
+{t:"Problemas",q:"Un submarino está a −120 m y sube 45 m. ¿A qué profundidad queda?",o:["−75 m","−165 m","75 m"],e:"−120 + 45 = −75 m."},
+{t:"Problemas",q:"Un ascensor está en la planta −2, sube 7 plantas y baja 3. ¿En qué planta acaba?",o:["2","−8","12"],e:"−2 + 7 − 3 = 2."},
+{t:"Problemas",q:"Tengo 30 € en el banco y pago una compra de 45 €. ¿Cómo queda mi saldo?",o:["−15 €","15 €","−75 €"],e:"30 − 45 = −15: debo 15 €."}]};
+DIAG.mat3={s:"mat",title:"Mates: potencias",sub:"Tema 3: potencias de la misma base",qs:[
+{t:"Concepto",q:"2³ =",o:["8","6","9"],e:"2 · 2 · 2 = 8. ¡No es 2 · 3!"},
+{t:"Concepto",q:"En 5⁴, la base es…",o:["5","4","20"],e:"La base es el número que se repite; el exponente dice cuántas veces."},
+{t:"Concepto",q:"3 · 3 · 3 · 3 en forma de potencia es…",o:["3⁴","4³","3 · 4"],e:"El 3 se repite 4 veces: 3⁴."},
+{t:"Concepto",q:"10⁴ =",o:["10.000","40","1.000"],e:"Un 1 seguido de 4 ceros."},
+{t:"Concepto",q:"¿Cuál vale más, 2⁵ o 5²?",o:["2⁵ = 32","5² = 25","Valen lo mismo"],e:"2⁵ = 32 y 5² = 25."},
+{t:"Signo",q:"(−2)⁴ =",o:["16","−16","−8"],e:"Base negativa y exponente par → positivo."},
+{t:"Signo",q:"(−2)³ =",o:["−8","8","−6"],e:"Base negativa y exponente impar → negativo."},
+{t:"Signo",q:"(−1)⁷ =",o:["−1","1","−7"],e:"Exponente impar → negativo."},
+{t:"Signo",q:"(−3)² =",o:["9","−9","−6"],e:"(−3) · (−3) = 9: exponente par → positivo."},
+{t:"Producto",q:"5³ · 5⁴ =",o:["5⁷","5¹²","25⁷"],e:"Misma base al multiplicar: se deja la base y se suman los exponentes (3 + 4 = 7)."},
+{t:"Producto",q:"2 · 2⁵ =",o:["2⁶","2⁵","4⁵"],e:"2 es 2¹: 1 + 5 = 6."},
+{t:"Producto",q:"(−3)² · (−3)⁴ =",o:["(−3)⁶","(−3)⁸","9⁶"],e:"Se suman los exponentes: 2 + 4 = 6."},
+{t:"Cociente",q:"7⁸ : 7³ =",o:["7⁵","7¹¹","1⁵"],e:"Misma base al dividir: se dejan la base y se restan los exponentes (8 − 3 = 5)."},
+{t:"Cociente",q:"10⁶ : 10² =",o:["10⁴","10³","10⁸"],e:"6 − 2 = 4."},
+{t:"Cociente",q:"(−2)⁹ : (−2)⁴ =",o:["(−2)⁵","(−2)¹³","1⁵"],e:"9 − 4 = 5."},
+{t:"Potencia de potencia",q:"(2³)⁵ =",o:["2¹⁵","2⁸","2³⁵"],e:"Potencia de una potencia: se multiplican los exponentes (3 · 5 = 15)."},
+{t:"Potencia de potencia",q:"(4²)³ =",o:["4⁶","4⁵","8³"],e:"2 · 3 = 6."},
+{t:"Exponente 0 y 1",q:"8⁰ =",o:["1","0","8"],e:"Cualquier número (que no sea 0) elevado a 0 es 1."},
+{t:"Exponente 0 y 1",q:"9¹ =",o:["9","1","0"],e:"Elevado a 1 es el mismo número."},
+{t:"Exponente 0 y 1",q:"5⁴ : 5⁴ =",o:["5⁰ = 1","5¹ = 5","0"],e:"4 − 4 = 0 y 5⁰ = 1."},
+{t:"Mezcla",q:"2⁷ · 2 : 2³ =",o:["2⁵","2¹¹","2⁴"],e:"De izquierda a derecha: 7 + 1 = 8; 8 − 3 = 5."},
+{t:"Mezcla",q:"3⁵ : 3² · 3⁴ =",o:["3⁷","3¹¹","3⁻¹"],e:"De izquierda a derecha: 5 − 2 = 3; 3 + 4 = 7."},
+{t:"Mezcla",q:"10⁵ · 10² : 10⁴ =",o:["10³","10¹¹","10¹"],e:"5 + 2 = 7; 7 − 4 = 3."},
+{t:"Mezcla",q:"(2²)³ · 2⁵ : 2⁴ =",o:["2⁷","2⁹","2⁶"],e:"(2²)³ = 2⁶; 6 + 5 = 11; 11 − 4 = 7."},
+{t:"Mezcla",q:"(−5)³ · (−5) : (−5)² =",o:["(−5)²","(−5)⁶","(−5)⁵"],e:"3 + 1 = 4; 4 − 2 = 2."},
+{t:"Mezcla",q:"2⁴ · 2⁵ : 2⁰ =",o:["2⁹","2²⁰","2⁸"],e:"4 + 5 = 9; 9 − 0 = 9."}]};
+DIAG.mat1.qs.push(
+{t:"Criterios",q:"Un número es divisible por 4 si…",o:["Sus dos últimas cifras forman un múltiplo de 4","Acaba en 4","La suma de sus cifras es múltiplo de 4"],e:"Mira solo las dos últimas cifras: 524 → 24, que es múltiplo de 4."},
+{t:"Criterios",q:"Un número es divisible por 25 si…",o:["Acaba en 00, 25, 50 o 75","Acaba en 5","Sus cifras suman 25"],e:"Por ejemplo, 73.250 acaba en 50."},
+{t:"Criterios",q:"¿Qué cifra falta en 7322_0 para que sea divisible por 25?",o:["5","2","3"],e:"Tiene que acabar en 00, 25, 50 o 75: con un 5 acaba en 50."},
+{t:"Criterios",q:"Un número es divisible por 11 si…",o:["La resta entre la suma de las cifras de lugar par y la de lugar impar da 0 o múltiplo de 11","Acaba en 11","La suma de sus cifras es 11"],e:"Ejemplo: 5.522 → (5 + 2) − (5 + 2) = 0, así que es divisible por 11."},
+{t:"Criterios",q:"¿Es 5.522 divisible por 11?",o:["Sí","No"],e:"Cifras salteadas: (5 + 2) − (5 + 2) = 0 → sí."},
+{t:"Criterios",q:"¿Qué cifra falta en 41_ para que sea múltiplo de 9?",o:["4","3","9"],e:"4 + 1 + 4 = 9, que es múltiplo de 9."},
+{t:"Criterios",q:"¿Qué cifra falta en 46_1 para que sea divisible por 3 y no por 9?",o:["1","7","3"],e:"4 + 6 + 1 + 1 = 12: múltiplo de 3 pero no de 9. Con un 7 sumaría 18, que sí es múltiplo de 9."},
+{t:"Primos y factores",q:"¿Qué cifra va en 27_ para que el número sea primo?",o:["1 o 7","3 o 7","5 o 7"],e:"271 y 277 son primos. 273 = 3 · 91 y 275 acaba en 5."},
+{t:"Primos y factores",q:"¿Por qué con 29 alumnos no se pueden hacer grupos iguales (de más de 1)?",o:["Porque 29 es primo","Porque 29 es impar","Porque 29 es múltiplo de 3"],e:"Un número primo solo se puede dividir entre 1 y entre sí mismo."},
+{t:"MCD y mcm",q:"MCD de 84, 36 y 30",o:["6","12","1.260"],e:"84 = 2² · 3 · 7; 36 = 2² · 3²; 30 = 2 · 3 · 5. Comunes con el exponente más pequeño: 2 · 3 = 6."},
+{t:"MCD y mcm",q:"mcm de 84, 36 y 30",o:["1.260","6","360"],e:"Todos con el exponente más grande: 2² · 3² · 5 · 7 = 1.260."},
+{t:"Problemas",q:"Un mantel mide 120 cm por 80 cm. Quiero servilletas cuadradas lo más grandes posible sin que sobre tela. ¿Cuánto mide el lado?",o:["40 cm","20 cm","240 cm"],e:"Partir en trozos iguales lo más grandes posible → MCD(120, 80) = 40."},
+{t:"Problemas",q:"Tres luces se encienden cada 16, 10 y 12 segundos. Si coinciden ahora, ¿cuándo vuelven a coincidir?",o:["A los 240 segundos","A los 38 segundos","A los 2 segundos"],e:"Volver a coincidir → mcm(16, 10, 12) = 2⁴ · 3 · 5 = 240."},
+{t:"Problemas",q:"Tengo entre 115 y 126 bombillas. En cajas de 6 me sobran 3 y en cajas de 5 también me sobran 3. ¿Cuántas tengo?",o:["123","117","118"],e:"Sin las 3 que sobran, el resto es múltiplo de 6 y de 5, o sea de 30: 120 + 3 = 123."},
+{t:"Valor de posición",q:"¿Qué cifra ocupa las decenas de millar en 116.736.789?",o:["3","7","6"],e:"Desde la derecha: U 9, D 8, C 7, UM 6, DM 3."});
+
+/* ---------- Cálculo rápido con signos (generado) ---------- */
+function genEnt0(){const r=(a,b)=>a+Math.floor(Math.random()*(b-a+1));const nz=(m)=>{let v=0;while(!v)v=r(-m,m);return v};const out=[];
+  const mk=(t,q,ans,alt,e)=>{const o=[...new Set([ans,-ans,alt].map(fmtZ))];let k=2;while(o.length<3){o.push(fmtZ(ans+k));k++}out.push({t,q,o,e,gen:1})};
+  for(let i=0;i<3;i++){const a=nz(12),b=nz(12);const same=(a<0)===(b<0);mk("Sumar",`${fmtZ(a)} + ${zIn(b)}`,a+b,a-b,same?"Mismo signo: se suman y se deja el signo.":"Signos distintos: se restan y gana el signo del que tiene más valor.")}
+  for(let i=0;i<3;i++){const a=nz(12),b=nz(12);mk("Restar",`${fmtZ(a)} − ${zIn(b)}`,a-b,a+b,b<0?"Restar un negativo es sumar: "+fmtZ(a)+" + "+(-b)+".":"Restar es bajar en la recta: desde "+fmtZ(a)+", baja "+b+".")}
+  for(let i=0;i<2;i++){const a=nz(9),b=nz(9);mk("Multiplicar",`${zIn(a)} · ${zIn(b)}`,a*b,a+b,(a<0)===(b<0)?"Signos iguales → +.":"Signos distintos → −.")}
+  for(let i=0;i<2;i++){const b=nz(9),c=nz(9),a=b*c;mk("Dividir",`${zIn(a)} : ${zIn(b)}`,c,a-b,(a<0)===(b<0)?"Signos iguales → +.":"Signos distintos → −.")}
+  return shuffle(out)}
+
+/* ---------- Posiciones (antes del redondeo) ---------- */
+function posMastered(){return results.filter(r=>r.key==="posiciones"&&r.total&&r.ok/r.total>=.8).length>=2}
+function posRounds(){return results.filter(r=>r.key==="posiciones"&&r.total&&r.ok/r.total>=.8).length}
+function newPosItems(){return ["tapH","tapH","tap","tap","tap","tap","name","name","val","val"].map(ty=>{const len=4+Math.floor(Math.random()*6);let ds=[];for(let i=0;i<len;i++)ds.push(i===0?1+Math.floor(Math.random()*9):Math.floor(Math.random()*10));
+  const p=1+Math.floor(Math.random()*(len-1));const k=len-1-p;if(ty==="val"&&!ds[k])ds[k]=1+Math.floor(Math.random()*9);return {ty,ds,p}})}
+function dottedHtml(ds,cls,btn){const L=ds.length;let h="";ds.forEach((d,k)=>{const p=L-1-k;h+=btn?`<button class="dg sm ${cls(k)}" data-k="${k}">${d}</button>`:`<span class="dg sm ${cls(k)}">${d}</span>`;if(p>0&&p%3===0)h+=`<span class="sep">.</span>`});return `<div class="scroll"><div class="dotnum">${h}</div></div>`}
+function viewPosiciones(){const a=$("#app");if(!state.ps)state.ps={items:newPosItems(),i:0,ok:0,fails:[],tries:0};const s=state.ps;
+  if(s.i>=s.items.length){const pass=s.ok>=8;if(!s.saved){s.saved=true;const temas={};s.items.forEach(it=>{const t={tapH:"Con nombres",tap:"Sin nombres",name:"¿Qué posición es?",val:"¿Cuánto vale?"}[it.ty];temas[t]=temas[t]||{ok:0,total:0};temas[t].total++;if(it.first)temas[t].ok++});
+      saveResult({key:"posiciones",materia:"Posiciones",sub:"valor de posición",ok:s.ok,total:s.items.length,ns:0,temas,fallos:s.fails,cuenta:pass})}
+    const n=posRounds();
+    a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Posiciones</h1><section class="card"><span class="big">${s.ok}/${s.items.length}</span>
+      <p>${pass?"¡Bien! Esta ronda cuenta.":"Esta ronda no cuenta todavía: necesitas 8 de 10 a la primera. ¡Otra!"}</p>
+      <p class="small">${n>=2?"Ya dominas las posiciones: el redondeo está desbloqueado.":`Rondas de 8 o más: <b>${n} de 2</b>. Con 2, se desbloquea el redondeo.`}</p>
+      <div class="row"><button class="btn" id="pag">Otra ronda</button>${n>=2?'<button class="btn ghost" data-go="redondeo">Ir al redondeo</button>':""}</div></section></div>`;
+    a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#pag").addEventListener("click",()=>{state.ps=null;viewPosiciones()});return}
+  const it=s.items[s.i],L=it.ds.length,kT=L-1-it.p,P=POS[it.p],tapT=it.ty==="tapH"||it.ty==="tap";const heads=it.ty==="tapH"||it.reveal;
+  const cls=k=>(it.show||!tapT)&&k===kT?"sel":"";
+  const num=heads?`<div class="scroll"><table class="pv pvsm"><tr>${it.ds.map((d,k)=>`<th class="${it.reveal&&k===kT?"pulse":""}">${POS[L-1-k][0]}</th>`).join("")}</tr><tr>${it.ds.map((d,k)=>tapT?`<td><button class="dg sm ${cls(k)}" data-k="${k}">${d}</button></td>`:`<td><span class="dg sm ${cls(k)}">${d}</span></td>`).join("")}</tr></table></div>`:dottedHtml(it.ds,cls,tapT);
+  let ask="",opts=[];
+  if(tapT)ask=`Toca la cifra de las <b>${P[1]}</b>.`;
+  else if(it.ty==="name"){ask="¿En qué posición está la cifra <span class=\"tag-or\">naranja</span>?";const c=[it.p,it.p+1<L?it.p+1:it.p-2,it.p-1>=0?it.p-1:it.p+2].filter((v,i,A)=>v>=0&&v<9&&A.indexOf(v)===i);opts=c.map(p=>POS[p][1]);it.right=P[1]}
+  else{const d=it.ds[kT];ask=`¿Cuánto vale la cifra <span class="tag-or">naranja</span> (el ${d}) en este número?`;opts=[it.p,it.p-1,it.p+1].map(p=>fmtN(d*Math.pow(10,p)));it.right=fmtN(d*Math.pow(10,it.p))}
+  if(opts.length&&!it.opts)it.opts=shuffle(opts);
+  const h=helpPanel("Posiciones",`Posiciones en ${it.ds.join("")} (${P[1]})`,()=>{s.fails.push(`${fmtN(+it.ds.join(""))} · ${P[0]} (pendiente)`);s.i++;s.tries=0;s.msg="";viewPosiciones()},s.tries>=2);
+  a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${s.i+1} de ${s.items.length}</span></div>
+   <h1>Posiciones</h1><section class="card">${num}<p class="qtext" style="font-size:1.1rem">${ask}</p>
+   ${it.opts?`<div class="opts">${it.opts.map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div>`:""}
+   <div id="pfb">${s.msg||""}</div>${h.html}</section>
+   <section class="card"><h3>El truco</h3><p style="margin:0">Cuenta siempre <b>desde la derecha</b>: U, D, C · UM, DM, CM · U de millón, D de millón… Cada punto separa un grupo de tres.</p></section></div>`;
+  a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  a.querySelectorAll(".scroll").forEach(e=>{e.scrollLeft=e.scrollWidth});
+  h.bind(()=>`Está practicando el valor de posición con el número ${it.ds.join("")}. Pregunta: ${ask.replace(/<[^>]+>/g,"")}. No le des la respuesta; guíale contando desde la derecha.`);
+  const next=()=>{s.i++;s.tries=0;s.msg="";viewPosiciones()};
+  const good=()=>{if(!s.tries){s.ok++;it.first=true}beep(880,.12);s.msg=`<div class="fb ok"><strong>¡Bien!</strong></div><button class="btn" id="pnx">Siguiente →</button>`;viewPosiciones();$("#pnx").addEventListener("click",next);$("#pnx").focus()};
+  const bad=(what)=>{s.tries++;if(s.tries===1)s.fails.push(`${fmtN(+it.ds.join(""))} · ${P[0]}: ${what}`);
+    if(s.tries>=3){it.show=true;it.reveal=true;s.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>Es la cifra ${it.ds[kT]}, en las ${P[1]} (${P[0]}). Cuenta desde la derecha: ${POS.slice(0,it.p+1).map(x=>x[0]).join(", ")}.</div><button class="btn" id="pgo">Entendido, sigo</button>`;viewPosiciones();$("#pgo").addEventListener("click",next);return}
+    if(s.tries===2)it.reveal=true;
+    s.msg=`<div class="fb ko"><strong>Intento ${s.tries} de 3: todavía no.</strong>${s.tries===1?"Cuenta desde la derecha, empezando por las unidades: U, D, C, UM…":"Mira los nombres de arriba: busca <b>"+P[0]+"</b>."}</div>`;viewPosiciones()};
+  if(tapT&&!it.show)a.querySelectorAll("button.dg").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.k;if(k===kT)good();else bad("tocó "+POS[L-1-k][0])}));
+  a.querySelectorAll("[data-o]").forEach(b=>b.addEventListener("click",()=>{if(it.show)return;if(b.dataset.o===it.right)good();else bad("eligió "+b.dataset.o)}));
+}
+
+/* ---------- Operaciones combinadas paso a paso ---------- */
+const CB_BANK={facil:["-7+3*(-4)-(-10)","(-15+3)/(-4)-2*(-5)","20/(-5)-(-3)*(-2)+8","(-8+2)*(-3)/9-(-1)","-4*[3-(-2+7)]+(-6)","[(-3)*(-4)-20]/(-2)-7"],
+ examen:["[-9-(-6+9)*(-6+8)]/3+2","[5*(-2)+(-2)-10]/(7-27/3)","(-9)*[-18/(-6)*(-8)-(-22)]-17","5/(-4-1)-[-6-(4-6)*(-1)]/(-4)","(-1+2-10)/(-3)+(-2)*[6+(-3)]/(-6)","[-8-(-5+7)*(-3+6)]/2+4","[4*(-3)+(-6)-3]/(9-24/4)","(-6)*[-20/(-5)*(-3)-(-15)]-10","12/(-2-1)-[-5-(3-7)*(-2)]/(-13)","(-2+5-9)/(-2)+(-3)*[4+(-6)]/(-2)"]};
+function cbCollapse(T){let ch=true;while(ch){ch=false;for(let i=0;i+2<T.length;i++)if(T[i].t==="o"&&T[i+1].t==="n"&&T[i+2].t==="c"){T.splice(i,3,T[i+1]);ch=true;break}}return T}
+function cbTok(s){const T=[];let i=0;while(i<s.length){const c=s[i];
+  if("([".includes(c)){T.push({t:"o",k:c});i++;continue}
+  if(")]".includes(c)){T.push({t:"c",k:c});i++;continue}
+  if(c==="-"&&(!T.length||T[T.length-1].t==="o")&&/\d/.test(s[i+1]||"")){let j=i+1;while(/\d/.test(s[j]||""))j++;T.push({t:"n",v:-(+s.slice(i+1,j))});i=j;continue}
+  if(/\d/.test(c)){let j=i;while(/\d/.test(s[j]||""))j++;T.push({t:"n",v:+s.slice(i,j)});i=j;continue}
+  T.push({t:"op",v:c==="*"?"·":c==="/"?":":c==="-"?"−":"+"});i++}
+  return cbCollapse(T)}
+function cbGroup(T,i){let d=0;for(let j=i-1;j>=0;j--){if(T[j].t==="c")d++;else if(T[j].t==="o"){if(!d){let e=0;for(let m=j+1;m<T.length;m++){if(T[m].t==="o")e++;else if(T[m].t==="c"){if(!e)return [j,m];e--}}}else d--}}return [-1,T.length]}
+function cbOpsAt(T,a,b){const ops=[];let d=0;for(let j=a+1;j<b;j++){if(T[j].t==="o")d++;else if(T[j].t==="c")d--;else if(!d&&T[j].t==="op")ops.push(j)}return ops}
+/* Devuelve null si la operación i se puede hacer ya, o el motivo por el que todavía no. */
+function cbWhyNot(T,i){const md=v=>v==="·"||v===":";
+  if(T[i-1].t!=="n"||T[i+1].t!=="n")return "Antes hay que resolver lo que hay dentro del paréntesis que tiene al lado.";
+  const [a,b]=cbGroup(T,i);const ops=cbOpsAt(T,a,b);const k=ops.indexOf(i);
+  if(md(T[i].v)){if(k>0&&md(T[ops[k-1]].v))return "Las multiplicaciones y divisiones se hacen de izquierda a derecha: hay una antes que esta.";return null}
+  if(ops.some(j=>md(T[j].v)))return "Antes se hacen las multiplicaciones y divisiones; las sumas y restas, después.";
+  if(k>0)return "Las sumas y restas se hacen de izquierda a derecha: hay una antes que esta.";return null}
+function cbValid(T){const r=[];T.forEach((x,i)=>{if(x.t==="op"&&!cbWhyNot(T,i))r.push(i)});return r}
+function cbCalc(a,op,b){return op==="+"?a+b:op==="−"?a-b:op==="·"?a*b:a/b}
+function cbHtml(T,o){o=o||{};let h="";T.forEach((x,i)=>{const prevOp=i>0&&T[i-1].t==="op";let s;
+  if(x.t==="n")s=x.v<0&&prevOp?"("+fmtZ(x.v)+")":fmtZ(x.v);else if(x.t==="o")s=x.k;else if(x.t==="c")s=x.k;else s=x.v;
+  if(x.t==="op"&&o.btn)s=`<button class="cbop${o.show===i?" sel":""}" data-i="${i}">${s}</button>`;else if(x.t==="op")s=" "+s+" ";
+  if(o.ul!==undefined&&i===o.ul-1)h+=`<u class="cbu">`;h+=s;if(o.ul!==undefined&&i===o.ul+1)h+=`</u>`});return h}
+function cbEval(s){let T=cbTok(s);let g=0;while(T.length>1&&g++<50){const v=cbValid(T);if(!v.length)return NaN;const i=v[0];const r=cbCalc(T[i-1].v,T[i].v,T[i+1].v);if(!Number.isInteger(r))return NaN;T.splice(i-1,3,{t:"n",v:r});cbCollapse(T)}return T[0].v}
+function cbHints(a,op,b){const A=Math.abs(a),B=Math.abs(b);
+  if(op==="·"||op===":"){const m=op==="·"?A*B:A/B,neg=(a<0)!==(b<0);return [`Primero sin signos: ${A} ${op} ${B}. Luego el signo: signos iguales → <b>+</b>; distintos → <b>−</b>.`,`${A} ${op} ${B} = ${m}, y los signos son ${neg?"distintos → <b>−</b>":"iguales → <b>+</b>"}.`]}
+  const bb=op==="+"?b:-b;const pre=op==="−"&&b<0?`Restar un negativo es sumar: ${fmtZ(a)} − (${fmtZ(b)}) es ${fmtZ(a)} + ${B}. `:op==="−"?`Restar ${B} es lo mismo que sumar −${B}. `:"";
+  const same=(a<0)===(bb<0)||!a||!bb;return [pre+(same?`Van hacia el mismo lado: se suman (${A} + ${Math.abs(bb)}) y se deja el signo.`:`Signos distintos: se restan (${Math.max(A,Math.abs(bb))} − ${Math.min(A,Math.abs(bb))}) y gana el signo del que tiene más valor.`),
+    `Piensa en la recta: empiezas en ${fmtZ(a)} y ${bb>=0?"subes "+bb:"bajas "+(-bb)}.`]}
+function viewCombinadas(){const a=$("#app");
+  if(!state.cb){const pf=shuffle(CB_BANK.facil)[0],pe=shuffle(CB_BANK.examen)[0];state.cb={list:[pf,pe],e:0,T:cbTok(pf),lines:[],phase:"pick",tries:0,steps:0,okSteps:0,fails:[],done:[]}}
+  const c=state.cb;
+  if(c.e>=c.list.length){const ok=c.okSteps,tot=c.steps,pass=(c.attempt||1)>=2||(tot&&ok/tot>=.6);
+    if(!c.saved){c.saved=true;saveResult({key:"combinadas",materia:"Operaciones combinadas",sub:c.list.map(s=>s.replace(/\*/g,"·").replace(/\//g,":")).join(" | ")+((c.attempt||1)>=2?" · 2º intento":""),ok,total:tot,ns:0,temas:{},fallos:c.fails,cuenta:pass})}
+    a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Operaciones combinadas</h1><section class="card"><span class="big">${ok}/${tot}</span><p>pasos bien a la primera.</p>
+      <p>${pass?"¡Bien! Este bloque cuenta.":"Para terminar el bloque, haz otra ronda: ya conoces el camino."}</p>
+      <p class="small muted">En el examen: una operación por línea, subráyala, reescribe todo lo demás igual y empieza cada línea con «=».</p>
+      <div class="row"><button class="btn" id="cag">${pass?"Otra ronda":"Hacer otra ronda"}</button></div></section></div>`;
+    a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#cag").addEventListener("click",()=>{const att=(c.attempt||1)+(pass?0:1);state.cb=null;viewCombinadas();state.cb.attempt=pass?1:att;});return}
+  const T=c.T,fin=T.length===1;
+  const sel=c.sel;const A=sel!==undefined?T[sel-1].v:0,OP=sel!==undefined?T[sel].v:"",B=sel!==undefined?T[sel+1].v:0;
+  const h=helpPanel("Operaciones combinadas",`Operación ${c.list[c.e].replace(/\*/g,"·").replace(/\//g,":")}`,()=>{c.fails.push(c.list[c.e]+" (pendiente)");c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas()},c.tries>=2&&!fin);
+  a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">Operación ${c.e+1} de ${c.list.length}</span></div>
+   <h1>Operaciones combinadas</h1>
+   <section class="card"><div class="cblines">${c.lines.map((l,j)=>`<div class="cbl">${j?"= ":""}${l}</div>`).join("")}
+     <div class="cbl cur">${c.lines.length?"= ":""}${fin?`<b>${fmtZ(T[0].v)}</b>`:cbHtml(T,{btn:c.phase==="pick",show:c.showI,ul:c.phase==="calc"?sel:undefined})}</div></div>
+   ${fin?`<div class="fb ok"><strong>¡Resultado: ${fmtZ(T[0].v)}!</strong>Así queda el procedimiento, línea a línea, como en el examen.</div><button class="btn" id="cnx">${c.e+1<c.list.length?"Siguiente operación →":"Ver resultado"}</button>`
+    :c.phase==="pick"?`<p class="qtext" style="font-size:1.05rem">Toca la operación (el signo) que va <b>primero</b>.</p>`
+    :`<p class="qtext" style="font-size:1.1rem">Calcula: <b>${zIn(A)} ${OP} ${zIn(B)}</b> =</p><form class="numin" id="cf"><button type="button" class="btn ghost small" id="cpm" aria-label="Cambiar signo">±</button><input id="cin" inputmode="text" autocomplete="off" aria-label="Resultado" style="width:8ch"><button class="btn">Comprobar</button></form>`}
+   <div id="cfb">${c.msg||""}</div>${fin?"":h.html}</section>
+   <section class="card"><h3>El orden</h3><ol style="margin:0;padding-left:1.2em"><li>Lo de dentro de los paréntesis y corchetes (primero el más interior).</li><li>Multiplicaciones y divisiones, de izquierda a derecha.</li><li>Sumas y restas, de izquierda a derecha.</li></ol><p class="small" style="margin-bottom:0">Signos: iguales → <b>+</b>; distintos → <b>−</b>. Restar un negativo es sumar.</p></section></div>`;
+  a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  if(!fin)h.bind(()=>`Está haciendo operaciones combinadas con enteros. Expresión actual: ${cbHtml(T).replace(/<[^>]+>/g,"")}. ${c.phase==="calc"?"Está calculando "+zIn(A)+" "+OP+" "+zIn(B):"Tiene que elegir qué operación va primero"}. No le des el resultado; guíale con la jerarquía y la regla de los signos.`);
+  const say=(n,txt)=>`<div class="fb ko"><strong>Intento ${n} de 3: todavía no.</strong>${txt}</div>`;
+  const nx=$("#cnx");if(nx)nx.addEventListener("click",()=>{c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas()});
+  if(!fin&&c.phase==="pick")a.querySelectorAll(".cbop").forEach(b=>b.addEventListener("click",()=>{const i=+b.dataset.i;const why=cbWhyNot(T,i);
+    if(!why){c.stepClean=!c.tries;if(c.stepClean)c.okSteps++;c.steps++;c.sel=i;c.phase="calc";c.tries=0;c.showI=undefined;c.msg="";viewCombinadas();return}
+    c.tries++;if(c.tries===1)c.fails.push(`${cbHtml(T).replace(/<[^>]+>/g,"")}: eligió «${T[i].v}» antes de tiempo`);
+    if(c.tries>=3){c.showI=cbValid(T)[0];c.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>Va primero la operación marcada. ${why}</div>`}else c.msg=say(c.tries,why);viewCombinadas()}));
+  const pm=$("#cpm");if(pm)pm.addEventListener("click",()=>{const inp=$("#cin");const v=inp.value.trim();inp.value=v.startsWith("-")||v.startsWith("−")?v.replace(/^[-−]/,""):"-"+v;inp.focus()});
+  const cf=$("#cf");if(cf){$("#cin").focus();cf.addEventListener("submit",e=>{e.preventDefault();const raw=$("#cin").value.replace(/[−–]/g,"-").replace(/\s|\./g,"");if(!/^[+-]?\d+$/.test(raw))return;const v=+raw,r=cbCalc(A,OP,B);
+    if(v===r){beep(880,.12);c.lines.push(cbHtml(T,{ul:sel}));T.splice(sel-1,3,{t:"n",v:r});cbCollapse(T);c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas();return}
+    c.tries++;if(c.tries===1){if(c.stepClean){c.okSteps--;c.stepClean=false}c.fails.push(`${zIn(A)} ${OP} ${zIn(B)}: puso ${fmtZ(v)} (es ${fmtZ(r)})`)}
+    const H=cbHints(A,OP,B);
+    if(c.tries>=3){c.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>${zIn(A)} ${OP} ${zIn(B)} = <b>${fmtZ(r)}</b>. ${H[0]}</div><p class="small">Escríbelo para seguir.</p>`}else c.msg=say(c.tries,H[c.tries-1]);
+    viewCombinadas()})}
+}
+
 /* ---------- Preguntas atascadas: explicación de verdad y otra forma de preguntarlas ---------- */
 const EXPL={
 "¿Qué roca se forma cuando el magma se enfría rápido en la superficie?":"Si el magma se enfría <b>rápido</b>, fuera, en un volcán, los cristales no tienen tiempo de crecer y sale una roca de grano muy fino: el <b>basalto</b>. Si se enfría <b>despacio</b>, dentro de la Tierra, los cristales crecen y se ven bien: el <b>granito</b>. Truco: <b>b</b>asalto, <b>b</b>rusco (rápido).",
@@ -2188,10 +2416,10 @@ function isPureTest(){return !state.mini||state.mini==="prueba de nivel"}
 /* Pregunta de redondeo → entrenador paso a paso con ese mismo número */
 const REDPOS=[["decena de millón",7],["unidad de millón",6],["millón",6],["centena de millar",5],["decena de millar",4],["unidad de millar",3],["millar",3],["centena",2],["decena",1]];
 function redFromQ(q){const m=/Redondea ([\d.]+) a(?:l| la) (.+)$/.exec(q.q);if(!m)return null;const n=+m[1].replace(/\./g,"");const pos=REDPOS.find(x=>m[2].startsWith(x[0]));if(!pos||!n||String(n).length<=pos[1])return null;return {n,p:pos[1]}}
-function openRedondeoWith(it,ret){LS.set("st:redondeo",{r:{items:[it],i:0,step:0,ok:0,fails:[],tries:0,ret}});go("redondeo")}
+function openRedondeoWith(it,ret){if(!posMastered()){go("posiciones");return}LS.set("st:redondeo",{r:{items:[it],i:0,step:0,ok:0,fails:[],tries:0,ret}});go("redondeo")}
 /* Mi progreso */
 function viewProgreso(){const a=$("#app");const rows=[];
-  const order=["bio1","bio2","len1","len2","ing1","ing2","mat0","mat1","gh1","gh2"];
+  const order=["bio1","bio2","len1","len2","ing1","ing2","mat0","mat1","ent0","mat2","mat3","gh1","gh2"];
   order.forEach(k=>{const rs=results.filter(r=>r.key===k&&r.total);if(!rs.length)return;const first=rs[rs.length-1];const rec=rs.slice(0,Math.min(3,rs.length-1||1));
     const f=Math.round(first.ok/first.total*10),n=Math.round(rec.reduce((s,r)=>s+r.ok/r.total,0)/rec.length*10);rows.push({t:DIAG[k].title,s:DIAG[k].s,f,n,one:rs.length===1})});
   const tb=results.filter(r=>r.key==="tablas"&&r.total);if(tb.length){const first=tb[tb.length-1];const rec=tb.slice(0,Math.min(3,tb.length-1||1));rows.push({t:"Tablas",s:"mat",f:Math.round(first.ok/first.total*10),n:Math.round(rec.reduce((s,r)=>s+r.ok/r.total,0)/rec.length*10),one:tb.length===1})}
@@ -2220,12 +2448,15 @@ function helpPanel(materia,detalle,onSkip,open){return {html:`<div class="helpbo
 const POS=[["U","unidades",1],["D","decenas",10],["C","centenas",100],["UM","unidades de millar",1e3],["DM","decenas de millar",1e4],["CM","centenas de millar",1e5],["UMi","unidades de millón",1e6],["DMi","decenas de millón",1e7],["CMi","centenas de millón",1e8],["UMM","unidades de millar de millón",1e9]];
 function newRedItem(){const p=1+Math.floor(Math.random()*5);const len=Math.min(8,p+2+Math.floor(Math.random()*3));let n=0;for(let i=0;i<len;i++)n=n*10+(i===0?1+Math.floor(Math.random()*9):Math.floor(Math.random()*10));return {n,p}}
 function fmtN(n){return n.toLocaleString("es-ES")}
-function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4].map(newRedItem),i:0,step:0,ok:0,fails:[],tries:0};const r=state.r;
+function viewRedondeo(){const a=$("#app");
+  if(!posMastered()&&!(state.r&&state.r.items&&(state.r.i>0||state.r.step>0))){a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Redondeo</h1><section class="card"><p><b>Primero, las posiciones.</b> Para redondear hay que saber dónde están las unidades de millar, las decenas de millar… sin dudar.</p><p>Rondas de Posiciones con 8 de 10 o más: <b>${posRounds()} de 2</b>. Con 2, se desbloquea el redondeo.</p><div class="row"><button class="btn" data-go="posiciones">Ir a Posiciones</button></div></section></div>`;
+    a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));state.r=null;return}
+  if(!state.r)state.r={items:[0,1,2].map(newRedItem),i:0,step:0,ok:0,fails:[],tries:0,steplog:[]};const r=state.r;r.steplog=r.steplog||[];
   if(r.i>=r.items.length&&r.ret){const ret=r.ret,itx=r.items[0],ok=r.ok;if(!r.saved){r.saved=true;logEvent({evento:"redondeo paso a paso desde una pregunta",materia:"Redondeo",sub:fmtN(itx.n)+" a las "+POS[itx.p][1]+(ok?" (sin ayuda)":" (con pistas)")})}
     a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><h1>Redondeo</h1><section class="card"><p>${ok?"¡Bien! Te ha salido a la primera.":"Hecho. Ya has visto cómo se hace paso a paso."} Sigue con el test: esa pregunta te volverá a salir al final, para que la contestes tú.</p><div class="row"><button class="btn" id="rback">Seguir con el test</button></div></section></div>`;
     $("#rback").addEventListener("click",()=>{state.r=null;try{localStorage.removeItem("m1e:st:redondeo")}catch(e){}go(ret)});return}
-  if(r.i>=r.items.length){if(!r.saved){r.saved=true;saveResult({key:"redondeo",materia:"Redondeo",sub:"valor de posición y redondeo",ok:r.ok,total:r.items.length,ns:0,temas:{},fallos:r.fails,cuenta:r.ok>=3})}
-    a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Redondeo</h1><section class="card"><span class="big">${r.ok}/${r.items.length}</span><p>${r.ok===r.items.length?"¡Perfecto! Te ha salido todo a la primera.":r.ok>=3?"¡Bien! Esta ronda cuenta.":"Esta ronda no cuenta todavía: necesitas 3 de 5 sin ayuda. ¡Otra!"}</p>${r.fails.length?`<p class="small">Para repasar: ${r.fails.map(esc).join(" · ")}</p>`:""}<div class="row"><button class="btn" id="rag">Otra ronda</button></div></section></div>`;
+  if(r.i>=r.items.length){if(!r.saved){r.saved=true;saveResult({key:"redondeo",materia:"Redondeo",sub:"valor de posición y redondeo",ok:r.ok,total:r.items.length,ns:0,temas:{},fallos:r.fails.concat(r.steplog),cuenta:r.ok>=Math.min(2,r.items.length)})}
+    a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Redondeo</h1><section class="card"><span class="big">${r.ok}/${r.items.length}</span><p>${r.ok===r.items.length?"¡Perfecto! Te ha salido todo a la primera.":r.ok>=2?"¡Bien! Esta ronda cuenta.":"Esta ronda no cuenta todavía: necesitas 2 de 3 sin fallos. ¡Otra!"}</p>${r.fails.length?`<p class="small">Para repasar: ${r.fails.map(esc).join(" · ")}</p>`:""}<div class="row"><button class="btn" id="rag">Otra ronda</button></div></section></div>`;
     a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#rag").addEventListener("click",()=>{state.r=null;viewRedondeo()});return}
   const it=r.items[r.i],ds=String(it.n).split(""),L=ds.length,P=POS[it.p],pos=k=>L-1-k,kT=L-1-it.p,kR=kT+1;
   const tD=+ds[kT],look=+ds[kR],up=look>=5,res=(Math.floor(it.n/P[2])+(up?1:0))*P[2];
@@ -2251,9 +2482,10 @@ function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4]
    <div id="rfb">${r.msg||""}</div>${h.html}</section>
    <section class="card"><h3>La regla del redondeo</h3><ol style="margin:0;padding-left:1.2em"><li>Busca la cifra de la posición que te piden (naranja).</li><li>Mira la cifra de su derecha (azul).</li><li>Si la azul es 5, 6, 7, 8 o 9, la naranja sube 1. Si es 0, 1, 2, 3 o 4, la naranja se queda igual.</li><li>Todas las cifras a la derecha de la naranja pasan a ser 0.</li></ol></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  a.querySelectorAll(".scroll").forEach(e=>{e.scrollLeft=e.scrollWidth});
   h.bind(()=>`Está redondeando ${it.n} a las ${P[1]}. Paso ${r.step+1}: ${Q.replace(/<[^>]+>/g,"")}. No le des el resultado final; guíale.`);
   const next=()=>{r.step++;r.tries=0;r.msg="";r.hintCol=false;r.show=false;viewRedondeo()};
-  const wrong=(hints,solve)=>{r.tries++;r.bad=true;const n=r.tries;
+  const wrong=(hints,solve)=>{r.tries++;r.bad=true;const n=r.tries;if(n===1)r.steplog.push(`${fmtN(it.n)} a las ${P[1]}: falla el paso «${["buscar la cifra","la cifra de la derecha","¿5 o más?","cambiar la cifra","escribir el número"][r.step]}»`);
     if(n>=3){r.show=true;r.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>${solve}</div>`;viewRedondeo();setTimeout(()=>{const fb=$("#rfb");if(fb){fb.insertAdjacentHTML("beforeend",`<button class="btn" id="rgo">Entendido, sigo</button>`);$("#rgo").addEventListener("click",next)}},50);return}
     r.msg=`<div class="fb ko"><strong>Intento ${n} de 3: todavía no.</strong>${hints[Math.min(n-1,hints.length-1)]}</div>`;if(r.step===0&&n>=2)r.hintCol=true;viewRedondeo()};
   if(r.step<=1)a.querySelectorAll(".dg").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.k;
@@ -2269,10 +2501,13 @@ function viewRedondeo(){const a=$("#app");if(!state.r)state.r={items:[0,1,2,3,4]
 
 /* ---------- Mínimos obligatorios en el plan de la IA ---------- */
 function mandatory(ds){const d=PLAN.find(p=>p.d===ds);if(!d)return [];const out=[];
-  const order=["bio1","bio2","len1","len2","ing1","ing2","mat0","mat1","gh1","gh2"];const untested=order.filter(k=>!results.some(r=>r.key===k));
+  const order=["bio1","bio2","len1","len2","ing1","ing2","mat0","mat1","mat2","mat3","gh1","gh2"];const untested=order.filter(k=>!results.some(r=>r.key===k));
   untested.slice(0,dayKind(d)==="largo"?2:1).forEach(k=>out.push([DIAG[k].s,"Prueba de nivel: "+DIAG[k].title+" ("+DIAG[k].sub.split(":")[0]+")",10,"diag:"+k,1,{nivel:true}]));
   if(ds<"2026-11-17"){out.push(["mat","Tablas de multiplicar",5,"tablas",2,{}]);
-    const lv=levelOf("mat1");if(!lv||lv.p<.7)out.push(new Date(ds+"T12:00").getDate()%2?["mat","Redondeo paso a paso",8,"redondeo",1,{}]:["mat","MCD y mcm: 1 ejercicio guiado",8,"mcd",1,{}])}
+    const rot=new Date(ds+"T12:00").getDate()%4;
+    if(rot===0||rot===2)out.push(["mat","Operaciones combinadas paso a paso",10,"combinadas",1,{}]);
+    else if(rot===1)out.push(posMastered()?["mat","Redondeo paso a paso",8,"redondeo",1,{}]:["mat","Posiciones: unidades, decenas, centenas…",8,"posiciones",1,{}]);
+    else out.push(["mat","MCD y mcm: 1 ejercicio guiado",8,"mcd",1,{}])}
   return out}
 function injectMandatory(v,d,ds){const M=mandatory(ds);const tc=tandaCaps(d);const T=Object.keys(tc).map(Number);const used={};v.b.forEach(b=>{used[b[6]]=(used[b[6]]||0)+b[2]});
   const has=m=>v.b.some(b=>b[3]===m[3]&&(!m[3].startsWith("diag:")||!!(b[5]&&b[5].nivel)===!!(m[5]&&m[5].nivel)));
@@ -2290,7 +2525,8 @@ function injectMandatory(v,d,ds){const M=mandatory(ds);const tc=tandaCaps(d);con
 /* ---------- Seguir practicando (opcional) ---------- */
 function extraSuggestions(){const out=[];const lv=k=>levelOf(k);
   const weak=Object.keys(DIAG).filter(k=>k!=="mat0"&&lv(k)).sort((a,b)=>lv(a).p-lv(b).p)[0];
-  const m=lv("mat1");if(!m||m.p<.7)out.push(["Redondeo paso a paso","5 min","redondeo",null]);
+  const m=lv("mat1");if(!m||m.p<.7)out.push(posMastered()?["Redondeo paso a paso","5 min","redondeo",null]:["Posiciones","5 min","posiciones",null]);
+  out.push(["Operaciones combinadas","8 min","combinadas",null]);
   if(weak)out.push([`Repaso de fallos: ${DIAG[weak].title}`,"5 min","diag-"+weak,{fallos:true}]);
   out.push(["Tablas de multiplicar","3 min","tablas",null]);
   if(out.length<3)out.push(["Verbos irregulares","3 min","verbos",{fam:"all"}]);return out.slice(0,3)}

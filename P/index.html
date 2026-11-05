@@ -1822,6 +1822,7 @@ const CATALOGO=`ACTIVIDADES (campo "act"):
 - "rocas" reconocer por foto las 12 rocas del colegio y su tipo (~6 min). Muy probable en el examen de Biología.
 - "problemas" problemas de enteros escribiendo la operación con negativos (4 problemas, ~8 min).
 - param {"modo":"escrito"} en "combinadas" = escribe ella cada línea, como en el examen (recomendado los fines de semana y desde el 14).
+- La "nota" la leen los padres: escríbela en lenguaje natural y breve, sin palabras internas (agenda obligatoria, tanda, act, param, bloque obligatorio).
 - DÍAS DE ENTRENO: la tanda 2 es por la noche, después del fútbol y cansada: solo repaso suave y corto ("oral:", "rocas", "tarjetas-", "verbs"). Nada de pruebas de nivel, mini-pruebas, simulacros ni ejercicios nuevos de Mates.
 - Si una unidad va por debajo del 50 %, NO pongas más pruebas de esa unidad: pon su ficha ("ficha-…") para aprenderla primero.
 - PRIORIDAD: el objetivo es aprobar todo lo posible. Primero lo que da más puntos con menos esfuerzo (Biología memorizable, verbos, mapas, potencias, operaciones combinadas y problemas). Lo muy costoso y de pocos puntos (redondeo) va al final o se deja.
@@ -1862,23 +1863,23 @@ function validatePlan(p,d){if(!p||!Array.isArray(p.bloques))return null;const ca
     out.push([x.asig,texto,min,act||undefined,R,pr,tn])}
   out.sort((a,b)=>a[6]-b[6]);return out.length?{b:out,nota:String(p.nota||"").slice(0,300)}:null}
 const BASE={};PLAN.forEach(d=>{BASE[d.d]=d.b.map(x=>x.slice())});
-function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan6:"+d.d,null);const off=LS.get("aioff:"+d.d,false);
+function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan7:"+d.d,null);const off=LS.get("aioff:"+d.d,false);
   const started=d.b.some((b,i)=>planDone[d.d+"#"+i]||prog[d.d+"#"+i]);
-  if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan6:"+d.d,ai)}}
+  if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.filter((x,i)=>!(x[5]&&x[5].nivel&&x[3]&&x[3].startsWith("diag:")&&results.some(r=>r.key===x[3].slice(5)&&isFull(r)&&!sameDay(r.ts,d.d))&&!planDone[d.d+"#"+i])).map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan7:"+d.d,ai)}}
   else{d.b=BASE[d.d].map(x=>x.slice());d.ai=false}})}
 let aiBusy=false;
 async function requestAIPlan(ds,force){const c=cfg();const d=PLAN.find(p=>p.d===ds);if(!c.url||!d||!d.b.length||aiBusy||!navigator.onLine)return;
-  const forceSrv=force||!LS.get("aiplan6:"+ds,null);if(!force){if(LS.get("aiplan6:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
+  const forceSrv=force||!LS.get("aiplan7:"+ds,null);if(!force){if(LS.get("aiplan7:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
   aiBusy=true;
   try{const base=BASE[ds].map(b=>`${b[0]} | ${b[1]} | ${b[2]} min | ${b[3]||""}`).join("\n");
     const res=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"plan",disp:deviceInfo(),clave:c.clave||"",fecha:ds,forzar:forceSrv,
       datos:`DÍA A PLANIFICAR: ${d.t}, ${ds}${d.exam?" (hoy por la mañana tiene examen de "+SNAME[d.exam]+")":""}\nMINUTOS MÁXIMOS: ${dayCap(d)}\n${dayKind(d)==="largo"?"ORGANIZACIÓN: día largo, 3 tandas (mañana, mediodía, tarde) de 25 a 35 minutos cada una, con descanso entre ellas.":"ORGANIZACIÓN: día de cole, tanda 1 al llegar del cole (máximo "+tandaCaps(d)[1]+" min) y tanda 2 por la noche: repaso que pueda hacer sola (máximo 20 min, 1 o 2 bloques cuyo texto empiece por «Repaso:»)."}\nAÑADE A CADA BLOQUE el campo "tanda" (número). Cada tanda tiene 2 o 3 bloques. No pases de 25 minutos por bloque.\n\nPLAN BASE PREVISTO PARA ESE DÍA:\n${base}\n\nEVOLUCIÓN HASTA AHORA:\n${compactStats(ds)}\n\nOBLIGATORIO (inclúyelos tal cual, con su "act" y "param"):\n${mandatory(ds).map(m=>`- ${m[1]} · act "${m[3]}" · param ${JSON.stringify(m[5])} · ${m[2]} min`).join("\n")||"- nada"}\n\n${CATALOGO}`})});
     const j=await res.json();if(j.error==="clave"){authFailed();return}let v=validatePlan(j.plan,d);if(v)v=injectMandatory(v,d,ds);
-    if(v){LS.set("aiplan6:"+ds,v);if(force)LS.set("aioff:"+ds,false);logEvent({evento:"plan IA",materia:ds,texto:v.b.map(b=>b[1]+" ("+b[2]+" min)").join(" · ")+" — "+v.nota})}else LS.set("aifail:"+ds,Date.now())}
+    if(v){LS.set("aiplan7:"+ds,v);if(force)LS.set("aioff:"+ds,false);logEvent({evento:"plan IA",materia:ds,texto:v.b.map(b=>b[1]+" ("+b[2]+" min)").join(" · ")+" — "+v.nota})}else LS.set("aifail:"+ds,Date.now())}
   catch(e){LS.set("aifail:"+ds,Date.now())}finally{aiBusy=false;applyAIPlans();softRender()}}
 function tomorrowStr(){const t=new Date();t.setDate(t.getDate()+1);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")}
 async function aiTick(){const t=todayStr(),d=PLAN.find(p=>p.d===t);await requestAIPlan(t);
-  const done=d&&d.b.length&&d.b.every((b,i)=>planDone[t+"#"+i]);if(done||new Date().getHours()>=19||!d||!d.b.length)await requestAIPlan(tomorrowStr())}
+  const done=d&&d.b.length&&d.b.every((b,i)=>planDone[t+"#"+i]);if(done||new Date().getHours()>=21||!d||!d.b.length)await requestAIPlan(tomorrowStr())}
 
 /* ---------- Informe (con PIN) ---------- */
 const PIN_H=4083632868;
@@ -1895,7 +1896,7 @@ function viewInforme(){
   a.querySelector("h1").textContent="Informe";
   const t=tomorrowStr(),dt=PLAN.find(p=>p.d===t),dd=PLAN.find(p=>p.d===todayStr());
   const planCard=document.createElement("section");planCard.className="card";
-  const show=(d,label)=>{if(!d)return "";const ai=LS.get("aiplan6:"+d.d,null),off=LS.get("aioff:"+d.d,false);
+  const show=(d,label)=>{if(!d)return "";const ai=LS.get("aiplan7:"+d.d,null),off=LS.get("aioff:"+d.d,false);
     return `<h3>${label}: ${esc(d.t)} ${new Date(d.d+"T12:00").getDate()}</h3>${ai?`<p class="small">${off?"Usando el plan base.":"Plan adaptado por la IA."} ${ai.nota?esc(ai.nota):""}</p>
       <ol class="small" style="margin:0;padding-left:1.2em">${ai.b.map(b=>`<li>${esc(b[1])} · ${b[2]} min${b[4]>1?" · "+b[4]+" "+unitFor(b,b[4]):""}</li>`).join("")}</ol>
       <div class="row"><button class="btn ghost small" data-aitog="${d.d}">${off?"Usar el plan de la IA":"Volver al plan base"}</button><button class="btn ghost small" data-aire="${d.d}">Pedir otro plan</button></div>`
@@ -2686,12 +2687,19 @@ function mandatory(ds){const d=PLAN.find(p=>p.d===ds);if(!d)return [];const out=
     else if(rot===1)out.push(["mat","Potencias: mini-prueba",7,"diag:mat3",1,{}]);
     else out.push(day%8===3?["mat","Problemas con negativos",8,"problemas",1,{}]:["mat","MCD y mcm: 1 ejercicio guiado",8,"mcd",1,{}])}
   if(ds<"2026-11-12"&&!rocasMastered())out.push(["bio","Rocas por foto",6,"rocas",1,{}]);
+  {const day=new Date(ds+"T12:00").getDate();
+   if(ds<"2026-11-16")out.push(["ing","Verbos irregulares: 5 minutos",5,"verbs",1,{}]);
+   if(ds>="2026-11-09"&&ds<"2026-11-18"&&day%2===1){const sets=[{set:"esp",modo:"find"},{set:"eur",modo:"find"},{set:"espf",modo:"what"},{set:"eur",modo:"cap"},{set:"eurf",modo:"what"}];out.push(["gh","Mapas: 5 minutos",5,"mapas",1,sets[Math.floor(day/2)%sets.length]])}
+   if(ds<"2026-11-13"&&day%3===0)out.push(["len","Tarjetas de Lengua: repaso corto",5,"tarjetas-len",1,{}])}
+  /* Víspera de examen: solo lo de ese examen y repasos ligeros */
+  const nx=EXAMS.find(e=>examDays(e.s,ds)===1);
+  if(nx)return out.filter(m=>m[0]===nx.s||m[3]==="verbs"&&nx.s==="ing").filter(m=>!(m[5]&&m[5].nivel));
   return out}
 function injectMandatory(v,d,ds){const M=mandatory(ds);const tc=tandaCaps(d);const T=Object.keys(tc).map(Number);const used={};v.b.forEach(b=>{used[b[6]]=(used[b[6]]||0)+b[2]});
   const has=m=>v.b.some(b=>b[3]===m[3]&&(!m[3].startsWith("diag:")||!!(b[5]&&b[5].nivel)===!!(m[5]&&m[5].nivel)));
   M.forEach(m=>v.b.forEach(b=>{if(b[3]===m[3])b.mand=true}));
   M.forEach(m=>{if(has(m))return;
-    const pref=m[5]&&m[5].nivel&&dayKind(d)!=="entreno"?T.slice().reverse():T;/* pruebas de nivel: mejor en la última tanda; Mates: en la primera */
+    const light=["verbs","rocas","tarjetas-len","mapas"].includes(m[3]);const pref=dayKind(d)==="entreno"&&!light?[T[0]]:(m[5]&&m[5].nivel&&dayKind(d)!=="entreno")||light?T.slice().reverse():T;/* pruebas de nivel: mejor en la última tanda; Mates: en la primera */
     let t=pref.find(k=>(used[k]||0)+m[2]<=tc[k]);
     if(t===undefined){t=pref[0];/* primero acortar bloques (mínimo 8 min) y solo si no basta, quitar */
       let guard=0;while((used[t]||0)+m[2]>tc[t]&&guard++<60){const sh=v.b.filter(b=>b[6]===t&&!b.mand&&b[2]>8).sort((x,y)=>y[2]-x[2])[0];if(!sh)break;sh[2]--;used[t]--}

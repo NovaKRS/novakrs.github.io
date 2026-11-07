@@ -1212,12 +1212,15 @@ function quizEnd(key,D){
 }
 
 /* ---------- Verbos ---------- */
+let enVoice=null;function pickEn(){try{const vs=speechSynthesis.getVoices();enVoice=vs.find(v=>/en-GB/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}catch(e){}}
+try{pickEn();speechSynthesis.addEventListener("voiceschanged",pickEn)}catch(e){}
+function speakEn(text){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang="en-GB";if(enVoice)u.voice=enVoice;u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
 function viewVerbs(){
   {const bp=takeParams("verbos");if(bp&&bp.fam)LS.set("verbHint",bp.fam)}
   {const h=LS.get("verbHint",null);if(h){state.fam=h;state.vq=null;state.mode=state.mode&&state.mode!=="learn"?state.mode:"learn";LS.set("verbHint",null)}}
   state.fam=state.fam||"no";state.col=state.col||"past";state.mode=state.mode||"learn";
   const fams=VERBS.map(f=>`<button data-fam="${f[0]}" aria-pressed="${state.fam===f[0]}">${esc(f[1])}</button>`).join("")+`<button data-fam="all" aria-pressed="${state.fam==="all"}">Todas</button>`;
-  const modes=[["learn","Aprender"],["pick","Elegir"],["write","Escribir"]].map(m=>`<button data-mode="${m[0]}" aria-pressed="${state.mode===m[0]}">${m[1]}</button>`).join("");
+  const modes=[["learn","Aprender"],["listen","Escuchar"],["pick","Elegir"],["write","Escribir"]].map(m=>`<button data-mode="${m[0]}" aria-pressed="${state.mode===m[0]}">${m[1]}</button>`).join("");
   $("#app").innerHTML=`<div data-s="ing" class="wrap" style="gap:16px">
     <button class="back" data-go="inicio">← Volver</button>
     <h1>Verbos irregulares</h1>
@@ -1236,15 +1239,17 @@ function viewVerbs(){
   if(state.mode==="learn"){
     const f=VERBS.find(x=>x[0]===state.fam);
     z.innerHTML=`<h2>${f?esc(f[1]):"Todos los verbos"}</h2><p class="small muted">Léelos en voz alta 3 veces: «go, went, gone». Luego tapa las columnas de color y di cuál es.</p>
-     <div class="scroll"><table class="vt"><tr><th>Verbo</th><th>Pasado</th><th>Participio</th><th>Significa</th></tr>${list.map(v=>`<tr><td>${v.inf}</td><td>${v.past}</td><td>${v.pp}</td><td class="muted">${esc(v.es)}</td></tr>`).join("")}</table></div>
-     <button class="btn" id="tryit">Ponerme a prueba</button>`;
+     <div class="scroll"><table class="vt"><tr><th></th><th>Verbo</th><th>Pasado</th><th>Participio</th><th>Significa</th></tr>${list.map((v,j)=>`<tr><td><button class="linkbtn vsay" data-j="${j}" aria-label="Escuchar ${v.inf}">🔊</button></td><td>${v.inf}</td><td>${v.past}</td><td>${v.pp}</td><td class="muted">${esc(v.es)}</td></tr>`).join("")}</table></div>
+     <div class="row"><button class="btn ghost" id="vall">🔊 Escuchar todos</button><button class="btn" id="tryit">Ponerme a prueba</button></div>`;
+    z.querySelectorAll(".vsay").forEach(b=>b.addEventListener("click",()=>{const v=list[+b.dataset.j];speakEn(`${v.inf}, ${v.past}, ${v.pp}`)}));
+    $("#vall").addEventListener("click",()=>speakEn(list.map(v=>`${v.inf}, ${v.past}, ${v.pp}.`).join(" ")));
     $("#tryit").addEventListener("click",()=>{state.mode="pick";viewVerbs()});
     return;
   }
   if(!state.vq){state.vq={items:shuffle(list).slice(0,Math.min(10,list.length)),i:0,ok:0,fails:[]}}
   const vq=state.vq;
   if(vq.i>=vq.items.length){
-    const vpass=vq.ok/vq.items.length>=.8;if(!vq.saved){vq.saved=true;saveResult({cuenta:vpass,key:"verbs",materia:"Verbos irregulares",sub:(state.fam==="all"?"Todas":VERBS.find(x=>x[0]===state.fam)[1])+" · "+(state.col==="past"?"pasado":"participio")+" · "+(state.mode==="pick"?"elegir":"escribir"),ok:vq.ok,total:vq.items.length,ns:0,temas:{},fallos:vq.fails})}
+    const vpass=vq.ok/vq.items.length>=.8;if(!vq.saved){vq.saved=true;saveResult({cuenta:vpass,key:"verbs",materia:"Verbos irregulares",sub:(state.fam==="all"?"Todas":VERBS.find(x=>x[0]===state.fam)[1])+" · "+(state.col==="past"?"pasado":"participio")+" · "+({pick:"elegir",write:"escribir",listen:"escuchar"})[state.mode],ok:vq.ok,total:vq.items.length,ns:0,temas:{},fallos:vq.fails})}
     z.innerHTML=`<span class="big">${vq.ok}/${vq.items.length}</span><p>${vq.ok===vq.items.length?"¡Perfecto! Prueba en modo Escribir o con otra familia.":(vpass?"¡Bien! Esta ronda cuenta. Repite hasta sacarlos todos.":"Esta ronda no cuenta todavía: necesitas "+Math.ceil(vq.items.length*.8)+" de "+vq.items.length+". ¡Otra!")}</p>${vq.fails.length?`<p class="small muted">Repasa: ${esc(vq.fails.join(", "))}</p>`:""}<div class="row"><button class="btn" id="vagain">Otra ronda</button></div>`;
     $("#vagain").addEventListener("click",()=>{state.vq=null;viewVerbs()});return;
   }
@@ -1252,12 +1257,14 @@ function viewVerbs(){
   const accept=right.split("/").map(s=>s.trim().toLowerCase());
   const label=key==="past"?"pasado":"participio";
   z.innerHTML=`<span class="small muted">${vq.i+1} de ${vq.items.length}</span>
-   <p class="flash">${v.inf}</p><p class="muted">${esc(v.es)} → ¿${label}?</p><div id="vin"></div><div id="vfb"></div><div class="row" id="vafter"></div>`;
+   ${state.mode==="listen"&&!vq.answered?`<p class="flash"><button class="btn" id="vhear">🔊 Escucha el verbo</button></p><p class="muted">¿Cuál es su ${label}?</p>`:`<div class="row" style="align-items:center;gap:12px"><p class="flash" style="margin:0">${v.inf}</p><button class="linkbtn" id="vhear" aria-label="Escuchar otra vez">🔊</button></div><p class="muted">${esc(v.es)} → ¿${label}?</p>`}<div id="vin"></div><div id="vfb"></div><div class="row" id="vafter"></div>`;
+  $("#vhear").addEventListener("click",()=>speakEn(v.inf));setTimeout(()=>speakEn(v.inf),250);
   const done=(ok)=>{vq.answered=true;if(ok){vq.ok++;beep(880,.15)}else vq.fails.push(v.inf+" – "+v.past+" – "+v.pp);
-    $("#vfb").innerHTML=`<div class="fb ${ok?"ok":"ko"}"><strong>${ok?"¡Bien!":"Es: "+esc(right)}</strong>${esc(v.inf+" · "+v.past+" · "+v.pp)}</div>`;
+    $("#vfb").innerHTML=`<div class="fb ${ok?"ok":"ko"}"><strong>${ok?"¡Bien!":"Es: "+esc(right)}</strong>${esc(v.inf+" · "+v.past+" · "+v.pp)}${state.mode==="listen"?` <span class="muted">(${esc(v.es)})</span>`:""} <button class="linkbtn" id="vsay3" aria-label="Escuchar las tres formas">🔊</button></div>`;
+    speakEn(`${v.inf}, ${v.past}, ${v.pp}`);$("#vsay3").addEventListener("click",()=>speakEn(`${v.inf}, ${v.past}, ${v.pp}`));
     $("#vafter").innerHTML=`<button class="btn" id="vnext">Siguiente →</button>`;$("#vnext").focus();
     $("#vnext").addEventListener("click",()=>{vq.i++;vq.answered=false;viewVerbs()})};
-  if(state.mode==="pick"){
+  if(state.mode==="pick"||state.mode==="listen"){
     const reg=v.inf.endsWith("e")?v.inf+"d":v.inf+"ed";
     const other=key==="past"?v.pp:v.past;
     let pool=[right,reg];if(other!==right)pool.push(other);
@@ -1275,6 +1282,11 @@ function viewVerbs(){
 }
 
 /* ---------- Receta MCD / mcm ---------- */
+/* Acepta el número (6) o la multiplicación de factores (2x3, 2·3, 2²·3, 2^2*3, «2·3 = 6») */
+function prodVal(str){let t=String(str).trim();if(t.includes("="))t=t.split("=").pop();const sup={"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9"};
+  t=t.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g,m=>"^"+m.split("").map(c=>sup[c]).join("")).replace(/\s+/g,"").replace(/[x×X·*]/g,"*");
+  if(/^\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,"");else t=t.replace(/\./g,"*");
+  if(!/^\d+(\^\d+)?(\*\d+(\^\d+)?)*$/.test(t))return 0;return t.split("*").reduce((acc,f)=>{const [b,e]=f.split("^");return acc*Math.pow(+b,e?+e:1)},1)}
 const PAIRS=[[12,18],[36,84],[30,45],[24,36],[20,30],[40,60],[18,27],[50,75],[16,24],[42,56],[60,90],[150,180],[28,42],[48,72],[10,15],[36,30],[84,30]];
 const CRIT={2:"Se puede dividir entre 2 si acaba en 0, 2, 4, 6 u 8.",3:"Entre 3 si al sumar sus cifras sale 3, 6, 9, 12, 15…",5:"Entre 5 si acaba en 0 o en 5.",7:"Entre 7: prueba a dividir. Si no sale ninguno de los otros, prueba el 7."};
 function viewMCD(){
@@ -1326,7 +1338,7 @@ function viewMCD(){
     if(m.cur%p===0){m.pend=p;viewMCD()}else{m.ep=(m.ep||0)+1;const good=[2,3,5,7].find(q=>m.cur%q===0)||m.cur;
       mwrong([`${m.cur} no se puede dividir entre ${p}. ${CRIT[p]}`,`${m.cur} no se puede dividir entre ${p}. Prueba los primos en orden: primero 2, luego 3, luego 5, luego 7.`],`${m.cur} se puede dividir entre <b>${good}</b>. ${CRIT[good]||""}`,()=>{m.pend=good;viewMCD()})}}))}
   const qf=$("#qf");
-  if(qf){$("#qin").focus();qf.addEventListener("submit",e=>{e.preventDefault();const v=+$("#qin").value.replace(/[^0-9]/g,"");if(!v)return;
+  if(qf){$("#qin").focus();qf.addEventListener("submit",e=>{e.preventDefault();const v=prodVal($("#qin").value);if(!v)return;
     if(m.phase==="fact"){const r=m.cur/m.pend;if(v===r){m.rows[m.idx].push(m.pend);m.cur=r;m.pend=null;beep(880,.12);
         if(r===1){if(m.idx===0){m.idx=1;m.cur=B}else{m.phase="mcd"}}viewMCD()}
       else{m.ed=(m.ed||0)+1;mwrong([`Truco: ¿qué número multiplicado por ${m.pend} da ${m.cur}? Puedes abrir «Ver tablas».`,`Busca en la tabla del ${m.pend} el resultado ${m.cur}: el número por el que multiplicas es la respuesta.`],`${m.cur} : ${m.pend} = <b>${r}</b>, porque ${m.pend} × ${r} = ${m.cur}.`,()=>{m.rows[m.idx].push(m.pend);m.cur=r;m.pend=null;if(r===1){if(m.idx===0){m.idx=1;m.cur=B}else{m.phase="mcd"}}viewMCD()})}}
@@ -2450,14 +2462,32 @@ const ROCAS=[["Obsidiana","Magmática volcánica","Parece cristal negro y muy br
 ["Sienita","Magmática plutónica","Parecida al granito, con cristales grandes, pero casi sin cuarzo; suele ser rosada o grisácea."],
 ["Gneis","Metamórfica","Con bandas claras y oscuras, como rayas."],
 ["Arenisca","Sedimentaria detrítica","Granos de arena pegados; áspera al tacto, como papel de lija."]];
+const ROCA_GRUPOS=[
+ [["Pizarra","Esquisto","Gneis"],"Las tres metamórficas: pizarra = gris oscura y lisa, se parte en láminas planas y finas (la de los tejados). Esquisto = láminas onduladas que brillan. Gneis = rayas o bandas claras y oscuras."],
+ [["Arenisca","Conglomerado","Arcilla"],"Las tres detríticas, por el tamaño de los trozos: conglomerado = piedrecitas redondeadas pegadas (se ven). Arenisca = granos de arena, áspera como una lija. Arcilla = finísima y suave, no se ven granos."],
+ [["Granito","Sienita"],"Las dos plutónicas, con cristales que se ven: granito = puntos de tres colores, con cuarzo gris y brillante. Sienita = parecida, pero rosada o grisácea y casi sin cuarzo."],
+ [["Basalto","Obsidiana","Pumita"],"Las tres volcánicas: basalto = oscuro y mate, grano finísimo. Obsidiana = negra y brillante como un cristal. Pumita = clara, llena de agujeritos y muy ligera."]];
 const ROCA_TIPOS=["Magmática volcánica","Magmática plutónica","Metamórfica","Sedimentaria detrítica","Sedimentaria orgánica"];
 function rocaFig(n,k){return `<figure class="rfig"><img src="${ROCA_FOTOS[n][k]}" alt="Foto de una roca"><figcaption>Imagen del PDF del colegio</figcaption></figure>`}
 function rocasMastered(){return results.filter(r=>r.key==="rocas"&&r.total&&r.ok/r.total>=.8).length>=1}
 function viewRocas(){const a=$("#app");
   if(!state.rk){state.rk={mode:LS.get("rocasVisto",false)?"quiz":"ver",i:0}}const s=state.rk;
-  const seg=`<div class="seg"><button data-rm="ver" aria-pressed="${s.mode==="ver"}">Aprender</button><button data-rm="quiz" aria-pressed="${s.mode==="quiz"}">¿Qué roca es?</button></div>`;
+  const seg=`<div class="seg"><button data-rm="ver" aria-pressed="${s.mode==="ver"}">Aprender</button><button data-rm="par" aria-pressed="${s.mode==="par"}">Las que se parecen</button><button data-rm="quiz" aria-pressed="${s.mode==="quiz"}">¿Qué roca es?</button></div>`;
   const head=`<button class="back" data-go="inicio">← Volver</button><span class="qtag">Biología · Rocas</span><h1>Rocas por foto</h1>${seg}`;
-  if(s.mode==="ver"){const R=ROCAS[s.i];
+  if(s.mode==="par"){if(s.g===undefined){s.g=0;s.step="ver";s.ok=0;s.n=0;s.fails=[]}
+    if(s.g>=ROCA_GRUPOS.length){if(!s.saved){s.saved=true;saveResult({key:"rocas",materia:"Rocas por foto",sub:"las que se parecen",ok:s.ok,total:s.n,ns:0,temas:{},fallos:s.fails,cuenta:s.n&&s.ok/s.n>=.8})}
+      a.innerHTML=`<div data-s="bio" class="wrap" style="gap:16px">${head}<section class="card"><span class="big">${s.ok}/${s.n}</span><p>${s.ok/s.n>=.8?"¡Muy bien! Ahora prueba con todas mezcladas.":"Repasa las parejas otra vez: es normal que cueste, se parecen mucho."}</p><div class="row"><button class="btn" data-rm="quiz">Todas mezcladas</button><button class="btn ghost" data-rm="par">Repetir parejas</button></div></section></div>`}
+    else{const [names,hint]=ROCA_GRUPOS[s.g];
+      if(s.step==="ver"){a.innerHTML=`<div data-s="bio" class="wrap" style="gap:16px">${head}<section class="card"><span class="small muted">Grupo ${s.g+1} de ${ROCA_GRUPOS.length}</span><h2 style="margin:0">¿Cómo las distingo?</h2>
+        <div class="rfigs">${names.map(n=>`<div style="flex:1 1 160px;max-width:220px">${rocaFig(n,0)}<p style="text-align:center;margin:4px 0 0"><b>${n}</b></p></div>`).join("")}</div>
+        <div class="fb ns"><strong>La pista</strong>${esc(hint)}</div><div class="row"><button class="btn" id="pgo">Ya las distingo: pruébame</button>${listenBtn("plisten2")}</div></section></div>`;
+        $("#pgo").addEventListener("click",()=>{s.step="q";s.qs=shuffle(names.slice()).slice(0,2);s.qi=0;viewRocas()});$("#plisten2").addEventListener("click",()=>speak(hint))}
+      else{const n=s.qs[s.qi];a.innerHTML=`<div data-s="bio" class="wrap" style="gap:16px">${head}<section class="card"><span class="small muted">Grupo ${s.g+1} de ${ROCA_GRUPOS.length} · otra foto distinta</span><div class="rfigs">${rocaFig(n,1)}</div><p class="qtext">¿Cuál es?</p>
+        <div class="opts">${shuffle(names.slice()).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div><div id="rfb"></div></section></div>`;
+        a.querySelectorAll("[data-o]").forEach(b=>b.addEventListener("click",()=>{const ok=b.dataset.o===n;a.querySelectorAll(".opt").forEach(x=>{x.disabled=true;if(x.dataset.o===n)x.classList.add("right")});if(!ok){b.classList.add("wrong");s.fails.push(n)}else{s.ok++;beep(880,.12)}s.n++;
+          $("#rfb").innerHTML=`<div class="fb ${ok?"ok":"ko"}"><strong>${ok?"¡Bien!":"Es "+n+"."}</strong>${esc(hint)}</div><button class="btn" id="rnx">Siguiente →</button>`;
+          $("#rnx").addEventListener("click",()=>{s.qi++;if(s.qi>=s.qs.length){s.g++;s.step="ver"}viewRocas()});$("#rnx").focus()}))}}}
+  else if(s.mode==="ver"){const R=ROCAS[s.i];
     a.innerHTML=`<div data-s="bio" class="wrap" style="gap:16px">${head}<section class="card"><div class="rfigs">${rocaFig(R[0],0)}${rocaFig(R[0],1)}</div>
       <h2 style="margin:0">${R[0]}</h2><p style="margin:0"><span class="tag-or">${R[1]}</span></p><p>${R[2]}</p>
       <div class="row" style="justify-content:space-between"><button class="btn ghost" id="rprev" ${s.i?"":"disabled"}>←</button><span class="small muted">${s.i+1} de ${ROCAS.length}</span><button class="btn" id="rnext">${s.i+1<ROCAS.length?"Siguiente →":"¡A probar!"}</button></div>${listenBtn("rlisten")}</section></div>`;

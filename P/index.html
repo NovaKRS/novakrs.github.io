@@ -2399,7 +2399,7 @@ function viewCombinadas(){const a=$("#app");
   {const bp=takeParams("combinadas");if(bp||!state.cb){const prevAtt=state.cb&&state.cb.attempt;const pf=shuffle(CB_BANK.facil)[0],pe=shuffle(CB_BANK.examen)[0];state.cb={list:[pf,pe],e:0,T:cbTok(pf),lines:[],phase:"pick",tries:0,steps:0,okSteps:0,fails:[],done:[],modo:(bp&&bp.modo)||cbModeDefault()}}}
   const c=state.cb;if(!c.modo)c.modo="guiado";
   if(c.modo==="escrito"&&c.e<c.list.length&&c.T.length>1)return viewCbEscrito();
-  if(c.e>=c.list.length){const ok=c.okSteps,tot=c.steps,pass=(c.attempt||1)>=2||(tot&&ok/tot>=.6);
+  if(c.e>=c.list.length){const ok=c.okSteps,tot=c.steps,allSkipped=(c.skipped||0)>=c.list.length,pass=!allSkipped&&((c.attempt||1)>=2||(tot&&ok/tot>=.6));
     if(!c.saved){c.saved=true;saveResult({key:"combinadas",materia:"Operaciones combinadas",sub:(c.modo==="escrito"?"escribiendo · ":"guiado · ")+c.list.map(s=>s.replace(/\*/g,"·").replace(/\//g,":")).join(" | ")+((c.attempt||1)>=2?" · 2º intento":""),ok,total:tot,ns:0,temas:{},fallos:c.fails,cuenta:pass})}
     a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Operaciones combinadas</h1><section class="card"><span class="big">${ok}/${tot}</span><p>pasos bien a la primera.</p>
       <p>${pass?"¡Bien! Este bloque cuenta.":"Para terminar el bloque, haz otra ronda: ya conoces el camino."}</p>
@@ -2408,7 +2408,7 @@ function viewCombinadas(){const a=$("#app");
     a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#cag").addEventListener("click",()=>{const att=(c.attempt||1)+(pass?0:1),m=c.modo;state.cb=null;viewCombinadas();state.cb.attempt=pass?1:att;state.cb.modo=m;viewCombinadas()});return}
   const T=c.T,fin=T.length===1;
   const sel=c.sel;const A=sel!==undefined?T[sel-1].v:0,OP=sel!==undefined?T[sel].v:"",B=sel!==undefined?T[sel+1].v:0;
-  const h=helpPanel("Operaciones combinadas",`Operación ${c.list[c.e].replace(/\*/g,"·").replace(/\//g,":")}`,()=>{c.fails.push(c.list[c.e]+" (pendiente)");c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas()},c.tries>=2&&!fin);
+  const h=helpPanel("Operaciones combinadas",`Operación ${c.list[c.e].replace(/\*/g,"·").replace(/\//g,":")}`,()=>{c.fails.push(c.list[c.e]+" (pendiente)");c.skipped=(c.skipped||0)+1;c.exErr=0;c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas()},c.tries>=2&&!fin,(c.exErr||0)>=2);
   a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">Operación ${c.e+1} de ${c.list.length}</span></div>
    <h1>Operaciones combinadas</h1>${cbModeSeg(c)}
    <section class="card"><div class="cblines">${c.lines.map((l,j)=>`<div class="cbl">${j?"= ":""}${l}</div>`).join("")}
@@ -2421,15 +2421,15 @@ function viewCombinadas(){const a=$("#app");
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));bindCbSeg();
   if(!fin)h.bind(()=>`Está haciendo operaciones combinadas con enteros. Expresión actual: ${cbHtml(T).replace(/<[^>]+>/g,"")}. ${c.phase==="calc"?"Está calculando "+zIn(A)+" "+OP+" "+zIn(B):"Tiene que elegir qué operación va primero"}. No le des el resultado; guíale con la jerarquía y la regla de los signos.`);
   const say=(n,txt)=>`<div class="fb ko"><strong>Intento ${n} de 3: todavía no.</strong>${txt}</div>`;
-  const nx=$("#cnx");if(nx)nx.addEventListener("click",()=>{c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas()});
+  const nx=$("#cnx");if(nx)nx.addEventListener("click",()=>{c.exErr=0;c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas()});
   if(!fin&&c.phase==="pick")a.querySelectorAll(".cbop").forEach(b=>b.addEventListener("click",()=>{const i=+b.dataset.i;const why=cbWhyNot(T,i);
     if(!why){c.stepClean=!c.tries;if(c.stepClean)c.okSteps++;c.steps++;c.sel=i;c.phase="calc";c.tries=0;c.showI=undefined;c.msg="";viewCombinadas();return}
-    c.tries++;if(c.tries===1)c.fails.push(`${cbHtml(T).replace(/<[^>]+>/g,"")}: eligió «${T[i].v}» antes de tiempo`);
+    c.tries++;c.exErr=(c.exErr||0)+1;if(c.tries===1)c.fails.push(`${cbHtml(T).replace(/<[^>]+>/g,"")}: eligió «${T[i].v}» antes de tiempo`);
     if(c.tries>=3){c.showI=cbValid(T)[0];c.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>Va primero la operación marcada. ${why}</div>`}else c.msg=say(c.tries,why);viewCombinadas()}));
   const pm=$("#cpm");if(pm)pm.addEventListener("click",()=>{const inp=$("#cin");const v=inp.value.trim();inp.value=v.startsWith("-")||v.startsWith("−")?v.replace(/^[-−]/,""):"-"+v;inp.focus()});
   const cf=$("#cf");if(cf){$("#cin").focus();cf.addEventListener("submit",e=>{e.preventDefault();const raw=$("#cin").value.replace(/[−–]/g,"-").replace(/\s|\./g,"");if(!/^[+-]?\d+$/.test(raw))return;const v=+raw,r=cbCalc(A,OP,B);
     if(v===r){beep(880,.12);c.lines.push(cbHtml(T,{ul:sel}));T.splice(sel-1,3,{t:"n",v:r});cbCollapse(T);c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";viewCombinadas();return}
-    c.tries++;if(c.tries===1){if(c.stepClean){c.okSteps--;c.stepClean=false}c.fails.push(`${zIn(A)} ${OP} ${zIn(B)}: puso ${fmtZ(v)} (es ${fmtZ(r)})`)}
+    c.tries++;c.exErr=(c.exErr||0)+1;if(c.tries===1){if(c.stepClean){c.okSteps--;c.stepClean=false}c.fails.push(`${zIn(A)} ${OP} ${zIn(B)}: puso ${fmtZ(v)} (es ${fmtZ(r)})`)}
     const H=cbHints(A,OP,B);
     if(c.tries>=3){c.msg=`<div class="fb ns"><strong>Te lo enseño:</strong>${zIn(A)} ${OP} ${zIn(B)} = <b>${fmtZ(r)}</b>. ${H[0]}</div><p class="small">Escríbelo para seguir.</p>`}else c.msg=say(c.tries,H[c.tries-1]);
     viewCombinadas()})}
@@ -2491,7 +2491,7 @@ function cbParseTyped(s){s=s.replace(/^\s*=\s*/,"").replace(/[·x×X]/g,"*").rep
 function cbPlain(T){return cbHtml(T).replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim()}
 function cbModeDefault(){const L=LS.get("cbModo",null);if(L)return L;return results.filter(r=>r.key==="combinadas"&&r.total&&r.ok/r.total>=.7).length>=2?"escrito":"guiado"}
 function viewCbEscrito(){const a=$("#app"),c=state.cb,T=c.T;
-  const h=helpPanel("Operaciones combinadas",`Operación ${c.list[c.e].replace(/\*/g,"·").replace(/\//g,":")} (escribiendo)`,()=>{c.fails.push(c.list[c.e]+" (pendiente)");c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.tries=0;c.msg="";viewCombinadas()},c.tries>=2);
+  const h=helpPanel("Operaciones combinadas",`Operación ${c.list[c.e].replace(/\*/g,"·").replace(/\//g,":")} (escribiendo)`,()=>{c.fails.push(c.list[c.e]+" (pendiente)");c.skipped=(c.skipped||0)+1;c.exErr=0;c.e++;if(c.e<c.list.length){c.T=cbTok(c.list[c.e]);c.lines=[]}c.tries=0;c.msg="";viewCombinadas()},c.tries>=2,(c.exErr||0)>=2);
   a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">Operación ${c.e+1} de ${c.list.length}</span></div>
    <h1>Operaciones combinadas</h1>${cbModeSeg(c)}
    <section class="card"><div class="cblines">${c.lines.map((l,j)=>`<div class="cbl">${j?"= ":""}${l}</div>`).join("")}<div class="cbl cur">${c.lines.length?"= ":""}${cbPlain(T)}</div></div>
@@ -2512,7 +2512,7 @@ function viewCbEscrito(){const a=$("#app"),c=state.cb,T=c.T;
     const accept=(note)=>{if(!c.tries)c.okSteps++;c.steps++;c.lines.push(cbPlain(T));c.T=U.length===1?U:cbCollapse(U);c.tries=0;c.draft=undefined;c.msg=note?`<div class="fb ok"><strong>Bien.</strong>${note}</div>`:"";beep(880,.12);viewCombinadas()};
     if(R.has(kU)){const d=R.get(kU);accept(d>2?"Has hecho varias operaciones de golpe. En el examen, mejor una o dos por línea: así es más difícil equivocarse.":"");return}
     if(cbValue(U)===v0){accept("El resultado cuadra, pero revisa el orden: primero paréntesis, luego · y :, luego + y −.");return}
-    c.tries++;c.steps++;const i0=cbValid(T)[0],A=T[i0-1].v,OP=T[i0].v,B=T[i0+1].v,r=cbCalc(A,OP,B);
+    c.tries++;c.exErr=(c.exErr||0)+1;c.steps++;const i0=cbValid(T)[0],A=T[i0-1].v,OP=T[i0].v,B=T[i0+1].v,r=cbCalc(A,OP,B);
     if(c.tries===1)c.fails.push(`${cbPlain(T)} → escribió ${inp.value.trim()}`);
     const N=cbClone(T);N.splice(i0-1,3,{t:"n",v:r});cbCollapse(N);
     c.msg=c.tries>=3?`<div class="fb ns"><strong>Te lo enseño:</strong>Lo primero era ${zIn(A)} ${OP} ${zIn(B)} = ${fmtZ(r)}. La línea queda así:<br><b>= ${cbPlain(N)}</b><br>Escríbela (o corrige la tuya) para seguir.</div>`
@@ -2691,11 +2691,11 @@ function viewProgreso(){const a=$("#app");const rows=[];
 function addPending(materia,detalle){const L=LS.get("pend",[]);L.push({id:"p"+Date.now(),ts:Date.now(),materia,detalle});LS.set("pend",L);logEvent({evento:"pendiente para repasar con un adulto",materia,sub:detalle})}
 function pendingList(){return LS.get("pend",[])}
 function resolvePending(id){const L=pendingList();const it=L.find(x=>x.id===id);LS.set("pend",L.filter(x=>x.id!==id));if(it)logEvent({evento:"pendiente resuelto",materia:it.materia,sub:it.detalle})}
-function helpPanel(materia,detalle,onSkip,open){return {html:`<div class="helpbox" id="helpbox" ${open?"":"hidden"}><p><b>Vamos a verlo con alguien.</b> Si papá o mamá están cerca, enséñales este paso. Si no, pregúntale al profe aquí abajo o déjalo para verlo juntos más tarde.</p>
-  <div class="row"><button class="btn small" id="hb-ok" type="button">Ya lo he visto con ellos, sigo</button><button class="btn ghost small" id="hb-skip" type="button">Dejarlo para verlo juntos y pasar al siguiente</button></div>${profeHtml("profe-help")}</div>
+function helpPanel(materia,detalle,onSkip,open,canSkip){if(canSkip===undefined)canSkip=true;return {html:`<div class="helpbox" id="helpbox" ${open?"":"hidden"}><p><b>Vamos a verlo con alguien.</b> Si papá o mamá están cerca, enséñales este paso. Si no, pregúntale al profe aquí abajo o déjalo para verlo juntos más tarde.</p>
+  <div class="row"><button class="btn small" id="hb-ok" type="button">Ya lo he visto con ellos, sigo</button>${canSkip?'<button class="btn ghost small" id="hb-skip" type="button">Dejarlo para verlo juntos y pasar al siguiente</button>':""}</div>${canSkip?"":'<p class="small muted" style="margin:0">Inténtalo un par de veces: si sigues atascada, podrás dejarlo para verlo juntos.</p>'}${profeHtml("profe-help")}</div>
   <button class="helpbtn" id="hb-open" type="button" ${open?"hidden":""}>🙋 Necesito ayuda</button>`,
   bind(ctx){$("#hb-open").addEventListener("click",()=>{$("#helpbox").hidden=false;$("#hb-open").hidden=true});$("#hb-ok").addEventListener("click",()=>{$("#helpbox").hidden=true;$("#hb-open").hidden=false});
-    $("#hb-skip").addEventListener("click",()=>{addPending(materia,detalle);onSkip()});bindProfe("profe-help",materia,ctx)}}}
+    const sk=$("#hb-skip");if(sk)sk.addEventListener("click",()=>{addPending(materia,detalle);onSkip()});bindProfe("profe-help",materia,ctx)}}}
 
 /* ---------- Entrenador de redondeo (versión 2, con pasos guiados, pistas crecientes y salida) ---------- */
 const POS=[["U","unidades",1],["D","decenas",10],["C","centenas",100],["UM","unidades de millar",1e3],["DM","decenas de millar",1e4],["CM","centenas de millar",1e5],["UMi","unidades de millón",1e6],["DMi","decenas de millón",1e7],["CMi","centenas de millón",1e8],["UMM","unidades de millar de millón",1e9]];

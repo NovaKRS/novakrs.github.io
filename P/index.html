@@ -1603,7 +1603,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-08.4";
+const APP_VERSION="2026-11-08.5";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -2713,7 +2713,7 @@ function factorStr(n){const f={};let m=n,k=2;while(m>1){while(m%k===0){f[k]=(f[k
 
 const EX_TIPOS=["Magmática volcánica","Magmática plutónica","Metamórfica","Sedimentaria detrítica","Sedimentaria química","Sedimentaria orgánica"];
 function exBio(){const it=[];
-  it.push({id:"b1",tema:"Capas de la Tierra",pts:1,enun:"Escribe las capas de la Tierra, <b>de fuera hacia dentro</b>.",campos:[["corteza"],["manto"],["nucleo externo"],["nucleo interno"]].map((o,k)=>({l:(k+1)+".ª",w:.25,chk:{t:"near",v:o},sol:["Corteza","Manto","Núcleo externo","Núcleo interno"][k]}))});
+  it.push({id:"b1",tema:"Capas de la Tierra",pts:1,enun:"Escribe las capas de la Tierra, <b>de fuera hacia dentro</b> (el núcleo, en sus dos partes). Después, escribe los <b>dos tipos de corteza</b>.",campos:[["corteza","corteza terrestre"],["manto"],["nucleo externo"],["nucleo interno"]].map((o,k)=>({l:(k+1)+".ª capa",w:.2,chk:{t:"near",v:o},sol:["Corteza","Manto","Núcleo externo","Núcleo interno"][k]})).concat(shuffle([0,1]).slice(0,0),[{l:"Tipo de corteza 1",w:.1,chk:{t:"near",v:["continental","corteza continental","oceanica","corteza oceanica"]},sol:"Continental (u oceánica)"},{l:"Tipo de corteza 2",w:.1,chk:{t:"near",v:["oceanica","corteza oceanica","continental","corteza continental"]},sol:"Oceánica (o continental)"}])});
   it.push({id:"b2",tema:"Capas de la atmósfera",pts:1.5,enun:"Escribe las capas de la atmósfera, <b>de abajo arriba</b>, y contesta.",campos:["troposfera","estratosfera","mesosfera","termosfera","exosfera"].map((o,k)=>({l:(k+1)+".ª",w:.25,chk:{t:"near",v:[o]},sol:o[0].toUpperCase()+o.slice(1)})).concat([{l:"¿En qué capa está la capa de ozono?",w:.25,chk:{t:"near",v:["estratosfera"]},sol:"Estratosfera"}])});
   {const R=shuffle(ROCAS).slice(0,3);it.push({id:"b3",tema:"Rocas por foto",pts:1.5,enun:"Observa cada foto. Escribe el <b>nombre</b> de la roca y elige su <b>tipo</b>.",
     campos:R.flatMap(r=>{const k=rnd(0,ROCA_FOTOS[r[0]].length-1);return [{img:ROCA_FOTOS[r[0]][k],l:"Nombre",w:.25,chk:{t:"near",v:[r[0]]},sol:r[0]},{l:"Tipo",w:.25,opts:EX_TIPOS,chk:{t:"eq",v:r[1]},sol:r[1]}]})})}

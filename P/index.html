@@ -261,7 +261,7 @@ body{padding-bottom:110px;padding-top:56px}
 .modal-box{background:var(--card);color:var(--ink);border-radius:18px;padding:22px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
 .btn.danger{background:var(--ko);color:#fff}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font-size:inherit;min-height:0}
-.profe{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.profe{display:flex;flex-direction:column;gap:8px;margin-top:8px}.estsl input[type=range]{width:100%;accent-color:var(--accent,#0E8C80);height:36px}.tutor{border-left:5px solid var(--warm,#E8781E);background:#FFF6EE;border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;flex-direction:column;gap:6px}.tutor[hidden]{display:none}
 .profe [data-profe-body]{display:flex;flex-direction:column;gap:8px}
 .profe [data-profe-body][hidden]{display:none}
 .profe-log{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto}
@@ -1018,6 +1018,7 @@ function render(){
   if(h==="informe") return viewInforme();
   if(h.startsWith("tarea-")) return viewTarea(h.slice(6));
   if(h.startsWith("sim-")) return viewSim(h.slice(4));
+  if(h.startsWith("ex-")) return viewExamen(h.slice(3));
   if(h.startsWith("oral-")) return viewOral(h.slice(5));
   if(h==="redondeo") return viewRedondeo();
   if(h==="progreso") return viewProgreso();
@@ -1032,7 +1033,7 @@ let state={};
 window.addEventListener("hashchange",()=>{if(curHash!=="informe")prevHash=curHash;persist();curHash=location.hash.replace("#","")||"inicio";state=restore(curHash);render();window.scrollTo(0,0)});
 function softRender(){const h=location.hash.replace("#","")||"inicio";if(["inicio","plan"].includes(h)&&$("#timer").hidden&&!document.activeElement.matches("input,textarea"))render()}
 
-function bindPlan(root){bindRows(root);root.querySelectorAll("[data-extra]").forEach(b=>b.addEventListener("click",()=>{const x=extraSuggestions()[+b.dataset.extra];if(x[3])LS.set("bp",{target:x[2],params:x[3],blk:null});logEvent({evento:"práctica extra",materia:x[0]});go(x[2])}));root.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)))}
+function bindPlan(root){bindRows(root);root.querySelectorAll("[data-extra]").forEach(b=>b.addEventListener("click",()=>{const x=extraSuggestions()[+b.dataset.extra];if(needAyuda("extra"))return askAyuda("extra",()=>b.click());if(x[3])LS.set("bp",{target:x[2],params:x[3],blk:null});logEvent({evento:"práctica extra",materia:x[0]});go(x[2])}));root.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)))}
 function lastResult(key){return results.find(r=>r.key===key)}
 
 function viewHome(){
@@ -1043,7 +1044,7 @@ function viewHome(){
     const nDone=d.b.filter((b,i)=>planDone[d.d+"#"+i]).length,tot=d.b.length,pct=tot?Math.round(100*nDone/tot):0;
     const br=LS.get("brk",null);
     today=xpHtml()+`<section class="card today">
-      <div class="top"><div><h2>${pd.rel} toca</h2><p class="muted small">${d.t}, ${fmtDate(d.d)}</p></div>
+      <div class="top"><div><h2>${pd.rel} toca</h2><p class="muted small">${d.t}, ${fmtDate(d.d)}</p>${pd.rel==="Hoy"?ayudaChip():""}</div>
       ${ex?`<span class="daytag exam" data-s="${ex.s}">Examen de ${ex.name}</span>`:""}</div>
       ${d.ai?`<p class="small"><span class="aitag">Plan adaptado a tu progreso</span></p>`:d.note?`<p>${esc(d.note)}</p>`:""}
       ${tot?`<div class="dbar" role="progressbar" aria-valuenow="${nDone}" aria-valuemin="0" aria-valuemax="${tot}" aria-label="Bloques hechos hoy"><i style="width:${pct}%" class="${pct>=100?"full":""}"></i></div>
@@ -1061,7 +1062,7 @@ function viewHome(){
     ${today}
     <section class="exams" aria-label="Cuenta atrás de exámenes">${exams}</section>
     <section class="card"><h2>Simulacros de examen</h2><p class="muted small">Como un examen: sin correcciones hasta el final. Al terminar ves tu nota y repasas los fallos.</p>
-      <div class="tiles">${["bio","len","ing","mat","gh"].map(simTile).join("")}</div></section>
+      <div class="tiles">${["bio","mat"].map(s=>{const r=results.find(x=>x.key==="ex-"+s);return `<button class="tile" data-s="${s}" data-go="ex-${s}"><b>${SNAME[s]}: examen de práctica</b><span>Como el del cole: respuestas escritas y nota sobre 10</span>${r?`<span class="st">Última nota: ${(r.ok/10).toLocaleString("es-ES")}</span>`:'<span class="st">Sin hacer</span>'}</button>`}).join("")}${["bio","len","ing","mat","gh"].map(simTile).join("")}</div></section>
     <section class="card"><h2>Pruebas completas por unidad</h2><p class="muted small">15 preguntas, con la explicación de cada fallo. Si no sabes una respuesta, pulsa «No lo sé».</p>
       <div class="tiles">${tile("bio1","diag-bio1")}${tile("bio2","diag-bio2")}${tile("mat0","diag-mat0")}${tile("mat1","diag-mat1")}${tile("ent0","diag-ent0")}${tile("mat2","diag-mat2")}${tile("mat3","diag-mat3")}
 ${tile("len1","diag-len1")}${tile("len2","diag-len2")}${tile("ing1","diag-ing1")}${tile("ing2","diag-ing2")}${tile("gh1","diag-gh1")}${tile("gh2","diag-gh2")}</div></section>
@@ -1116,7 +1117,7 @@ function viewQuiz(key){
     ${state.note&&i===0?`<p class="small muted">${esc(state.note)}</p>`:""}
     ${i===0&&!LS.get("idkUsed",false)&&!q.vf?`<p class="tipidk small">Si no sabes una, pulsa <b>«No lo sé»</b>. Es mejor que adivinar: así sabemos qué repasar y te lo explicamos.</p>`:""}
     <section class="card">
-      <span class="qtag">${esc(D.title)} · ${esc(q.t)}${q.vf?" · ¿verdadero o falso?":q.retry?" · otra vez":""}</span>
+      <span class="qtag">${esc(D.title)} · ${esc(q.t)}${q.vf?" · ¿verdadero o falso?":q.puente?" · uno parecido, para fijarlo":q.retry?" · otra vez":""}</span>
       ${q.vf?`<div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${vfStatement(q,q.vf)}</p>${listenBtn("qlisten")}</div>
       <div class="opts" id="opts"><button class="opt" data-vf="1">Verdadero</button><button class="opt" data-vf="0">Falso</button></div>`:`
       <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${esc(q.q)}${q.n!==undefined&&!q.o&&/[×:−+]/.test(q.q)?" =":""}</p>${q.o?listenBtn("qlisten"):""}</div>${qImg(q)}
@@ -1126,7 +1127,7 @@ function viewQuiz(key){
       <div class="row" id="after"><button class="idk" id="idk">No lo sé</button></div>
     </section></div>`;
   $("#app").querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
-  const right=q.o?q.o[0]:String(q.n);state.t0=Date.now();
+  const right=q.o?q.o[0]:String(q.n);if(!state.answered){state.t0=Date.now();state.pick=null;state.awayCur=false}
   {const op=$("#opts");const len=(q.vf?q.q.length+String(q.vf).length:(q.q||"").length+(q.o||[]).join(" ").length);
     if(op&&!state.answered){const ms=Math.max(1200,Math.min(3500,600+len*18));state.veilMs=ms;op.classList.add("veil");const idk=$("#idk");if(idk)idk.classList.add("veil");
       op.insertAdjacentHTML("beforebegin",'<p class="small muted veilnote" id="veilnote">Lee la pregunta…</p>');
@@ -1134,9 +1135,11 @@ function viewQuiz(key){
   const ql=$("#qlisten");if(ql)ql.addEventListener("click",()=>(state.heard=state.i,0)||speak(q.vf?q.q.replace(/…$/,"")+" "+q.vf+". ¿Verdadero o falso?":q.q+". Las opciones son: "+q.opts.join(". ")));
   const showNext=()=>{$("#after").innerHTML=`<button class="btn" id="next">${i+1<qs.length?"Siguiente →":"Ver resultado"}</button>`;$("#next").addEventListener("click",()=>{state.i++;state.answered=false;state.fixing=false;viewQuiz(key)});$("#next").focus()};
   const finish=(res)=>{
-    if(state.answered)return;state.answered=true;state.ans.push(res);qhRecord(q,res==="ok");const wasRushed=res!=="ns"?rushCheck(q):false;
+    if(state.answered)return;state.answered=true;state.ans.push(res);qhRecord(q,res==="ok");
+    {const dt=state.t0?Math.round((Date.now()-state.t0)/100)/10:0;state.qlog=state.qlog||[];state.qlog.push((q.retry?"rep ":"")+(state.qlog.length+1)+") "+q.t+": "+(res==="ok"?"bien":res==="ns"?"no lo sé":"mal")+" "+String(dt).replace(".",",")+" s"+(state.heard===state.i?" · escuchada":"")+(state.awayCur?" · salió de la app":"")+(res==="ko"&&state.pick?" · eligió «"+String(state.pick).slice(0,40)+"»":""));state.awayCur=false}const wasRushed=res!=="ns"?rushCheck(q):false;
     if(!wasRushed)addXP(res==="ok"&&!q.retry?2:1);
     if(res!=="ok"&&!q.retry&&!q.gen&&!qs.some(x=>x.retry&&qkey(x)===qkey(q)))qs.push(Object.assign({},q,{retry:true,opts:q.o?shuffle(q.o):null}));
+    if(res!=="ok"&&key==="mat3"&&!isPureTest()&&!q.puente&&!q.vf){const g=genPot(q.t);qs.splice(state.i+1,0,Object.assign(g,{gen:true,puente:true,opts:shuffle(g.o)}))}
     const cls=res==="ok"?"ok":res==="ns"?"ns":"ko";
     if(res==="ns")LS.set("idkUsed",true);
     const head=res==="ok"?"¡Correcto!":(res==="ns"?"Bien por decirlo: así sabemos qué repasar. ":"")+"La respuesta correcta es: "+right;
@@ -1151,7 +1154,8 @@ function viewQuiz(key){
       $("#fix").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{if(b.textContent===right){b.classList.add("right");$("#fix").querySelectorAll(".opt").forEach(x=>x.disabled=true);beep(784,.12);showNext()}else{b.classList.add("wrong");b.disabled=true;autoHelp()}}))}
     else{$("#fix").innerHTML=`<p class="small"><b>Escribe ahora el resultado correcto para seguir:</b></p><form class="numin" id="ff"><input id="fin" inputmode="numeric" autocomplete="off" aria-label="Resultado correcto"><button class="btn">OK</button></form>`+(pure?"":profeHtml("profe-q"));
       $("#fin").focus();$("#ff").addEventListener("submit",e=>{e.preventDefault();if(+$("#fin").value.replace(/[^0-9]/g,"")===q.n){$("#fin").disabled=true;beep(784,.12);showNext()}else{$("#fin").value="";autoHelp()}})}
-    if(!pure)bindProfe("profe-q",D.title+" · "+q.t,()=>`Pregunta: ${q.q} | Respuesta correcta: ${right} | Ha contestado: ${res==="ns"?"No lo sé":(state.pick||"?")} | Explicación de la app: ${q.e||""}`);
+    if(!pure)bindProfe("profe-q",D.title+" · "+q.t,()=>`Pregunta: ${q.q} | Respuesta correcta: ${right} | Ha contestado: ${res==="ns"?"No lo sé":(state.pick||"?")} | Explicación de la app: ${q.e||""}`+(key==="mat3"?" | Eres su profesor sentado a su lado: dile en 2 o 3 frases muy cortas qué regla ha fallado (por ejemplo, si ha sumado los exponentes cuando había que restarlos), con un ejemplo pequeño, y termina con UNA pregunta corta. Ahora le saldrá un ejercicio parecido.":""));
+    if(!pure&&key==="mat3"&&!q.puente){const pb=document.getElementById("profe-q");state.tutN=state.tutN||0;if(pb&&pb._ask&&state.tutN<3){state.tutN++;pb._onReply=r=>{if(tutVoz())speak(r.replace(/\*\*/g,""))};pb._open();pb._ask(res==="ns"?"No lo sé. ¿Me lo explicas?":"Me he equivocado. ¿Qué regla he fallado?");logEvent({evento:"profe en tiempo real",materia:"Mates: potencias",sub:q.t+" · "+q.q+" · eligió: "+(res==="ns"?"No lo sé":state.pick||"?")})}}
     const qrd=$("#qred");if(qrd)qrd.addEventListener("click",()=>openRedondeoWith(rq,curHash));
   };
   if(state.answered&&state.fixing){state.answered=false;state.ans.pop()}
@@ -1190,7 +1194,7 @@ function quizEnd(key,D){
   if(state.mini==="prueba de la ficha")learnF=null;
   const pass=!practice||(!rushed&&!learnF);
   const T5=(state.times||[]).slice(0,5),T6=(state.times||[]).slice(5),avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1).replace(".",","):"–";
-  if(!state.saved){state.saved=true;saveResult({key,materia:D.title,sub:D.sub+(state.mini?" · "+state.mini:"")+((state.attempt||1)>=2?" · 2º intento":""),ok,total:qs.length,ns,temas,fallos:qs.filter((q,j)=>ans[j]!=="ok").map(q=>qkey(q)),recuperadas:retr?fixed+"/"+retr:undefined,rapidas:state.rush||0,cuenta:pass,texto:`segundos por pregunta: 1.ª-5.ª ${avg(T5)} · 6.ª en adelante ${avg(T6)}`})}
+  if(!state.saved){state.saved=true;saveResult({key,materia:D.title,sub:D.sub+(state.mini?" · "+state.mini:"")+((state.attempt||1)>=2?" · 2º intento":""),ok,total:qs.length,ns,temas,fallos:qs.filter((q,j)=>ans[j]!=="ok").map(q=>qkey(q)),recuperadas:retr?fixed+"/"+retr:undefined,rapidas:state.rush||0,cuenta:pass,preguntas:(state.qlog||[]).join(" | "),fuera:state.awayN?state.awayN+" veces, "+Math.round(state.awayS||0)+" s en total":"",texto:`segundos por pregunta: 1.ª-5.ª ${avg(T5)} · 6.ª en adelante ${avg(T6)}`})}
   const failedQs=qs.filter((q,j)=>ans[j]!=="ok");
   const pct=ok/qs.length;
   const rushedQs=qs.filter(q=>(state.rqk||[]).includes(qkey(q)));
@@ -1599,7 +1603,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-07.3";
+const APP_VERSION="2026-11-08.4";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -1613,7 +1617,7 @@ function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=t
       if(j.ok){LS.set("auth",{pass,nombre:j.nombre||"",desde:Date.now()});m.hidden=true;$("#infbtn").hidden=false;flushLog();render();setTimeout(aiTick,1500)}
       else{$("#lgm").style.color="var(--ko)";$("#lgm").textContent="Contraseña incorrecta.";$("#lgp").value=""}}
     catch(err){$("#lgm").style.color="var(--ko)";$("#lgm").textContent="No se ha podido conectar. Revisa la conexión e inténtalo otra vez."}})}
-function logEvent(ev){const c=cfg();if(!c.url)return;const box=LS.get("outbox",[]);box.push(Object.assign({ts:new Date().toISOString(),disp:deviceInfo()},ev));LS.set("outbox",box.slice(-300));flushLog()}
+function logEvent(ev){const c=cfg();if(!c.url)return;const box=LS.get("outbox",[]);box.push(Object.assign({ts:new Date().toISOString(),disp:deviceInfo(),ayuda:(ayudaNow()||{}).v||""},ev));LS.set("outbox",box.slice(-300));flushLog()}
 let flushing=false;
 async function flushLog(){const c=cfg();if(!c.url||flushing||!navigator.onLine)return;flushing=true;
   try{let box=LS.get("outbox",[]);while(box.length){const ev=box[0];
@@ -1629,7 +1633,7 @@ function blockMatches(t,key){const k=blockKey(t);if(!k)return false;if(k===key)r
 
 /* ---------- Profe (IA) ---------- */
 function profeHtml(id){return cfg().url?`<div class="profe" id="${id}"><button class="btn ghost small" data-profe-open>Pregúntale al profe</button><div data-profe-body hidden>
-  <div class="row profe-chips">${["No entiendo la pregunta","¿Por qué está mal lo que he puesto?","Explícamelo con un ejemplo"].map(t=>`<button type="button" class="chip" data-profe-chip>${t}</button>`).join("")}</div><div class="profe-log" data-profe-log></div><form class="row" data-profe-form><input class="txtin" data-profe-q placeholder="Escribe tu duda…" aria-label="Tu duda" style="flex:1;min-width:0;max-width:none"><button class="btn small">Enviar</button></form>
+  <div class="row profe-chips">${["No entiendo la pregunta","¿Por qué está mal lo que he puesto?","Explícamelo con un ejemplo"].map(t=>`<button type="button" class="chip" data-profe-chip>${t}</button>`).join("")}</div><div class="profe-log" data-profe-log></div><form class="row" data-profe-form><input class="txtin" data-profe-q placeholder="Escribe o pulsa 🎤 y habla…" aria-label="Tu duda" style="flex:1;min-width:0;max-width:none">${window.SpeechRecognition||window.webkitSpeechRecognition?'<button type="button" class="btn ghost small" data-profe-mic aria-label="Hablar">🎤</button>':""}<button class="btn small">Enviar</button></form>
   <p class="small muted">El profe te ayuda a entenderlo, pero no te hace los ejercicios.</p></div></div>`:""}
 const PROFE_MAX=6;
 function bindProfe(id,tema,getCtx){const box=document.getElementById(id);if(!box)return;const st={hist:[],n:0};
@@ -1642,10 +1646,13 @@ function bindProfe(id,tema,getCtx){const box=document.getElementById(id);if(!box
     st.n++;inp.value="";add("me",q);const wait=document.createElement("div");wait.className="pmsg bot";wait.textContent="Pensando…";log.appendChild(wait);
     const c=cfg();
     try{const res=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"profe",disp:deviceInfo(),clave:c.clave||"",alumno:c.alumno||"",tema,contexto:getCtx?getCtx():"",pregunta:q,historial:st.hist.slice(-6)})});
-      const j=await res.json();if(j.error==="clave"){authFailed();return}wait.remove();let r=j.respuesta||"No he podido contestar. Prueba otra vez.";if(r.trim().length<60&&!/[.?!»"):]$/.test(r.trim()))r="Se me ha cortado la respuesta. Pulsa otra vez, por favor.";add("bot",r);st.hist.push({role:"user",content:q},{role:"assistant",content:r})}
+      const j=await res.json();if(j.error==="clave"){authFailed();return}wait.remove();let r=j.respuesta||"No he podido contestar. Prueba otra vez.";if(r.trim().length<60&&!/[.?!»"):]$/.test(r.trim()))r="Se me ha cortado la respuesta. Pulsa otra vez, por favor.";add("bot",r);st.hist.push({role:"user",content:q},{role:"assistant",content:r});if(box._onReply)try{box._onReply(r)}catch(e){}}
     catch(err){wait.remove();add("bot","No hay conexión con el profe ahora mismo. Pregúntale a papá o mamá.")}};box._ask=ask;
   box.querySelectorAll("[data-profe-chip]").forEach(c=>c.addEventListener("click",()=>ask(c.textContent)));
   box.querySelector("[data-profe-form]").addEventListener("submit",e=>{e.preventDefault();const q=box.querySelector("[data-profe-q]").value.trim();if(q)ask(q)});
+  {const mic=box.querySelector("[data-profe-mic]");const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(mic&&R)mic.addEventListener("click",()=>{try{stopSpeak()}catch(e){}const r=new R();r.lang="es-ES";r.interimResults=true;r.maxAlternatives=1;const inp=box.querySelector("[data-profe-q]");mic.textContent="● Escuchando…";mic.disabled=true;let fin="";
+    r.onresult=ev=>{let t="";for(let k=0;k<ev.results.length;k++){t+=ev.results[k][0].transcript;if(ev.results[k].isFinal)fin=t}inp.value=t};
+    r.onend=()=>{mic.textContent="🎤";mic.disabled=false;const q=(fin||inp.value).trim();if(q){logEvent({evento:"habló con el profe",materia:tema,sub:q.slice(0,120)});ask(q)}};r.onerror=()=>{mic.textContent="🎤";mic.disabled=false};r.start()})}
 }
 
 /* ---------- Entender el MCD y el mcm ---------- */
@@ -1698,8 +1705,9 @@ function viewEntender(){
 }
 
 /* ---------- Guardar ejercicios a medias ---------- */
-const RESUMABLE=h=>/^(diag-|sim-|ficha-|verbos$|mcd$|tipo$|tablas$|mapas$|tarjetas-|redondeo$|posiciones$|combinadas$|problemas$)/.test(h);
+const RESUMABLE=h=>/^(ex-|diag-|sim-|ficha-|verbos$|mcd$|tipo$|tablas$|mapas$|tarjetas-|redondeo$|posiciones$|combinadas$|problemas$)/.test(h);
 function isFinished(h,st){
+  if(h.startsWith("ex-"))return !st.ex||!!st.ex.done;
   if(h.startsWith("diag-")||h.startsWith("sim-"))return !st.qs||!!st.saved||st.i>=st.qs.length;
   if(h==="verbos")return !st.vq||!!st.vq.saved;
   if(h==="mcd")return !st.m||st.m.phase==="done";
@@ -1947,10 +1955,17 @@ function rowHtml(d,i,interactive){const b=d.b[i],id=d.d+"#"+i,done=!!planDone[id
   return interactive?`<button class="${cls}" data-s="${b[0]}" data-open="${id}" aria-label="${esc(sr+b[1])}">${inner}</button>`:`<div class="${cls}" data-s="${b[0]}">${inner}</div>`}
 function dayHtml(d,interactive){const T=tandas(d);const cur=T.find(t=>t.idx.some(i=>!planDone[d.d+"#"+i]));
   return T.map((t,j)=>{const mins=t.idx.reduce((s,i)=>s+d.b[i][2],0),fin=t.idx.every(i=>planDone[d.d+"#"+i]);
-    const sep=j>0?`<div class="brk-sep">${t.noche?"Descanso hasta la noche":"Descanso de 10 minutos"}</div>`:"";
+    const sep=j>0?`<div class="brk-sep">${t.noche?"Descanso hasta la noche":dayKind(d)==="largo"&&t.n===3?"Descanso hasta la tarde":"Descanso de unos 20 minutos (sugerencia)"}</div>`:"";
     return `${sep}<div class="tanda${cur&&cur.n===t.n?" cur":""}${fin?" fin":""}"><div class="tanda-h"><b>${t.label}</b><span>${fin?"¡Hecha!":`unos ${mins} min`}</span></div>${t.idx.map(i=>rowHtml(d,i,interactive)).join("")}</div>`}).join("")}
 function bindRows(root){root.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>openBlock(b.dataset.open)))}
 function openBlock(id){const [dd,ii]=id.split("#");const d=PLAN.find(p=>p.d===dd);if(!d)return;const b=d.b[+ii];const target=targetOf(b);
+  {const T=tandas(d).find(t=>t.idx.includes(+ii));const k=dd+"#t"+(T?T.n:0);if(needAyuda(k))return askAyuda(k,()=>{
+      if(dd!==todayStr())return openBlock(id);const first=!LS.get("estado",null)||LS.get("estado",null).d!==todayStr();
+      askEstado(SNAME[b[0]]||"esto",first,low=>{const LIGHT=/^(verbs|tablas|rocas|mapas|tarjetas-|oral:)/;
+        const alt=low&&!LIGHT.test(b[3]||"")&&T?T.idx.find(j=>!planDone[dd+"#"+j]&&LIGHT.test(d.b[j][3]||"")):undefined;
+        if(alt===undefined)return openBlock(id);
+        const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="modal-box"><h2>¿Empezamos por algo más ligero?</h2><p>Parece que hoy vas con poca batería. Puedes arrancar con <b>${esc(d.b[alt][1])}</b> y después hacer lo demás.</p><div class="row"><button class="btn" data-a>Sí, empiezo por eso</button><button class="btn ghost" data-b>No, sigo con ${esc(b[1])}</button></div></div>`;document.body.appendChild(m);
+        m.querySelector("[data-a]").addEventListener("click",()=>{m.remove();logEvent({evento:"empieza por lo ligero",materia:d.b[alt][1]});openBlock(dd+"#"+alt)});m.querySelector("[data-b]").addEventListener("click",()=>{m.remove();openBlock(id)})})})}
   startSession(id);
   if(target){const st=LS.get("st:"+target,null);if(st&&st.blk===id&&!isFinished(target,st))LS.set("bp",null);else LS.set("bp",{target,params:b[5]||{},blk:id});go(target)}
   else go("tarea-"+dd+"-"+ii)}
@@ -2225,9 +2240,10 @@ function viewFichaPasos(id){const f=FICHAS[id];const a=$("#app");const md=t=>esc
   const done=f.sec.slice(0,Math.min(st.step,n)).map((s,i)=>`<details class="card ficha"><summary><b>${i+1}. ${esc(s[0])}</b> <span class="small muted">· repasar</span></summary>${secHtml(s,i)}</details>`).join("");
   let cur="";
   if(st.step<n){const c=chk[st.step];if(c&&!st.opts)st.opts=shuffle(c[1]);
+    st.unl=st.unl||{};st.serr=st.serr||{};if(!st.unl[st.step]){const w=(f.sec[st.step][0]+" "+f.sec[st.step][1].join(" ")).split(/\s+/).length;st.unl[st.step]=Date.now()+Math.max(8,Math.min(40,Math.round(w*0.45)))*1000;st.sec0=Date.now()}
     cur=`<section class="card ficha"><span class="small muted">Parte ${st.step+1} de ${n}</span>${secHtml(f.sec[st.step],st.step)}
       <div class="readhint row" style="justify-content:space-between">Léela en voz alta, despacio. Después contesta:${TTS?`<span class="row" style="gap:8px">${listenBtn("flisten")}<label class="small row" style="gap:6px"><input type="checkbox" id="falways" ${ttsAlways()?"checked":""}> Leérmelo siempre</label></span>`:""}</div>
-      ${c?`<p class="qtext" style="font-size:1.1rem">${esc(c[0])}</p><div class="opts">${st.opts.map(o=>`<button class="opt" data-c="${esc(o)}">${esc(o)}</button>`).join("")}</div><div id="cfb"></div>`:`<button class="btn" id="cnext">Siguiente parte</button>`}</section>`}
+      ${st.wmsg?`<div class="fb ko"><strong>Casi.</strong>Vuelve a leer esta parte con calma: la pregunta vuelve en unos segundos.</div>`:""}${c?`<p class="qtext" style="font-size:1.1rem">${esc(c[0])}</p><p class="small muted veilnote" id="fveil" hidden>Primero léela entera. La pregunta aparece en un momento…</p><div class="opts" id="fopts">${st.opts.map(o=>`<button class="opt" data-c="${esc(o)}">${esc(o)}</button>`).join("")}</div><div id="cfb"></div>`:`<button class="btn" id="cnext">Siguiente parte</button>`}</section>`}
   else{const T=FTEST[id];
     cur=`<section class="card"><h3>¡Ficha leída!</h3><p>${esc(f.draw)}</p><p class="small muted">El dibujo es opcional, pero ayuda mucho a recordarlo.</p>
       <div class="row"><button class="btn" id="ftest">Prueba de esta ficha (7 preguntas)</button>${Object.entries(ORAL).filter(([k,o])=>o.ficha===id).map(([k,o])=>`<button class="btn ghost" data-go="oral-${k}">Explícalo en voz alta</button>`).join("")}</div></section>`}
@@ -2238,12 +2254,17 @@ function viewFichaPasos(id){const f=FICHAS[id];const a=$("#app");const md=t=>esc
   const fl=$("#flisten");if(fl)fl.addEventListener("click",()=>speak(secTxt()));
   const fa=$("#falways");if(fa)fa.addEventListener("change",()=>{LS.set("ttsAlways",fa.checked);if(fa.checked)speak(secTxt());else stopSpeak()});
   if(st.step<n&&ttsAlways()&&st.spoken!==st.step){st.spoken=st.step;setTimeout(()=>speak(secTxt()),300)}
-  const nx=$("#cnext");if(nx)nx.addEventListener("click",()=>{st.step++;st.opts=null;viewFichaPasos(id);window.scrollTo(0,document.body.scrollHeight)});
+  const secDone=()=>{const sec=Math.round((Date.now()-(st.sec0||Date.now()))/1000);st.tlog=st.tlog||[];st.tlog_s=st.tlog_s||[];st.tlog.push((st.step+1)+") "+sec+" s"+(st.serr[st.step]?" ("+st.serr[st.step]+" fallos)":""));st.tlog_s.push(sec);st.wmsg=false};
+  if(st.step<n){const left=st.unl[st.step]-Date.now();const op=$("#fopts")||$("#cnext");if(op&&left>0){const vn=$("#fveil");if(op.id==="fopts"){op.classList.add("veil");if(vn)vn.hidden=false}else{op.disabled=true;op.textContent="Léela con calma…"}
+      setTimeout(()=>{if(!document.body.contains(op))return;if(op.id==="fopts"){op.classList.remove("veil");if(vn)vn.remove()}else{op.disabled=false;op.textContent="Siguiente parte"}},left)}}
+  const nx=$("#cnext");if(nx)nx.addEventListener("click",()=>{secDone();st.step++;st.opts=null;viewFichaPasos(id);window.scrollTo(0,document.body.scrollHeight)});
   a.querySelectorAll("[data-c]").forEach(b=>b.addEventListener("click",()=>{const c=chk[st.step];if(b.dataset.c===c[1][0]){b.classList.add("right");beep(880,.12);
       $("#cfb").innerHTML=`<div class="fb ok"><strong>¡Bien!</strong></div><button class="btn" id="cgo">${st.step+1<n?"Siguiente parte →":"Terminar la ficha"}</button>`;a.querySelectorAll("[data-c]").forEach(x=>x.disabled=true);
-      $("#cgo").addEventListener("click",()=>{st.step++;st.opts=null;viewFichaPasos(id);const el=a.querySelector(".card.ficha:last-of-type");if(el)el.scrollIntoView({block:"start"})})}
-    else{st.err++;b.classList.add("wrong");b.disabled=true;$("#cfb").innerHTML=`<div class="fb ko"><strong>Casi.</strong>Vuelve a leer esta parte con calma y prueba otra vez.${TTS?' <button class="btn small" id="freread" type="button">🔊 ¿Te la leo?</button>':""}</div>`;const rr=$("#freread");if(rr)rr.addEventListener("click",()=>speak(secTxt()))}}));
-  const ft=$("#ftest");if(ft)ft.addEventListener("click",()=>{const T=FTEST[id];const bp0=LS.get("bp",null);LS.set("bp",{target:"diag-"+T[0],params:{temas:T[1],n:7},blk:bp0&&bp0.blk||null});logEvent({evento:"ficha leída",materia:f.title,detalle:"errores en comprobaciones: "+st.err});addXP(5);const ln=LS.get("learn",null);if(ln&&ln.ficha===id){LS.set("learn",null);autoMark(ln.key)}go("diag-"+T[0])});
+      secDone();$("#cgo").addEventListener("click",()=>{st.step++;st.opts=null;viewFichaPasos(id);const el=a.querySelector(".card.ficha:last-of-type");if(el)el.scrollIntoView({block:"start"})})}
+    else{st.err++;st.serr[st.step]=(st.serr[st.step]||0)+1;b.classList.add("wrong");a.querySelectorAll("[data-c]").forEach(x=>x.disabled=true);
+      setTimeout(()=>{st.wmsg=true;st.opts=shuffle(chk[st.step][1]);st.unl[st.step]=Date.now()+(st.serr[st.step]>=2?12000:7000);viewFichaPasos(id);
+        const cardEl=a.querySelector("section.card.ficha");if(cardEl)cardEl.scrollIntoView({block:"start"});if(st.serr[st.step]>=2&&TTS)setTimeout(()=>speak(secTxt()),300)},900)}}));
+  const ft=$("#ftest");if(ft)ft.addEventListener("click",()=>{const T=FTEST[id];const bp0=LS.get("bp",null);LS.set("bp",{target:"diag-"+T[0],params:{temas:T[1],n:7},blk:bp0&&bp0.blk||null});logEvent({evento:"ficha leída",materia:f.title,sub:"errores en comprobaciones: "+st.err+" · tiempo por parte: "+(st.tlog||[]).join(", ")+" · total "+Math.round(((st.tlog_s||[]).reduce((a,b)=>a+b,0))/60*10)/10+" min"+(st.awayN?" · salió de la app "+st.awayN+" veces":"")});addXP(5);const ln=LS.get("learn",null);if(ln&&ln.ficha===id){LS.set("learn",null);autoMark(ln.key)}go("diag-"+T[0])});
 }
 
 /* ====================== Mates: temas 1, 2 y 3 ====================== */
@@ -2412,11 +2433,11 @@ function cbHints(a,op,b){const A=Math.abs(a),B=Math.abs(b);
   const same=(a<0)===(bb<0)||!a||!bb;return [pre+(same?`Van hacia el mismo lado: se suman (${A} + ${Math.abs(bb)}) y se deja el signo.`:`Signos distintos: se restan (${Math.max(A,Math.abs(bb))} − ${Math.min(A,Math.abs(bb))}) y gana el signo del que tiene más valor.`),
     `Piensa en la recta: empiezas en ${fmtZ(a)} y ${bb>=0?"subes "+bb:"bajas "+(-bb)}.`]}
 function viewCombinadas(){const a=$("#app");
-  {const bp=takeParams("combinadas");if(bp||!state.cb){const prevAtt=state.cb&&state.cb.attempt;const pf=shuffle(CB_BANK.facil)[0],pe=shuffle(CB_BANK.examen)[0];state.cb={list:[pf,pe],e:0,T:cbTok(pf),lines:[],phase:"pick",tries:0,steps:0,okSteps:0,fails:[],done:[],modo:(bp&&bp.modo)||cbModeDefault()}}}
+  {const bp=takeParams("combinadas");if(bp||!state.cb){const prevAtt=state.cb&&state.cb.attempt;const pf=cbPick(CB_BANK.facil),pe=cbPick(CB_BANK.examen);state.cb={list:[pf,pe],e:0,T:cbTok(pf),lines:[],phase:"pick",tries:0,steps:0,okSteps:0,fails:[],done:[],modo:(bp&&bp.modo)||cbModeDefault()}}}
   const c=state.cb;if(!c.modo)c.modo="guiado";
   if(c.modo==="escrito"&&c.e<c.list.length&&c.T.length>1)return viewCbEscrito();
   if(c.e>=c.list.length){const ok=c.okSteps,tot=c.steps,allSkipped=(c.skipped||0)>=c.list.length,pass=!allSkipped&&((c.attempt||1)>=2||(tot&&ok/tot>=.6));
-    if(!c.saved){c.saved=true;saveResult({key:"combinadas",materia:"Operaciones combinadas",sub:(c.modo==="escrito"?"escribiendo · ":"guiado · ")+c.list.map(s=>s.replace(/\*/g,"·").replace(/\//g,":")).join(" | ")+((c.attempt||1)>=2?" · 2º intento":""),ok,total:tot,ns:0,temas:{},fallos:c.fails,cuenta:pass})}
+    if(!c.saved){c.saved=true;saveResult({key:"combinadas",materia:"Operaciones combinadas",sub:(c.modo==="escrito"?"escribiendo · ":"guiado · ")+c.list.map(s=>s.replace(/\*/g,"·").replace(/\//g,":")).join(" | ")+((c.attempt||1)>=2?" · 2º intento":""),ok,total:tot,ns:0,temas:{},fallos:c.fails,cuenta:pass,preguntas:(c.llog||[]).join(" | "),texto:(c.bridges&&c.bridges.length?"ejercicios puente: "+c.bridges.join(", "):"")+(c.tutN?" · el profe intervino "+c.tutN+" veces":""),fuera:state.awayN?state.awayN+" veces, "+Math.round(state.awayS||0)+" s en total":""})}
     a.innerHTML=`<div data-s="mat" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Operaciones combinadas</h1><section class="card"><span class="big">${ok}/${tot}</span><p>pasos bien a la primera.</p>
       <p>${pass?"¡Bien! Este bloque cuenta.":"Para terminar el bloque, haz otra ronda: ya conoces el camino."}</p>
       <p class="small muted">En el examen: una operación por línea, subráyala, reescribe todo lo demás igual y empieza cada línea con «=».</p>
@@ -2533,29 +2554,238 @@ function viewCbEscrito(){const a=$("#app"),c=state.cb,T=c.T;
    <form id="cwf" class="col" style="gap:8px"><input id="cwin" class="txtin" autocomplete="off" spellcheck="false" style="max-width:none;font-size:1.2rem;font-variant-numeric:tabular-nums" aria-label="Siguiente línea">
    <div class="row" style="gap:6px">${["·",":","−","+","(",")","[","]"].map(k=>`<button type="button" class="chip kb" data-k="${k}">${k}</button>`).join("")}<button class="btn">Comprobar</button></div></form>
    <p class="small muted" style="margin:0">También puedes usar * para · y / para :.</p>
-   <div id="cfb">${c.msg||""}</div>${h.html}</section>
+   <div id="cfb">${c.msg||""}</div>${tutorHtml()}${h.html}</section>
    <section class="card"><h3>El orden</h3>${diagram("img:jerarquia,signos")}<ol style="margin:0;padding-left:1.2em"><li>Paréntesis y corchetes (el más interior primero).</li><li>Multiplicaciones y divisiones, de izquierda a derecha.</li><li>Sumas y restas, de izquierda a derecha.</li></ol></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));bindCbSeg();
   h.bind(()=>`Está haciendo operaciones combinadas con enteros escribiendo cada línea. Línea actual: ${cbPlain(T)}. No le des la siguiente línea; guíale con la jerarquía y los signos.`);
+  tutorBind("Mates: operaciones combinadas",()=>{const x=c.lastX||{};return `Está haciendo operaciones combinadas con números enteros, escribiendo cada línea como en el examen. Línea actual: ${cbPlain(c.T)}. Acaba de escribir: ${c.lastWrong||"?"}. La app ha detectado este tipo de error: ${TUT_NOMBRE[x.tipo]||"no claro"}${x.razon?" ("+x.razon+")":""}. Lo que tocaba primero era ${x.primero?zIn(x.primero.A)+" "+x.primero.OP+" "+zIn(x.primero.B):x.A!==undefined?zIn(x.A)+" "+x.OP+" "+zIn(x.B):"la operación correcta"}. NO le digas el resultado ni la línea siguiente. Explícale en 2 o 3 frases muy cortas qué ha fallado y por qué, con un ejemplo pequeño si ayuda, y termina con UNA pregunta corta para que piense el paso. Ella puede contestarte hablando o escribiendo; si contesta, sigue la conversación paso a paso como un profesor sentado a su lado.`});
   const inp=$("#cwin");inp.value=c.draft!==undefined?c.draft:cbPlain(T);inp.focus();inp.addEventListener("input",()=>{c.draft=inp.value});
   a.querySelectorAll(".kb").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k,p=inp.selectionStart||inp.value.length,q=inp.selectionEnd||p;inp.value=inp.value.slice(0,p)+k+inp.value.slice(q);inp.focus();inp.setSelectionRange(p+1,p+1);c.draft=inp.value}));
   $("#cwf").addEventListener("submit",e=>{e.preventDefault();const U=cbParseTyped(inp.value);const fb=$("#cfb");
     if(!U){fb.innerHTML=`<div class="fb ns"><strong>No entiendo lo que has escrito.</strong>Usa números, + − · : y paréntesis. Revisa que cada paréntesis que abres se cierre.</div>`;return}
     const kU=cbKey(U);if(kU===cbKey(T)){fb.innerHTML=`<div class="fb ns"><strong>Es la misma línea.</strong>Haz al menos una operación: cambia esa parte por su resultado.</div>`;return}
     const R=cbReach(T,5);const v0=cbValue(T);
-    const accept=(note)=>{if(!c.tries)c.okSteps++;c.steps++;c.lines.push(cbPlain(T));c.T=U.length===1?U:cbCollapse(U);c.tries=0;c.draft=undefined;c.msg=note?`<div class="fb ok"><strong>Bien.</strong>${note}</div>`:"";beep(880,.12);viewCombinadas()};
+    const accept=(note)=>{c.llog=c.llog||[];c.llog.push(cbPlain(T)+" → bien"+(c.tries?" (al intento "+(c.tries+1)+")":""));if(!c.tries)cbErrAdd(null);c.lastX=null;if(!c.tries)c.okSteps++;c.steps++;c.lines.push(cbPlain(T));c.T=U.length===1?U:cbCollapse(U);c.tries=0;c.draft=undefined;c.msg=note?`<div class="fb ok"><strong>Bien.</strong>${note}</div>`:"";beep(880,.12);viewCombinadas()};
     if(R.has(kU)){const d=R.get(kU);accept(d>2?"Has hecho varias operaciones de golpe. En el examen, mejor una o dos por línea: así es más difícil equivocarse.":"");return}
     if(cbValue(U)===v0){accept("El resultado cuadra, pero revisa el orden: primero paréntesis, luego · y :, luego + y −.");return}
     c.tries++;c.exErr=(c.exErr||0)+1;c.steps++;const i0=cbValid(T)[0],A=T[i0-1].v,OP=T[i0].v,B=T[i0+1].v,r=cbCalc(A,OP,B);
     if(c.tries===1)c.fails.push(`${cbPlain(T)} → escribió ${inp.value.trim()}`);
     const N=cbClone(T);N.splice(i0-1,3,{t:"n",v:r});cbCollapse(N);
+    const X=cbClassify(T,U);const prevT=c.lastX&&c.lastX.tipo;c.lastX=X;c.lastWrong=inp.value.trim();cbErrAdd(X.tipo==="otro"||X.tipo==="varias"?null:X.tipo,1);
+    c.llog=c.llog||[];c.llog.push(cbPlain(T)+" → escribió "+inp.value.trim()+" · error: "+(TUT_NOMBRE[X.tipo]||X.tipo));
     c.msg=c.tries>=3?`<div class="fb ns"><strong>Te lo enseño:</strong>Lo primero era ${zIn(A)} ${OP} ${zIn(B)} = ${fmtZ(r)}. La línea queda así:<br><b>= ${cbPlain(N)}</b><br>Escríbela (o corrige la tuya) para seguir.</div>`
-      :c.tries===2?`<div class="fb ko"><strong>Intento 2 de 3: todavía no.</strong>${cbHints(A,OP,B)[0]}</div>`
-      :`<div class="fb ko"><strong>Intento 1 de 3: todavía no.</strong>Algo no cuadra. Lo primero que toca es <b>${zIn(A)} ${OP} ${zIn(B)}</b>. Revisa también que el resto de la línea esté copiado igual.</div>`;
-    c.steps--;viewCombinadas()});
+      :`<div class="fb ko"><span class="small muted">Intento ${c.tries} de 3 · </span>${tutMsg(X)}</div>`;
+    c.steps--;fb.innerHTML=c.msg;if(c.tries<3&&(c.tries===1||X.tipo!==prevT))tutorIntervene(c,X,cbPlain(T),inp.value.trim());if(c.tries>=3){const tb=$("#tutbridge");if(tb)tb.innerHTML=""}inp.focus()});
 }
 function cbModeSeg(c){return `<div class="seg"><button data-cbm="guiado" aria-pressed="${c.modo!=="escrito"}">Guiado</button><button data-cbm="escrito" aria-pressed="${c.modo==="escrito"}">Escribiendo (como en el examen)</button></div>`}
 function bindCbSeg(){document.querySelectorAll("[data-cbm]").forEach(b=>b.addEventListener("click",()=>{const c=state.cb;c.modo=b.dataset.cbm;LS.set("cbModo",c.modo);c.phase="pick";c.sel=undefined;c.tries=0;c.msg="";c.draft=undefined;viewCombinadas()}))}
+
+/* ====================== Profe de Mates en tiempo real ====================== */
+/* Clasifica el error de una línea escrita en combinadas, explica al momento, llama al profe (IA, con voz) y propone un ejercicio puente. */
+const TUT_MAX=4;                 // intervenciones del profe con IA por ronda
+function tutVoz(){return LS.get("tutVoz",true)}
+function cbStep(T,i){const N=cbClone(T);const r=cbCalc(N[i-1].v,N[i].v,N[i+1].v);if(!Number.isInteger(r))return null;N.splice(i-1,3,{t:"n",v:r});cbCollapse(N);return N}
+function cbNumOps(T){const r=[];T.forEach((x,i)=>{if(x.t==="op"&&T[i-1]&&T[i+1]&&T[i-1].t==="n"&&T[i+1].t==="n")r.push(i)});return r}
+/* Compara dos líneas: null si la estructura es distinta; si no, lista de posiciones con número distinto */
+function cbDiff(A,B){if(A.length!==B.length)return null;const d=[];for(let k=0;k<A.length;k++){const a=A[k],b=B[k];if(a.t!==b.t)return null;if(a.t==="op"&&a.v!==b.v)return null;if(a.t==="n"&&a.v!==b.v)d.push(k)}return d}
+function cbClassify(T,U){
+  const kU=cbKey(U);const valid=cbValid(T);const md=v=>v==="·"||v===":";
+  const info=(i)=>({A:T[i-1].v,OP:T[i].v,B:T[i+1].v,r:cbCalc(T[i-1].v,T[i].v,T[i+1].v)});
+  // 1) operación permitida, pero con el número mal
+  for(const i of valid){const N=cbStep(T,i);if(!N)continue;const d=cbDiff(N,U);
+    if(d&&d.length===1&&d[0]!==i-1)return Object.assign({tipo:"copia"},info(i));
+    if(d&&d.length===1){const x=info(i),w=U[d[0]].v;const tipo=Math.abs(w)===Math.abs(x.r)?(md(x.OP)?"signoMD":"signoAS"):(md(x.OP)?"calcMD":"calcAS");return Object.assign({tipo,escrito:w},x)}}
+  // 2) ha hecho una operación que no tocaba (jerarquía), bien o mal calculada
+  for(const j of cbNumOps(T)){if(valid.includes(j))continue;const N=cbStep(T,j);if(!N)continue;const d=cbDiff(N,U);
+    if(cbKey(N)===kU||(d&&d.length<=1))return Object.assign({tipo:"jerarquia",razon:cbWhyNot(T,j)},info(j),{primero:valid[0]!==undefined?info(valid[0]):null})}
+  // 3) la operación está bien, pero ha cambiado otra parte de la línea
+  for(const i of valid){const N=cbStep(T,i);if(!N)continue;
+    if(U.length!==N.length&&U.some(x=>x.t==="n"&&x.v===cbCalc(T[i-1].v,T[i].v,T[i+1].v)))return Object.assign({tipo:"copia"},info(i))}
+  if(U.length<T.length-6)return Object.assign({tipo:"varias"},valid[0]!==undefined?info(valid[0]):{});
+  return Object.assign({tipo:"otro"},valid[0]!==undefined?info(valid[0]):{})}
+const TUT_NOMBRE={signoMD:"signo al multiplicar o dividir",signoAS:"signo al sumar o restar",calcMD:"cálculo (tablas)",calcAS:"cálculo al sumar o restar",jerarquia:"orden de las operaciones",copia:"copiar el resto de la línea",varias:"demasiadas operaciones de golpe",otro:"otro"};
+function tutMsg(x){const o=x.A!==undefined?`<b>${zIn(x.A)} ${x.OP} ${zIn(x.B)}</b>`:"";
+  switch(x.tipo){
+    case "signoMD":return `<strong>El número está bien, pero el signo no.</strong>En ${o}: signos iguales → <b>+</b>; signos distintos → <b>−</b>.`;
+    case "signoAS":return `<strong>Casi: revisa el signo.</strong>${cbHints(x.A,x.OP,x.B)[0]}`;
+    case "calcMD":return `<strong>El signo vale, pero el número no.</strong>Haz ${o} primero sin signos: ${Math.abs(x.A)} ${x.OP} ${Math.abs(x.B)}.`;
+    case "calcAS":return `<strong>Revisa la cuenta.</strong>${cbHints(x.A,x.OP,x.B)[1]}`;
+    case "jerarquia":return `<strong>Has hecho primero ${o}, y no tocaba.</strong>${esc(x.razon||"")}`;
+    case "copia":return `<strong>La cuenta está bien, pero has cambiado otra parte de la línea.</strong>Cambia solo lo que calculas; el resto se copia igual, con sus paréntesis.`;
+    case "varias":return `<strong>Has hecho demasiadas cosas a la vez y algo se ha torcido.</strong>Una o dos operaciones por línea: así se ve dónde está el fallo.`;
+    default:return `<strong>Algo no cuadra.</strong>Lo primero que toca es ${o}. Revisa también que el resto de la línea esté copiado igual.`}}
+/* Ejercicios puente */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));const sgn=()=>Math.random()<.5?-1:1;
+function tutBridge(tipo){
+  if(tipo==="signoMD"||tipo==="calcMD"){let b=rnd(2,9)*sgn(),r=rnd(2,9)*sgn();if(b>0&&r>0)b=-b;const div=Math.random()<.5;const a=div?b*r:r;const op=div?":":"·";const ans=div?r:a*b;
+    return {q:`${zIn(a)} ${op} ${zIn(b)} =`,n:ans,e:`${Math.abs(a)} ${op} ${Math.abs(b)} = ${Math.abs(ans)}; signos ${(a<0)===(b<0)?"iguales → +":"distintos → −"}. Resultado: ${fmtZ(ans)}.`}}
+  if(tipo==="signoAS"||tipo==="calcAS"){const a=rnd(1,12)*sgn(),b=rnd(1,9)*sgn();const op=Math.random()<.6?"−":"+";const ans=op==="−"?a-b:a+b;
+    return {q:`${fmtZ(a)} ${op} ${zIn(b)} =`,n:ans,e:(op==="−"&&b<0?`Restar un negativo es sumar: ${fmtZ(a)} + ${-b}. `:"")+`Resultado: ${fmtZ(ans)}.`}}
+  if(tipo==="jerarquia"){const x=rnd(5,20),y=rnd(2,6),z=rnd(2,5);const T=[[`${x} − ${y} · ${z}`,`${y} · ${z}`,`${x} − ${y}`],[`${x*z} : ${z} + ${y}`,`${x*z} : ${z}`,`${z} + ${y}`],[`${x} + ${y} · ${z}`,`${y} · ${z}`,`${x} + ${y}`],[`${y} · (${x} − ${z})`,`${x} − ${z}`,`${y} · ${x}`]][rnd(0,3)];
+    return {q:`En ${T[0]}, ¿qué va primero?`,o:[T[1],T[2]],e:"Primero paréntesis; después · y :; al final + y −."}}
+  return null}
+/* Panel del profe dentro del ejercicio */
+function tutorHtml(){return `<div id="tutor" class="tutor" hidden><div class="row" style="justify-content:space-between;align-items:center"><b>El profe</b><label class="small row" style="gap:6px"><input type="checkbox" id="tutvoz" ${tutVoz()?"checked":""}> Hablarme en voz alta</label></div><div id="tutbridge"></div>${profeHtml("profe-tut")}</div>`}
+function tutorBind(tema,getCtx){const t=$("#tutvoz");if(t)t.addEventListener("change",()=>{LS.set("tutVoz",t.checked);if(!t.checked)stopSpeak()});
+  bindProfe("profe-tut",tema,getCtx);const pb=document.getElementById("profe-tut");if(pb)pb._onReply=r=>{if(tutVoz())speak(r.replace(/\*\*/g,""))}}
+function tutorIntervene(c,x,linea,escrito){const box=$("#tutor");if(!box)return;box.hidden=false;
+  c.tutN=c.tutN||0;const pb=document.getElementById("profe-tut");
+  // puente al momento (sin esperar a la IA)
+  const br=tutBridge(x.tipo);const bz=$("#tutbridge");
+  if(br&&bz){c.bridgeN=(c.bridgeN||0)+1;const show=(B,k)=>{bz.innerHTML=`<p class="small" style="margin:6px 0"><b>Antes, uno rápido parecido:</b></p><p class="qtext" style="font-size:1.1rem;margin:4px 0">${B.q}</p>`+
+      (B.o?`<div class="opts">${shuffle(B.o).map(o=>`<button class="opt" data-bo="${esc(o)}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="bf"><button type="button" class="btn ghost small" id="bpm">±</button><input id="bin" inputmode="text" autocomplete="off" style="width:7ch" aria-label="Resultado"><button class="btn small">Comprobar</button></form>`)+`<div id="bfb"></div>`;
+      const done=ok=>{c.bridges=c.bridges||[];c.bridges.push((TUT_NOMBRE[x.tipo]||x.tipo)+": "+(ok?"bien":"mal"));
+        $("#bfb").innerHTML=ok?`<div class="fb ok"><strong>¡Eso es!</strong>Ahora vuelve a tu línea y corrígela.</div>`:`<div class="fb ns"><strong>Era ${B.o?esc(B.o[0]):fmtZ(B.n)}.</strong>${esc(B.e)}</div>${k<1?'<button class="btn small" id="bmore">Otro igual</button>':""}`;
+        if(ok){beep(784,.12);setTimeout(()=>{const i=$("#cwin");if(i)i.focus()},400)}const m=$("#bmore");if(m)m.addEventListener("click",()=>show(tutBridge(x.tipo),k+1))};
+      if(B.o)bz.querySelectorAll("[data-bo]").forEach(b=>b.addEventListener("click",()=>{bz.querySelectorAll("[data-bo]").forEach(z=>z.disabled=true);const ok=b.dataset.bo===B.o[0];b.classList.add(ok?"right":"wrong");done(ok)}));
+      else{const inp=$("#bin");$("#bpm").addEventListener("click",()=>{inp.value=inp.value.startsWith("-")||inp.value.startsWith("−")?inp.value.slice(1):"-"+inp.value;inp.focus()});
+        $("#bf").addEventListener("submit",e=>{e.preventDefault();const v=parseInt(inp.value.replace(/[−–]/g,"-").replace(/[^\d-]/g,""),10);if(isNaN(v))return;inp.disabled=true;done(v===B.n)})}};
+    show(br,0)}
+  // el profe (IA) explica y pregunta
+  if(pb&&pb._ask&&c.tutN<TUT_MAX&&x.tipo!=="otro"){c.tutN++;pb._open();
+    pb._ask(`Me he equivocado en esta línea. ¿Me ayudas a ver qué he hecho mal?`)}
+  logEvent({evento:"profe en tiempo real",materia:"Operaciones combinadas",sub:(TUT_NOMBRE[x.tipo]||x.tipo)+" · línea: "+linea+" · escribió: "+escrito})}
+/* Ejercicios elegidos según los errores que más repite */
+function cbErrGet(){return LS.get("cbErr",{signoMD:0,signoAS:0,calcMD:0,calcAS:0,jerarquia:0,copia:0})}
+function cbErrAdd(t,v){const E=cbErrGet();if(t){E[t]=(E[t]||0)+v}else Object.keys(E).forEach(k=>E[k]=Math.max(0,E[k]*0.92));LS.set("cbErr",E)}
+function cbFeat(s){return {signoMD:(s.match(/[*/]\(-|\)[*/]|-\d+[*/]|\(-\d+\)[*/]/g)||[]).length,signoAS:(s.match(/-\(-/g)||[]).length,jerarquia:(s.match(/[*/]/g)||[]).length*((s.match(/[+]|\d-/g)||[]).length?1:0),calcMD:(s.match(/[*/]/g)||[]).length,calcAS:(s.match(/[+-]/g)||[]).length,copia:(s.match(/[\[(]/g)||[]).length}}
+function cbPick(bank){const E=cbErrGet();const tot=Object.values(E).reduce((a,b)=>a+b,0);if(tot<1)return shuffle(bank)[0];
+  const sc=bank.map(s=>{const f=cbFeat(s);return [s,Object.keys(E).reduce((a,k)=>a+E[k]*(f[k]||0),0)+Math.random()*tot*0.3]});sc.sort((a,b)=>b[1]-a[1]);return sc[0][0]}
+/* Potencias: un ejercicio parecido justo después de fallar */
+const SUPT={"0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","-":"⁻"};const supT=n=>String(n).split("").map(c=>SUPT[c]||c).join("");
+function genPot(t){const b=[2,3,5,7,10][rnd(0,4)],m=rnd(2,6),n=rnd(2,5);const B=Math.random()<.3?"(−"+b+")":String(b);
+  switch(t){
+    case "Producto":return {t,q:`${B}${supT(m)} · ${B}${supT(n)} =`,o:[B+supT(m+n),B+supT(m*n),(b*b)+supT(m+n)],e:`Misma base y multiplicando: se deja la base y se SUMAN los exponentes (${m} + ${n} = ${m+n}).`};
+    case "Cociente":{const M=m+n;return {t,q:`${B}${supT(M)} : ${B}${supT(n)} =`,o:[B+supT(M-n),B+supT(M+n),"1"+supT(M-n)],e:`Misma base y dividiendo: se deja la base y se RESTAN los exponentes (${M} − ${n} = ${M-n}).`}}
+    case "Potencia de potencia":return {t,q:`(${b}${supT(m)})${supT(n)} =`,o:[b+supT(m*n),b+supT(m+n),(b*n)+supT(m)],e:`Potencia de una potencia: se MULTIPLICAN los exponentes (${m} · ${n} = ${m*n}).`};
+    case "Exponente 0 y 1":return Math.random()<.5?{t,q:`${b}${supT(m)} : ${b}${supT(m)} =`,o:[b+supT(0)+" = 1",b+supT(1)+" = "+b,"0"],e:`${m} − ${m} = 0, y cualquier número elevado a 0 es 1.`}:{t,q:`${b*3}${supT(0)} =`,o:["1","0",String(b*3)],e:"Cualquier número (que no sea 0) elevado a 0 vale 1."};
+    case "Signo":{const e=rnd(2,5),v=Math.pow(-2,e);return {t,q:`(−2)${supT(e)} =`,o:[fmtZ(v),fmtZ(-v),fmtZ(-2*e)],e:`Base negativa: exponente ${e%2?"impar → negativo":"par → positivo"}. 2${supT(e)} = ${Math.abs(v)}.`}}
+    case "Mezcla":{const c=rnd(1,4),r=m+n-c;return r>0?{t,q:`${b}${supT(m)} · ${b}${supT(n)} : ${b}${supT(c)} =`,o:[b+supT(r),b+supT(m+n+c),b+supT(m*n-c)],e:`De izquierda a derecha: ${m} + ${n} = ${m+n}; luego ${m+n} − ${c} = ${r}.`}:genPot("Producto")}
+    default:{const e=rnd(2,4);const b=[2,3,5,10][rnd(0,3)];return {t:"Concepto",q:`${b}${supT(e)} =`,o:[String(Math.pow(b,e)),String(b*e),String(Math.pow(b,e)+b)],e:`${b}${supT(e)} es ${Array(e).fill(b).join(" · ")} = ${Math.pow(b,e)}. ¡No es ${b} · ${e}!`}}}}
+
+/* ====================== Examen de práctica, con el formato del colegio ====================== */
+/* Respuestas escritas (no tipo test), puntos por ejercicio y nota sobre 10. Las preguntas abiertas las corrige la IA con una rúbrica; si no hay conexión, por palabras clave. */
+const nrm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-zñ0-9 ]/g," ").replace(/\s+/g," ").trim();
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array(n+1).fill(0).map((_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+/* Parecido, con margen para faltas de ortografía (se avisa, pero no resta en el contenido) */
+function near(ans,opts){const a=nrm(ans);if(!a)return false;return [].concat(opts).some(o=>{const b=nrm(o);return a===b||lev(a,b)<=Math.max(1,Math.floor(b.length/5))})}
+function isPrime(n){if(n<2)return false;for(let k=2;k*k<=n;k++)if(n%k===0)return false;return true}
+const SUPN={"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","⁻":"-"};
+function supToCaret(s){return String(s).replace(/([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g,m=>"^"+m.split("").map(c=>SUPN[c]).join(""))}
+/* «2^2·3», «2²·3», «2x2x3» → valor y si todos los factores son primos */
+function factParse(s){let t=supToCaret(String(s).replace(/=.*$/,"").trim()).replace(/\s+/g,"");if(!t)return null;const parts=t.split(/[·x×*.]/);let v=1,primes=true;
+  for(const p of parts){const m=p.match(/^(\d+)(?:\^(\d+))?$/);if(!m)return null;const b=+m[1],e=m[2]?+m[2]:1;if(!isPrime(b))primes=false;v*=Math.pow(b,e)}return {v,primes}}
+/* «7^5», «7⁵», «(−2)^5» → "7^5" normalizado */
+function powNorm(s){let t=supToCaret(String(s)).replace(/[−–]/g,"-").replace(/\s+/g,"").replace(/=.*$/,"");const m=t.match(/^\(?(-?\d+)\)?\^(-?\d+)$/);if(!m)return null;return m[1]+"^"+m[2]}
+function nInt(s){const t=String(s||"").replace(/[−–]/g,"-").replace(/\./g,"").replace(/\s+/g,"");return /^-?\d+$/.test(t)?parseInt(t,10):NaN}
+function chkScore(k,v){v=String(v||"").trim();if(!v||!k)return 0;switch(k.t){
+  case "near":return near(v,k.v)?1:0;case "eq":return v===k.v?1:0;case "int":return nInt(v)===k.v?1:0;case "intin":return k.v.includes(nInt(v))?1:0;
+  case "abs":return Math.abs(nInt(v)-k.v)<=(k.tol||0)?1:0;case "fact":{const f=factParse(v);return f&&f.v===k.v&&f.primes?1:0}
+  case "pow":{const a=powNorm(v);return a&&a===powNorm(k.v)?1:0}
+  case "orden":{const a=v.replace(/[−–]/g,"-").split(/[;,\s<]+/).filter(Boolean).map(Number);if(a.length!==k.v.length||a.some(isNaN))return 0;const ok=a.filter((x,j)=>x===k.v[j]).length;return ok===a.length?1:ok>=a.length-2?.5:0}}return 0}
+
+/* ---------- Generadores ---------- */
+function exMat(){const it=[];
+  {const S=shuffle([[84,36,30],[60,90,48],[24,36,60],[72,48,40],[50,75],[150,180],[42,56,70],[18,24,30]])[0];const g=S.reduce((a,b)=>{while(b){[a,b]=[b,a%b]}return a});const l=S.reduce((a,b)=>{let x=a,y=b;while(y){[x,y]=[y,x%y]}return a*b/x});
+   it.push({id:"m1",tema:"MCD y mcm",pts:1.5,enun:`Realiza la descomposición en factores primos y calcula el MCD y el mcm de <b>${S.join(", ")}</b>.`,
+    campos:S.map(n=>({l:n+" =",ph:"p. ej. 2²·3",w:.75/S.length,chk:{t:"fact",v:n},sol:factorStr(n)})).concat([{l:"MCD =",w:.375,chk:{t:"int",v:g},sol:String(g)},{l:"mcm =",w:.375,chk:{t:"int",v:l},sol:String(l)}])})}
+  {const C=[];const mk=()=>{const T=shuffle([["9",n=>n%9===0],["3",n=>n%3===0],["11",n=>{const d=String(n).split("").map(Number);let a=0,b=0;d.forEach((x,i)=>(i%2?b+=x:a+=x));return (a-b)%11===0}],["4",n=>n%4===0],["25",n=>n%25===0],["2 y 3 a la vez",n=>n%6===0]]);
+     return T.slice(0,4).map(([k,f])=>{let base,pos,valid;for(let g=0;g<200;g++){const len=rnd(3,5);base=String(rnd(Math.pow(10,len-1),Math.pow(10,len)-1));pos=k==="4"||k==="25"?len-2+rnd(0,1):rnd(1,len-1);valid=[];for(let dg=0;dg<10;dg++){const n=+(base.slice(0,pos)+dg+base.slice(pos+1));if(f(n))valid.push(dg)}if(valid.length&&valid.length<10)break}
+       return {l:`${base.slice(0,pos)}_${base.slice(pos+1)} sea ${/^\d+$/.test(k)?"divisible por "+k:"múltiplo de "+k}`,w:.25,chk:{t:"intin",v:valid},sol:valid.join(" o ")}})};
+   it.push({id:"m2",tema:"Criterios",pts:1,enun:"Completa el hueco con una cifra para que se cumpla la condición.",campos:mk()})}
+  {const P=[["unidad de millón",1e6],["decena de millar",1e4],["centena de millar",1e5],["millar",1e3],["centena",100]];const two=shuffle(P).slice(0,2);
+   it.push({id:"m3",tema:"Redondeo",pts:1,enun:"Redondea.",campos:two.map(([nm,p])=>{const n=rnd(p*10+1,p*1000-1)+rnd(1,p-1);const r=Math.round(n/p)*p;return {l:`${n.toLocaleString("es-ES")} a la <b>${nm}</b>`,w:.5,chk:{t:"int",v:r},sol:r.toLocaleString("es-ES")}})})}
+  {const T=[()=>{const g=rnd(2,6)*5,a=g*rnd(3,7),b=g*rnd(4,9);const G=gcd(a,b);return {q:`Una pastelería tiene ${a} pasteles de limón y ${b} de fresa. Quiere repartirlos en bandejas iguales, todas con la misma cantidad y sin mezclar sabores. ¿Cuántos pasteles caben como máximo en cada bandeja?`,ans:G,u:"pasteles",t:"MCD"}},
+     ()=>{const a=rnd(2,6)*10,b=rnd(3,9)*5;const L=a*b/gcd(a,b);return {q:`Dos autobuses salen a la vez de la estación. Uno tarda ${a} minutos en hacer su recorrido y el otro ${b} minutos. ¿Dentro de cuántos minutos volverán a coincidir en la estación?`,ans:L,u:"minutos",t:"mcm"}},
+     ()=>{const a=rnd(2,5)*6,b=rnd(2,6)*4;const G=gcd(a,b);return {q:`Tenemos dos cuerdas de ${a} m y ${b} m. Queremos cortarlas en trozos iguales, lo más largos posible, sin que sobre nada. ¿Cuánto medirá cada trozo?`,ans:G,u:"m",t:"MCD"}},
+     ()=>{const a=rnd(2,4)*4,b=rnd(2,5)*3,c=rnd(1,3)*5;const L=[a,b,c].reduce((x,y)=>x*y/gcd(x,y));return {q:`Tres luces se encienden: la roja cada ${a} segundos, la azul cada ${b} y la verde cada ${c}. Si se encienden juntas ahora, ¿dentro de cuántos segundos volverán a encenderse las tres a la vez?`,ans:L,u:"segundos",t:"mcm"}}];
+   const P=shuffle(T)[0]();it.push({id:"m4",tema:"Problema MCD/mcm",pts:1.5,enun:P.q,campos:[{l:"¿MCD o mcm?",w:.5,chk:{t:"eq",v:P.t},sol:P.t,opts:["MCD","mcm"]},{l:"Solución ("+P.u+")",w:1,chk:{t:"int",v:P.ans},sol:P.ans+" "+P.u}]})}
+  {const L=[];while(L.length<6){const x=rnd(-15,15);if(!L.includes(x))L.push(x)}const s=L.slice().sort((a,b)=>a-b);
+   it.push({id:"m5",tema:"Ordenar enteros",pts:.75,enun:`Ordena de <b>menor a mayor</b>: ${shuffle(L).map(fmtZ).join(" ; ")}`,campos:[{l:"De menor a mayor",ph:"separa con ; o espacios",w:.75,chk:{t:"orden",v:s},sol:s.map(fmtZ).join(" < ")}]})}
+  {const E=[cbPick(CB_BANK.examen),cbPick(CB_BANK.facil)];
+   it.push({id:"m6",tema:"Combinadas",pts:2,enun:"Resuelve paso a paso. Escribe <b>una línea por renglón</b>, como en el papel.",combis:E})}
+  {const P=shuffle(PROBS)[0];it.push({id:"m7",tema:"Problema con enteros",pts:1,enun:esc(P.q),campos:[{l:"Solución"+(P.u?" ("+P.u+")":""),w:1,chk:{t:"int",v:P.ans},sol:P.sol}]})}
+  {const G=["Producto","Cociente","Potencia de potencia","Mezcla"].map(t=>genPot(t));
+   it.push({id:"m8",tema:"Potencias",pts:1.25,enun:"Expresa como <b>una sola potencia</b> (puedes escribir 7^5).",campos:G.map(g=>({l:g.q,w:1.25/4,chk:{t:"pow",v:g.o[0]},sol:g.o[0]}))})}
+  return {s:"mat",title:"Examen de práctica: Matemáticas",sub:"Temas 1, 2 y 3",items:it}}
+function gcd(a,b){while(b){[a,b]=[b,a%b]}return a}
+function factorStr(n){const f={};let m=n,k=2;while(m>1){while(m%k===0){f[k]=(f[k]||0)+1;m/=k}k++}return Object.entries(f).map(([b,e])=>b+(e>1?supT(e):"")).join("·")}
+
+const EX_TIPOS=["Magmática volcánica","Magmática plutónica","Metamórfica","Sedimentaria detrítica","Sedimentaria química","Sedimentaria orgánica"];
+function exBio(){const it=[];
+  it.push({id:"b1",tema:"Capas de la Tierra",pts:1,enun:"Escribe las capas de la Tierra, <b>de fuera hacia dentro</b>.",campos:[["corteza"],["manto"],["nucleo externo"],["nucleo interno"]].map((o,k)=>({l:(k+1)+".ª",w:.25,chk:{t:"near",v:o},sol:["Corteza","Manto","Núcleo externo","Núcleo interno"][k]}))});
+  it.push({id:"b2",tema:"Capas de la atmósfera",pts:1.5,enun:"Escribe las capas de la atmósfera, <b>de abajo arriba</b>, y contesta.",campos:["troposfera","estratosfera","mesosfera","termosfera","exosfera"].map((o,k)=>({l:(k+1)+".ª",w:.25,chk:{t:"near",v:[o]},sol:o[0].toUpperCase()+o.slice(1)})).concat([{l:"¿En qué capa está la capa de ozono?",w:.25,chk:{t:"near",v:["estratosfera"]},sol:"Estratosfera"}])});
+  {const R=shuffle(ROCAS).slice(0,3);it.push({id:"b3",tema:"Rocas por foto",pts:1.5,enun:"Observa cada foto. Escribe el <b>nombre</b> de la roca y elige su <b>tipo</b>.",
+    campos:R.flatMap(r=>{const k=rnd(0,ROCA_FOTOS[r[0]].length-1);return [{img:ROCA_FOTOS[r[0]][k],l:"Nombre",w:.25,chk:{t:"near",v:[r[0]]},sol:r[0]},{l:"Tipo",w:.25,opts:EX_TIPOS,chk:{t:"eq",v:r[1]},sol:r[1]}]})})}
+  {const SUB=[["atmósfera",["el viento","el aire"]],["hidrosfera",["un glaciar","las nubes","un río"]],["geosfera",["la arena de la playa","los minerales"]],["biosfera",["las gaviotas","un pino"]]];
+   it.push({id:"b4",tema:"Subsistemas",pts:.5,enun:"¿A qué subsistema de la Tierra pertenece cada cosa?",campos:shuffle(SUB).map(([s,ex])=>{const e1=shuffle(ex)[0];return {l:e1[0].toUpperCase()+e1.slice(1),w:.125,opts:["atmósfera","hidrosfera","geosfera","biosfera"],chk:{t:"eq",v:s},sol:s}})})}
+  it.push({id:"b5",tema:"Minerales",pts:1,enun:"¿Qué diferencia hay entre un <b>mineral</b> y una <b>roca</b>? Pon un ejemplo de cada uno.",abierta:{claves:["el mineral es natural y sólido","el mineral es inorgánico (no viene de seres vivos)","el mineral tiene una composición química definida y es homogéneo","la roca es una mezcla (agregado) de minerales","un ejemplo correcto de mineral (cuarzo, galena, halita…) y de roca (granito, caliza…)"],kw:[["natural","solido"],["inorganico","seres vivos"],["composicion","quimica","homogeneo"],["mezcla","agregado","varios minerales"],["cuarzo","galena","halita","yeso","calcita","granito","caliza","marmol","pizarra","basalto"]]}});
+  it.push({id:"b6",tema:"Propiedades",pts:.75,enun:"Escribe las <b>6 propiedades</b> de los minerales (en cualquier orden).",lista:{n:6,vals:["forma","dureza","color","exfoliacion","brillo","raya"]}});
+  it.push({id:"b7",tema:"Composición del aire",pts:.5,enun:"¿Qué porcentaje del aire es…?",campos:[{l:"Nitrógeno (%)",w:.25,chk:{t:"abs",v:78,tol:1},sol:"78 %"},{l:"Oxígeno (%)",w:.25,chk:{t:"abs",v:21,tol:1},sol:"21 %"}]});
+  it.push({id:"b8",tema:"Efecto invernadero",pts:1.25,enun:"Explica qué es el <b>efecto invernadero</b>. ¿Por qué es necesario? ¿Cuál es el problema?",abierta:{claves:["algunos gases de la atmósfera retienen el calor (entra y le cuesta salir)","es necesario: sin él la Tierra estaría a unos −18 °C en vez de 15 °C","el problema es que aumenta por los gases que soltamos (CO₂, metano…)","eso provoca el calentamiento global / cambio climático"],kw:[["calor","retien","atrapa"],["necesario","18","sin el"],["aumenta","gases","contamina","co2","dioxido"],["calentamiento","cambio climatico"]]}});
+  {const O=shuffle([{t:"El ciclo de las rocas",q:"Explica el <b>ciclo de las rocas</b>: ¿qué pasa en la fase externa y en la interna?",claves:["las rocas se transforman unas en otras (se reciclan) durante millones de años","fase externa: erosión, transporte y sedimentación (agua, viento, hielo)","fase interna: magma, metamorfismo (presión y temperatura), volcanes"],kw:[["transforma","recicla","convierte"],["erosion","transporte","sedimentacion"],["magma","metamorf","presion","temperatura"]]},
+    {t:"Lluvia ácida",q:"¿Qué es la <b>lluvia ácida</b>, cómo se produce y qué daña?",claves:["los óxidos de nitrógeno y de azufre (de coches, industrias)","se mezclan con el vapor de agua y la lluvia se vuelve ácida","daña bosques y monumentos"],kw:[["oxido","nitrogeno","azufre"],["vapor","agua","acida"],["bosque","monumento","arbol"]]},
+    {t:"Capa de ozono",q:"¿Para qué sirve la <b>capa de ozono</b> y qué la dañó?",claves:["está en la estratosfera y absorbe los rayos ultravioleta (como una crema solar)","la dañaron los CFC (gases de sprays y neveras antiguas)","se prohibieron con el Protocolo de Montreal (1987)"],kw:[["ultravioleta","uv","rayos","radiacion"],["cfc","spray","nevera"],["montreal","1987","prohib"]]}])[0];
+   it.push({id:"b9",tema:O.t,pts:1,enun:O.q,abierta:{claves:O.claves,kw:O.kw}})}
+  {const VF=shuffle([["El gas más abundante del aire es el oxígeno.",false,"Es el nitrógeno (78 %)."],["La corteza oceánica es más fina que la continental.",true,"5–10 km frente a 35–70 km."],["El basalto es una roca plutónica.",false,"Es volcánica: se enfría rápido fuera."],["En la mesosfera se queman los meteoritos.",true,"Son las estrellas fugaces."],["El granito está formado por cuarzo, feldespato y mica.",true,"«Come Fresas con Miel»."],["La mena es la parte del mineral que se tira.",false,"Eso es la ganga; la mena es lo que se aprovecha."],["Las rocas metamórficas se forman cuando otras rocas se funden.",false,"Cambian por presión y temperatura sin fundirse."],["La troposfera es la capa donde llueve y hace viento.",true,"Ahí está el tiempo atmosférico."]]).slice(0,4);
+   it.push({id:"b10",tema:"Verdadero o falso",pts:1,enun:"¿Verdadero o falso?",campos:VF.map(([q,v,e])=>({l:q,w:.25,opts:["Verdadero","Falso"],chk:{t:"eq",v:v?"Verdadero":"Falso"},sol:(v?"Verdadero":"Falso")+". "+e}))})}
+  return {s:"bio",title:"Examen de práctica: Biología",sub:"Geosfera, minerales, rocas y atmósfera",items:it}}
+const EXGEN={bio:exBio,mat:exMat};
+
+/* ---------- Vista ---------- */
+function viewExamen(s){const a=$("#app");if(!EXGEN[s])return go("inicio");
+  {const bp=takeParams("ex-"+s);if(bp||!state.ex){state.ex=Object.assign(EXGEN[s](),{t0:Date.now(),r:{}});state.ex.gen=true}}
+  const X=state.ex;if(X.done)return exResult(s);
+  const field=(it,c,k)=>{const id=it.id+"_"+k,v=X.r[id]||"";return `${c.img?`<figure class="rfig" style="max-width:260px"><img src="${c.img}" alt="Foto de una roca"><figcaption>Imagen del PDF del colegio</figcaption></figure>`:""}
+    <label class="exf"><span>${c.l}</span>${c.opts?`<select data-r="${id}"><option value="">—</option>${c.opts.map(o=>`<option${o===v?" selected":""}>${esc(o)}</option>`).join("")}</select>`:`<input class="txtin" data-r="${id}" value="${esc(v)}" placeholder="${esc(c.ph||"")}" autocomplete="off" spellcheck="false">`}</label>`};
+  const body=X.items.map((it,n)=>`<section class="card exq"><div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext" style="font-size:1.05rem;margin:0"><b>${n+1}.</b> ${it.enun} <span class="small muted">(${String(it.pts).replace(".",",")} p.)</span></p>${listenBtn("exl"+n)}</div>
+    ${it.campos?it.campos.map((c,k)=>field(it,c,k)).join(""):""}
+    ${it.combis?it.combis.map((e,k)=>`<p class="qtext" style="margin:8px 0 2px"><b>${String.fromCharCode(97+k)})</b> ${cbPlain(cbTok(e))}</p><textarea class="txtin exta" data-r="${it.id}_c${k}" rows="5" placeholder="= …&#10;= …&#10;= resultado">${esc(X.r[it.id+"_c"+k]||"")}</textarea>`).join(""):""}
+    ${it.lista?`<div class="exgrid">${Array.from({length:it.lista.n},(_,k)=>`<input class="txtin" data-r="${it.id}_${k}" value="${esc(X.r[it.id+"_"+k]||"")}" autocomplete="off" aria-label="Propiedad ${k+1}">`).join("")}</div>`:""}
+    ${it.abierta?`<textarea class="txtin exta" data-r="${it.id}" rows="4" placeholder="Escribe tu respuesta con frases completas…">${esc(X.r[it.id]||"")}</textarea>${SR?`<button type="button" class="btn ghost small" data-mic="${it.id}">🎤 Dictar</button>`:""}`:""}</section>`).join("");
+  a.innerHTML=`<div data-s="${X.s}" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted" id="exclock"></span></div>
+    <span class="qtag">${SNAME[X.s]} · como en el examen</span><h1>${esc(X.title)}</h1>
+    <section class="card"><p style="margin:0">Hazlo <b>tú sola, sin mirar apuntes</b>, como en el examen de verdad. Puedes hacer los ejercicios en el orden que quieras y dejar alguno en blanco. Al final te pongo la nota y te enseño cómo se hacía cada uno.</p></section>
+    ${body}
+    <section class="card"><button class="btn" id="exsend">Entregar el examen</button><p class="small muted" style="margin:0">Repasa antes de entregar: ¿has contestado todo lo que sabes?</p></section></div>`;
+  a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  a.querySelectorAll("[data-r]").forEach(el=>el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{X.r[el.dataset.r]=el.value;persist()}));
+  X.items.forEach((it,n)=>{const b=$("#exl"+n);if(b)b.addEventListener("click",()=>speak(it.enun.replace(/<[^>]+>/g,"")+(it.campos?" "+it.campos.map(c=>c.img?"":c.l.replace(/<[^>]+>/g,"")).join(". "):"")))});
+  a.querySelectorAll("[data-mic]").forEach(b=>b.addEventListener("click",()=>{const R=new SR();R.lang="es-ES";R.interimResults=false;const ta=a.querySelector(`[data-r="${b.dataset.mic}"]`);b.textContent="● Escuchando…";R.onresult=e=>{ta.value=(ta.value?ta.value+" ":"")+e.results[0][0].transcript;X.r[b.dataset.mic]=ta.value;persist()};R.onend=()=>{b.textContent="🎤 Dictar"};R.start()}));
+  const clk=()=>{const el=$("#exclock");if(!el)return;el.textContent="Llevas "+Math.floor((Date.now()-X.t0)/60000)+" min";setTimeout(clk,30000)};clk();
+  $("#exsend").addEventListener("click",()=>{const blank=X.items.filter(it=>!Object.keys(X.r).some(k=>k.startsWith(it.id+"_")||k===it.id?String(X.r[k]).trim():false)).length;
+    const doIt=()=>exCorrect(s);if(blank)askConfirm("¿Entregar ya?",`Hay ${blank} ejercicio${blank>1?"s":""} sin contestar. Si sabes algo, escríbelo: también puntúa.`,"Sí, entregar",doIt);else doIt()})}
+function exScoreLocal(X){const out={};
+  X.items.forEach(it=>{let p=0;const det=[];
+    if(it.campos)it.campos.forEach((c,k)=>{const v=X.r[it.id+"_"+k]||"";const sc=chkScore(c.chk,v);p+=sc*c.w;det.push({l:c.img?"Foto":c.l,v,ok:sc>=1?"bien":sc>0?"a medias":"mal",sol:c.sol})});
+    if(it.combis)it.combis.forEach((e,k)=>{const T=cbTok(e),v0=cbValue(T);const L=String(X.r[it.id+"_c"+k]||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);const last=L.length?nInt(L[L.length-1].replace(/^=/,"")):NaN;
+      let cons=0,bad=-1;L.forEach((x,j)=>{const U=cbParseTyped(x);if(U&&cbValue(U)===v0)cons++;else if(bad<0)bad=j});const okR=last===v0;const proc=L.length>=2&&bad<0;
+      const sc=(okR?.6:0)+(proc?.4:L.length>=2&&cons>=L.length/2?.2:0);p+=sc*(it.pts/it.combis.length);det.push({l:cbPlain(T),v:L.join("  ")||"(en blanco)",ok:sc>=1?"bien":sc>0?"a medias":"mal",sol:"Resultado: "+fmtZ(v0)+(bad>=0?" · la línea "+(bad+1)+" ya no da lo mismo: ahí está el fallo":"")})});
+    if(it.lista){const got=new Set();for(let k=0;k<it.lista.n;k++){const v=X.r[it.id+"_"+k]||"";const m=it.lista.vals.find(x=>near(v,x));if(m)got.add(m)}p=it.pts*got.size/it.lista.n;det.push({l:"Propiedades",v:Array.from({length:it.lista.n},(_,k)=>X.r[it.id+"_"+k]||"").filter(Boolean).join(", "),ok:got.size===it.lista.n?"bien":got.size?"a medias":"mal",sol:"Forma, dureza, color, exfoliación, brillo y raya"})}
+    if(it.abierta){const v=nrm(X.r[it.id]||"");const hit=it.abierta.kw.filter(g=>g.some(w=>v.includes(nrm(w)))).length;p=v?it.pts*hit/it.abierta.kw.length:0;det.push({l:"Tu respuesta",v:X.r[it.id]||"(en blanco)",ok:hit===it.abierta.kw.length?"bien":hit?"a medias":"mal",sol:"Tenía que incluir: "+it.abierta.claves.join("; ")})}
+    out[it.id]={p:Math.round(p*100)/100,det}});return out}
+async function exCorrect(s){const X=state.ex;X.done=true;X.min=Math.round((Date.now()-X.t0)/60000);const sc=exScoreLocal(X);X.sc=sc;
+  $("#app").innerHTML=`<div class="wrap"><section class="card"><h2>Corrigiendo…</h2><p class="muted">Un momento: el profe está leyendo tus respuestas.</p></section></div>`;
+  const open=X.items.filter(it=>it.abierta&&String(X.r[it.id]||"").trim());const c=cfg();
+  if(open.length&&c.url){try{const res=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"corregir",disp:deviceInfo(),clave:c.clave||"",materia:SNAME[X.s],items:open.map(it=>({id:it.id,pregunta:it.enun.replace(/<[^>]+>/g,""),respuesta:String(X.r[it.id]).slice(0,1200),claves:it.abierta.claves,puntos:it.pts}))})});
+      const j=await res.json();if(j&&Array.isArray(j.notas))j.notas.forEach(n=>{const it=X.items.find(i=>i.id===n.id);if(!it||isNaN(+n.puntos))return;const P=Math.max(0,Math.min(it.pts,+n.puntos));sc[it.id].p=Math.round(P*100)/100;sc[it.id].det[0].ok=P>=it.pts*.9?"bien":P>0?"a medias":"mal";if(n.comentario)sc[it.id].det[0].ia=String(n.comentario).slice(0,400)})}catch(e){}}
+  const nota=Math.round(Object.values(sc).reduce((a,b)=>a+b.p,0)*10)/10;X.nota=nota;
+  const temas={};X.items.forEach(it=>{temas[it.tema]={ok:Math.round(sc[it.id].p*100)/100,total:it.pts}});
+  saveResult({key:"ex-"+s,materia:X.title,sub:"nota "+nota.toLocaleString("es-ES")+" sobre 10 · "+X.min+" min",ok:Math.round(nota*10),total:100,ns:0,temas,
+    fallos:X.items.filter(it=>sc[it.id].p<it.pts*.5).map(it=>it.tema),cuenta:true,
+    preguntas:X.items.map((it,n)=>`${n+1}) ${it.tema}: ${String(sc[it.id].p).replace(".",",")}/${String(it.pts).replace(".",",")}`+sc[it.id].det.filter(d=>d.ok!=="bien").map(d=>` [${String(d.l).replace(/<[^>]+>/g,"").slice(0,40)}: escribió «${String(d.v).slice(0,60)}»]`).join("")).join(" | "),
+    fuera:state.awayN?state.awayN+" veces, "+Math.round(state.awayS||0)+" s en total":""});
+  persist();exResult(s)}
+function exResult(s){const X=state.ex,sc=X.sc,a=$("#app");const prev=results.filter(r=>r.key==="ex-"+s).slice(1,4);
+  const msg=X.nota>=7?"¡Muy bien! Así se aprueba con nota.":X.nota>=5?"¡Aprobado! Mira abajo qué te ha faltado para subir.":"Todavía no llega, pero ahora sabemos exactamente qué repasar.";
+  a.innerHTML=`<div data-s="${X.s}" class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><span class="qtag">${SNAME[X.s]} · examen de práctica</span>
+   <section class="card"><div class="row" style="gap:18px"><span class="big">${X.nota.toLocaleString("es-ES")}</span><p>${msg}</p></div>
+    ${prev.length?`<p class="small muted">Exámenes de práctica anteriores: ${prev.map(r=>(r.ok/10).toLocaleString("es-ES")).join(" · ")}</p>`:""}
+    <div class="semaf">${X.items.map(it=>{const p=sc[it.id].p/it.pts;return `<div class="sm ${p>=.75?"v":p>=.4?"a":"r"}"><span>${esc(it.tema)}</span><b>${String(sc[it.id].p).replace(".",",")} / ${String(it.pts).replace(".",",")}</b></div>`}).join("")}</div></section>
+   ${X.items.map((it,n)=>`<details class="card"${sc[it.id].p<it.pts?" open":""}><summary><b>${n+1}. ${esc(it.tema)}</b> · ${String(sc[it.id].p).replace(".",",")} de ${String(it.pts).replace(".",",")}</summary>
+     ${sc[it.id].det.map(d=>`<div class="fb ${d.ok==="bien"?"ok":d.ok==="a medias"?"ns":"ko"}" style="margin-top:8px"><strong>${d.l}</strong>Has puesto: ${esc(d.v||"(en blanco)")}${d.ok!=="bien"?`<br><b>Correcto:</b> ${esc(d.sol)}`:""}${d.ia?`<br><i>${esc(d.ia)}</i>`:""}</div>`).join("")}</details>`).join("")}
+   <section class="card"><div class="row"><button class="btn" data-go="inicio">Terminar</button><button class="btn ghost" id="exagain">Hacer otro (con otras preguntas)</button></div></section></div>`;
+  a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#exagain").addEventListener("click",()=>{state={};viewExamen(s)})}
 
 /* ---------- Problemas con negativos, escribiendo la operación ---------- */
 const PROBS=[
@@ -2796,6 +3026,7 @@ function mandatory(ds){const d=PLAN.find(p=>p.d===ds);if(!d)return [];const out=
     else if(rot===1)out.push(["mat","Potencias: mini-prueba",7,"diag:mat3",1,{}]);
     else out.push(day%8===3?["mat","Problemas con negativos",8,"problemas",1,{}]:["mat","MCD y mcm: 1 ejercicio guiado",8,"mcd",1,{}])}
   if(ds<"2026-11-12"&&!rocasMastered())out.push(["bio","Rocas por foto",6,"rocas",1,{}]);
+  {const EXD={bio:[4,2,1],mat:[4,3,1]};Object.entries(EXD).forEach(([sj,dd])=>{if(dd.includes(examDays(sj,ds)))out.push([sj,"Examen de práctica (como el del cole)",20,"ex-"+sj,1,{}])})}
   {const day=new Date(ds+"T12:00").getDate();
    if(ds<"2026-11-16")out.push(["ing","Verbos irregulares: 5 minutos",5,"verbs",1,{}]);
    if(ds>="2026-11-09"&&ds<"2026-11-18"&&day%2===1){const sets=[{set:"esp",modo:"find"},{set:"eur",modo:"find"},{set:"espf",modo:"what"},{set:"eur",modo:"cap"},{set:"eurf",modo:"what"}];out.push(["gh","Mapas: 5 minutos",5,"mapas",1,sets[Math.floor(day/2)%sets.length]])}
@@ -2956,6 +3187,61 @@ function askConfirm(title,text,yes,onYes){const m=document.createElement("div");
   m.innerHTML=`<div class="modal-box"><h2>${esc(title)}</h2><p>${esc(text)}</p><div class="row"><button class="btn ghost" data-no>No, seguir donde estaba</button><button class="btn danger" data-yes>${esc(yes)}</button></div></div>`;
   document.body.appendChild(m);const close=()=>{m.remove();document.removeEventListener("keydown",esc_)};const esc_=e=>{if(e.key==="Escape")close()};document.addEventListener("keydown",esc_);
   m.querySelector("[data-no]").addEventListener("click",close);m.querySelector("[data-yes]").addEventListener("click",()=>{close();onYes()});m.addEventListener("click",e=>{if(e.target===m)close()});m.querySelector("[data-no]").focus()}
+
+
+/* ---------- ¿Cómo estás? Dos preguntas cortas al empezar cada tanda, sacadas de un banco y en formatos distintos ---------- */
+const EST_BANK=[
+ {id:"bat",dim:"energía",f:"slider",q:"¿Cuánta batería tienes ahora mismo?",lo:"Vacía",hi:"Llena"},
+ {id:"cmpAyer",dim:"energía",f:"opts",q:"Comparado con ayer a esta hora, estás…",o:["Más cansada","Igual","Con más energía"],v:[2,5,8]},
+ {id:"elige",dim:"energía",f:"opts",q:"Si pudieras elegir ahora mismo, ¿qué harías?",o:["Empezar por lo difícil","Algo fácil para arrancar","Parar 5 minutos"],v:[8,5,2]},
+ {id:"concen",dim:"atención",f:"opts",q:"¿Te cuesta concentrarte ahora?",o:["Nada","Un poco","Mucho"],v:[8,5,2]},
+ {id:"ruido",dim:"atención",f:"opts",q:"¿Dónde estás estudiando ahora?",o:["En un sitio tranquilo","Hay algo de ruido","Hay mucho jaleo o la tele"],v:[8,5,2]},
+ {id:"ganas",dim:"ganas",f:"slider",q:"¿Cuántas ganas tienes de ponerte con {asig}?",lo:"Ninguna",hi:"Muchas"},
+ {id:"dificil",dim:"ganas",f:"slider",q:"¿Cómo de difícil crees que va a ser lo que toca ahora?",lo:"Facilísimo",hi:"Dificilísimo",inv:true},
+ {id:"recuerdo",dim:"memoria",f:"opts",q:"¿Cuánto te acuerdas de lo último que estudiaste de {asig}?",o:["Nada","Un poco","Bastante","Casi todo"],v:[1,4,7,9]},
+ {id:"explicar",dim:"memoria",f:"opts",q:"Si ahora tuvieras que explicarle a alguien lo último de {asig}, ¿podrías?",o:["No","Un poco","Sí"],v:[2,5,8]},
+ {id:"dormir",dim:"energía",f:"opts",q:"¿Cómo has dormido esta noche?",o:["Bien","Regular","Mal"],v:[8,5,2],first:true},
+ {id:"cuerpo",dim:"salud",f:"opts",q:"¿Te encuentras bien?",o:["Sí, bien","Un poco regular","No, me encuentro mal"],v:[8,5,1]},
+ {id:"comido",dim:"energía",f:"opts",q:"¿Has comido o merendado algo hace poco?",o:["Sí","No"],v:[7,4]}];
+function estPick(first){const H=LS.get("estHist",[]);const recent=H.slice(-6).map(x=>x.id);
+  let pool=EST_BANK.filter(x=>(!x.first||first)&&!recent.slice(-3).includes(x.id));const dims=shuffle([...new Set(pool.map(x=>x.dim))]);
+  const a=shuffle(pool.filter(x=>x.dim===dims[0]))[0],b=shuffle(pool.filter(x=>x.dim===dims[1]&&x!==a))[0]||shuffle(pool.filter(x=>x!==a))[0];
+  const out=[a,b];if(H.length&&H.length%3===0&&!out.some(x=>x.id==="cuerpo"))out[1]=EST_BANK.find(x=>x.id==="cuerpo");return shuffle(out)}
+function askEstado(asig,first,done){const items=estPick(first);const ans=[];let k=0;const m=document.createElement("div");m.className="modal";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");document.body.appendChild(m);
+  const show=()=>{if(k>=items.length){m.remove();return finish()}const it=items[k];const q=it.q.replace("{asig}",asig);const t0=Date.now();
+    m.innerHTML=`<div class="modal-box"><p class="small muted" style="margin:0">Pregunta ${k+1} de ${items.length} · contesta lo que sientes, no hay respuesta buena</p><h2>${esc(q)}</h2>
+     ${it.f==="slider"?`<div class="estsl"><input type="range" min="0" max="10" step="1" value="5" id="esr" aria-label="${esc(q)}"><div class="row small muted" style="justify-content:space-between"><span>${it.lo}</span><span>${it.hi}</span></div></div><button class="btn" id="esn" disabled>Mueve la barra</button>`
+       :`<div class="opts">${(Math.random()<.5?it.o.map((o,j)=>[o,j]):it.o.map((o,j)=>[o,j]).reverse()).map(([o,j])=>`<button class="opt" data-j="${j}">${esc(o)}</button>`).join("")}</div>`}</div>`;
+    const rec=(val,label)=>{const ms=Date.now()-t0;ans.push({id:it.id,dim:it.dim,v:it.inv?10-val:val,label,ms,rapida:ms<1200});k++;show()};
+    if(it.f==="slider"){const r=m.querySelector("#esr"),b=m.querySelector("#esn");r.addEventListener("input",()=>{b.disabled=false;b.textContent="Siguiente: "+r.value});b.addEventListener("click",()=>rec(+r.value,r.value+"/10"))}
+    else m.querySelectorAll("[data-j]").forEach(b=>b.addEventListener("click",()=>{const j=+b.dataset.j;rec(it.v[j],it.o[j])}))};
+  const finish=()=>{const H=LS.get("estHist",[]);const same=ans.every(a=>{const prev=H.filter(h=>h.id===a.id).slice(-2);return prev.length===2&&prev.every(p=>p.label===a.label)});
+    ans.forEach(a=>H.push({id:a.id,label:a.label,ts:Date.now()}));LS.set("estHist",H.slice(-60));
+    const valid=ans.filter(a=>!a.rapida);const en=valid.filter(a=>a.dim==="energía"||a.dim==="atención"||a.dim==="ganas");const low=en.length&&en.reduce((x,y)=>x+y.v,0)/en.length<=3.5;const mal=ans.some(a=>a.id==="cuerpo"&&a.v<=1);
+    LS.set("estado",{d:todayStr(),ts:Date.now(),low,ans});
+    logEvent({evento:mal?"estado: dice que se encuentra mal":"estado",materia:asig,sub:ans.map(a=>`${EST_BANK.find(x=>x.id===a.id).q.replace("{asig}",asig)} → ${a.label}${a.rapida?" (contestada en "+(a.ms/1000).toFixed(1).replace(".",",")+" s: no cuenta)":""}`).join(" · ")+(same?" · repite las mismas respuestas que las últimas veces":""),texto:low?"energía baja":""});
+    if(mal){const m2=document.createElement("div");m2.className="modal";m2.innerHTML=`<div class="modal-box"><h2>Gracias por decirlo</h2><p>Lo primero eres tú. Ve a decírselo a papá o a mamá. El estudio puede esperar.</p><div class="row"><button class="btn" data-ok>Vale</button></div></div>`;document.body.appendChild(m2);m2.querySelector("[data-ok]").addEventListener("click",()=>{m2.remove();go("inicio")});return}
+    done(low)};
+  show()}
+/* ---------- ¿Sola o con ayuda? (un toque al empezar cada tanda o práctica suelta) ---------- */
+function ayudaNow(){const a=LS.get("ayuda",null);return a&&a.d===todayStr()?a:null}
+function needAyuda(k){const a=ayudaNow();if(!a)return true;if(k==="extra")return Date.now()-a.ts>30*60e3;return a.k!==k&&Date.now()-a.ts>3*60e3}
+function setAyuda(v,k){LS.set("ayuda",{v,k,d:todayStr(),ts:Date.now()});logEvent({evento:"modo",sub:v})}
+function askAyuda(k,cb){const m=document.createElement("div");m.className="modal";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");
+  m.innerHTML=`<div class="modal-box"><h2>¿Cómo vas a hacer esto?</h2><p class="small muted">Las dos formas están bien. Solo sirve para saber cómo te ayuda mejor la app.</p>
+   <div class="row" style="gap:12px;flex-wrap:wrap"><button class="btn" data-v="sola" style="flex:1;min-width:140px">Yo sola</button><button class="btn" data-v="con ayuda" style="flex:1;min-width:140px;background:var(--warm,#E8781E)">Con papá o mamá</button></div></div>`;
+  document.body.appendChild(m);m.querySelectorAll("[data-v]").forEach(b=>b.addEventListener("click",()=>{setAyuda(b.dataset.v,k);m.remove();cb()}));m.querySelector("[data-v]").focus()}
+function ayudaChip(){const a=ayudaNow();if(!a)return "";return `<p class="small muted" style="margin:0">Ahora: <b>${a.v==="sola"?"yo sola":"con papá o mamá"}</b> · <button class="linkbtn" id="aychg">cambiar</button></p>`}
+document.addEventListener("click",e=>{if(e.target&&e.target.id==="aychg"){const a=ayudaNow();setAyuda(a&&a.v==="sola"?"con ayuda":"sola",a?a.k:"extra");render()}});
+
+/* ---------- Salir de la app (otra pestaña u otra ventana) mientras estudia ---------- */
+let awayT0=null;
+function awayStart(){if(awayT0||!curHash||curHash==="inicio")return;awayT0=Date.now()}
+function awayEnd(){if(!awayT0)return;const s=(Date.now()-awayT0)/1000;awayT0=null;if(s<3)return;
+  if(state&&typeof state==="object"){state.awayN=(state.awayN||0)+1;state.awayS=(state.awayS||0)+s;state.awayCur=true}
+  if(s>=10)logEvent({evento:"salió de la app",materia:curHash,sub:Math.round(s)+" s fuera"})}
+document.addEventListener("visibilitychange",()=>{document.hidden?awayStart():awayEnd()});
+window.addEventListener("blur",awayStart);window.addEventListener("focus",awayEnd);
 /* ---------- Temporizador ---------- */
 let tmr=null;
 function startTimer(min,rest){

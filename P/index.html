@@ -261,7 +261,7 @@ body{padding-bottom:110px;padding-top:56px}
 .modal-box{background:var(--card);color:var(--ink);border-radius:18px;padding:22px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
 .btn.danger{background:var(--ko);color:#fff}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font-size:inherit;min-height:0}
-.profe{display:flex;flex-direction:column;gap:8px;margin-top:8px}.estsl input[type=range]{width:100%;accent-color:var(--accent,#0E8C80);height:36px}.tutor{border-left:5px solid var(--warm,#E8781E);background:#FFF6EE;border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;flex-direction:column;gap:6px}.tutor[hidden]{display:none}
+.profe{display:flex;flex-direction:column;gap:8px;margin-top:8px}.exf{display:flex;flex-direction:column;gap:4px;margin:8px 0}.exf select,.exf .txtin{font-size:1.05rem;max-width:none}.exf select{padding:10px 12px;border-radius:12px;border:2px solid var(--line,#cfe3df);background:#fff;min-height:46px}.exta{width:100%;box-sizing:border-box;max-width:none;font-size:1.05rem;line-height:1.5}.exgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.estsl input[type=range]{width:100%;accent-color:var(--accent,#0E8C80);height:36px}.tutor{border-left:5px solid var(--warm,#E8781E);background:#FFF6EE;border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;flex-direction:column;gap:6px}.tutor[hidden]{display:none}
 .profe [data-profe-body]{display:flex;flex-direction:column;gap:8px}
 .profe [data-profe-body][hidden]{display:none}
 .profe-log{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto}
@@ -1110,6 +1110,7 @@ function viewQuiz(key){
   if(i>=qs.length) return quizEnd(key,D);
   const q=qs[i];
   if(!isPureTest()&&!q.retry&&!q.vf&&!state.answered&&(state.stuckN||0)<2&&isStuck(q))return stuckCard(key,D,q);
+  if(q.wr===undefined){const r0=q.o&&q.o[0]||"";q.wr=(key==="bio1"||key==="bio2")&&!isPureTest()&&!!q.o&&!q.vf&&!q.retry&&!q.gen&&r0.length<=28&&r0.split(" ").length<=3&&!/\d/.test(r0)&&!/^(sí|si|no|verdadero|falso)$/i.test(r0)&&!/^(sí|si|no)\b/i.test(r0)&&state.i%2===0}
   const prog=qs.map((x,j)=>`<i class="${j<state.ans.length?state.ans[j]:j===i?"cur":""}${x.retry?" re":""}"></i>`).join("");
   $("#app").innerHTML=`<div data-s="${D.s}" class="wrap" style="gap:16px">
     <div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${i+1} de ${qs.length}${i>0?` · <button class="linkbtn" id="qrestart">Empezar de nuevo</button>`:""}</span></div>
@@ -1121,7 +1122,8 @@ function viewQuiz(key){
       ${q.vf?`<div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${vfStatement(q,q.vf)}</p>${listenBtn("qlisten")}</div>
       <div class="opts" id="opts"><button class="opt" data-vf="1">Verdadero</button><button class="opt" data-vf="0">Falso</button></div>`:`
       <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${esc(q.q)}${q.n!==undefined&&!q.o&&/[×:−+]/.test(q.q)?" =":""}</p>${q.o?listenBtn("qlisten"):""}</div>${qImg(q)}
-      ${q.opts?`<div class="opts" id="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`
+      ${q.wr&&!state.fixing?`<p class="small muted" style="margin:0">Escríbela tú, sin opciones: así te lo preguntarán en el examen.</p><form class="numin" id="wf"><input id="win" class="txtin" autocomplete="off" spellcheck="false" aria-label="Tu respuesta" style="max-width:none;flex:1"><button class="btn">Comprobar</button></form>`
+        :q.opts?`<div class="opts" id="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`
         :`<form class="numin" id="nf"><input id="nin" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Comprobar</button></form>`}`}
       <div id="fb"></div><div id="fix"></div>
       <div class="row" id="after"><button class="idk" id="idk">No lo sé</button></div>
@@ -1149,7 +1151,7 @@ function viewQuiz(key){
     const pure=isPureTest();const rq=!pure&&q.t==="Redondeo"?redFromQ(q):null;
     state.fixing=true;$("#after").innerHTML="";
     /* Corregir antes de seguir: opciones reordenadas y sin marcar; hay que leer la explicación para elegir bien. */
-    if(q.o){const re=shuffle(q.o);$("#opts").hidden=true;
+    if(q.o){const re=shuffle(q.o);{const op0=$("#opts");if(op0)op0.hidden=true;const wf0=$("#wf");if(wf0)wf0.hidden=true}
       $("#fix").innerHTML=(rq?`<div class="row"><button class="btn" id="qred">${posMastered()?"Hazlo paso a paso con este número":"Practica primero las posiciones"}</button></div>`:"")+`<p class="small"><b>Lee la explicación y elige ahora la respuesta correcta para seguir:</b></p><div class="opts">${re.map(o=>`<button class="opt">${esc(o)}</button>`).join("")}</div>`+(pure?"":profeHtml("profe-q"));
       $("#fix").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{if(b.textContent===right){b.classList.add("right");$("#fix").querySelectorAll(".opt").forEach(x=>x.disabled=true);beep(784,.12);showNext()}else{b.classList.add("wrong");b.disabled=true;autoHelp()}}))}
     else{$("#fix").innerHTML=`<p class="small"><b>Escribe ahora el resultado correcto para seguir:</b></p><form class="numin" id="ff"><input id="fin" inputmode="numeric" autocomplete="off" aria-label="Resultado correcto"><button class="btn">OK</button></form>`+(pure?"":profeHtml("profe-q"));
@@ -1163,12 +1165,15 @@ function viewQuiz(key){
   /* Ayuda sin tener que pedirla: segundo fallo en la misma pregunta → el profe le explica con un ejemplo */
   function autoHelp(){if(isPureTest()||(state.rush||0)>=1)return;state.autoN=state.autoN||0;if(state.autoN>=1)return;const pb=document.getElementById("profe-q");if(!pb||!pb._ask||pb.dataset.auto)return;pb.dataset.auto=1;state.autoN++;pb._open();pb._ask("Explícamelo con un ejemplo")}
   if(q.vf){$("#opts").querySelectorAll("[data-vf]").forEach(b=>b.addEventListener("click",()=>{const said=b.dataset.vf==="1",truth=q.vf===right;const ok=said===truth;$("#opts").querySelectorAll(".opt").forEach(x=>x.disabled=true);b.classList.add(ok?"right":"wrong");finish(ok?"ok":"ko")}))}
+  else if(q.wr&&$("#wf")){const wi=$("#win");wi.focus();$("#wf").addEventListener("submit",e=>{e.preventDefault();const v=wi.value.trim();if(!v)return;wi.disabled=true;state.pick=v;
+      const strip=t=>nrm(t).replace(/^(en |de )?(el |la |los |las |un |una )?/,"");const okW=near(strip(v),[strip(q.o[0])])||nrm(v).includes(strip(q.o[0]));
+      finish(okW?"ok":"ko");if(okW&&!exact(strip(v),[strip(q.o[0])])){const f=$("#fb .fb");if(f)f.insertAdjacentHTML("beforeend",`<br><span class="small">Vale. Se escribe así: <b>${esc(q.o[0])}</b></span>`)}})}
   else if(q.opts){$("#opts").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
     const val=q.opts[+b.dataset.o];const ok=val===q.o[0];state.pick=val;
     $("#opts").querySelectorAll(".opt").forEach(x=>{x.disabled=true});
     b.classList.add(ok?"right":"wrong");finish(ok?"ok":"ko")}))}
   else{$("#nin").focus();$("#nf").addEventListener("submit",e=>{e.preventDefault();const v=$("#nin").value.replace(/[^0-9]/g,"");if(!v)return;$("#nin").disabled=true;finish(+v===q.n?"ok":"ko")})}
-  $("#idk").addEventListener("click",()=>{if(q.opts||q.vf)$("#opts").querySelectorAll(".opt").forEach(x=>{x.disabled=true});finish("ns")});
+  $("#idk").addEventListener("click",()=>{const op1=$("#opts");if(op1)op1.querySelectorAll(".opt").forEach(x=>{x.disabled=true});const wi1=$("#win");if(wi1)wi1.disabled=true;finish("ns")});
 }
 function stuckCard(key,D,q){const right=q.o[0];const ex=EXPL[q.q]||esc(q.e||"");
   $("#app").innerHTML=`<div data-s="${D.s}" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${state.i+1} de ${state.qs.length}</span></div>
@@ -1603,7 +1608,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-08.5";
+const APP_VERSION="2026-11-08.7";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -2494,10 +2499,10 @@ const ROCA_GRUPOS=[
  [["Basalto","Obsidiana","Pumita"],"Las tres volcánicas: basalto = oscuro y mate, grano finísimo. Obsidiana = negra y brillante como un cristal. Pumita = clara, llena de agujeritos y muy ligera."]];
 const ROCA_TIPOS=["Magmática volcánica","Magmática plutónica","Metamórfica","Sedimentaria detrítica","Sedimentaria orgánica"];
 function rocaFig(n,k){return `<figure class="rfig"><img src="${ROCA_FOTOS[n][k]}" alt="Foto de una roca"><figcaption>Imagen del PDF del colegio</figcaption></figure>`}
-function rocasMastered(){return results.filter(r=>r.key==="rocas"&&r.total&&r.ok/r.total>=.8).length>=1}
+function rocasMastered(){/* dominadas = escribiendo el nombre (como en el examen), no solo eligiendo */return results.filter(r=>r.key==="rocas"&&/escribiendo/.test(r.sub||"")&&r.total&&r.ok/r.total>=.75).length>=2}
 function viewRocas(){const a=$("#app");
-  if(!state.rk){state.rk={mode:LS.get("rocasVisto",false)?"quiz":"ver",i:0}}const s=state.rk;
-  const seg=`<div class="seg"><button data-rm="ver" aria-pressed="${s.mode==="ver"}">Aprender</button><button data-rm="par" aria-pressed="${s.mode==="par"}">Las que se parecen</button><button data-rm="quiz" aria-pressed="${s.mode==="quiz"}">¿Qué roca es?</button></div>`;
+  if(!state.rk){const lastQ=results.find(r=>r.key==="rocas"&&/identificar/.test(r.sub||""));state.rk={mode:!LS.get("rocasVisto",false)?"ver":lastQ&&lastQ.ok>=8?"esc":"quiz",i:0}}const s=state.rk;
+  const seg=`<div class="seg"><button data-rm="ver" aria-pressed="${s.mode==="ver"}">Aprender</button><button data-rm="par" aria-pressed="${s.mode==="par"}">Las que se parecen</button><button data-rm="quiz" aria-pressed="${s.mode==="quiz"}">¿Qué roca es?</button><button data-rm="esc" aria-pressed="${s.mode==="esc"}">Escríbelo (como en el examen)</button></div>`;
   const head=`<button class="back" data-go="inicio">← Volver</button><span class="qtag">Biología · Rocas</span><h1>Rocas por foto</h1>${seg}`;
   if(s.mode==="par"){if(s.g===undefined){s.g=0;s.step="ver";s.ok=0;s.n=0;s.fails=[]}
     if(s.g>=ROCA_GRUPOS.length){if(!s.saved){s.saved=true;saveResult({key:"rocas",materia:"Rocas por foto",sub:"las que se parecen",ok:s.ok,total:s.n,ns:0,temas:{},fallos:s.fails,cuenta:s.n&&s.ok/s.n>=.8})}
@@ -2518,6 +2523,20 @@ function viewRocas(){const a=$("#app");
       <div class="row" style="justify-content:space-between"><button class="btn ghost" id="rprev" ${s.i?"":"disabled"}>←</button><span class="small muted">${s.i+1} de ${ROCAS.length}</span><button class="btn" id="rnext">${s.i+1<ROCAS.length?"Siguiente →":"¡A probar!"}</button></div>${listenBtn("rlisten")}</section></div>`;
     $("#rprev").addEventListener("click",()=>{s.i--;viewRocas()});$("#rnext").addEventListener("click",()=>{if(s.i+1<ROCAS.length){s.i++;viewRocas()}else{LS.set("rocasVisto",true);state.rk={mode:"quiz"};viewRocas()}});
     $("#rlisten").addEventListener("click",()=>speak(R[0]+". "+R[1]+". "+R[2]));}
+  else if(s.mode==="esc"){if(!s.items){s.items=shuffle(ROCAS.map((R,j)=>({j,k:Math.random()<.5?0:1}))).slice(0,8);s.n=0;s.ok=0;s.fails=[];s.log=[]}
+    if(s.n>=s.items.length){const pass=s.ok>=6||(s.attempt||1)>=2;if(!s.saved){s.saved=true;saveResult({key:"rocas",materia:"Rocas por foto",sub:"escribiendo el nombre y el tipo"+((s.attempt||1)>=2?" · 2º intento":""),ok:s.ok,total:s.items.length,ns:0,temas:{},fallos:s.fails,cuenta:pass,preguntas:s.log.join(" | ")})}
+      a.innerHTML=`<div data-s="bio" class="wrap" style="gap:16px">${head}<section class="card"><span class="big">${s.ok}/${s.items.length}</span><p>${pass?"¡Bien! Así es como te lo preguntarán en el examen.":"Para terminar el bloque, otra ronda: necesitas 6 de 8."}</p>${s.fails.length?`<p class="small">Repasa: ${s.fails.map(esc).join(" · ")}</p>`:""}<div class="row"><button class="btn" id="ragain">Otra ronda</button><button class="btn ghost" data-rm="ver">Repasar las fotos</button></div></section></div>`;
+      $("#ragain").addEventListener("click",()=>{const att=pass?1:(s.attempt||1)+1;state.rk={mode:"esc",attempt:att};viewRocas()})}
+    else{const it=s.items[s.n],R=ROCAS[it.j];const TIPOS=[...new Set(ROCAS.map(x=>x[1]))];
+      a.innerHTML=`<div data-s="bio" class="wrap" style="gap:16px">${head}<section class="card"><span class="small muted">${s.n+1} de ${s.items.length} · escribe tú el nombre, sin opciones</span><div class="rfigs">${rocaFig(R[0],it.k)}</div>
+        <form id="ref" class="col" style="gap:10px"><label class="exf"><span>Nombre de la roca</span><input class="txtin" id="ren" autocomplete="off" spellcheck="false"></label>
+        <label class="exf"><span>Tipo</span><select id="ret"><option value="">—</option>${TIPOS.map(t=>`<option>${esc(t)}</option>`).join("")}</select></label><button class="btn">Comprobar</button></form><div id="rfb"></div></section></div>`;
+      $("#ren").focus();$("#ref").addEventListener("submit",e=>{e.preventDefault();const nm=$("#ren").value.trim(),tp=$("#ret").value;if(!nm&&!tp)return;
+        const okN=near(nm,[R[0]]),okT=tp===R[1],ex=exact(nm,[R[0]]);const ok=okN&&okT;if(ok){s.ok++;beep(880,.12)}else s.fails.push(R[0]);s.n++;
+        s.log.push(R[0]+": escribió «"+(nm||"—")+"» "+(okN?"bien":"mal")+" · tipo «"+(tp||"—")+"» "+(okT?"bien":"mal"));
+        $("#ref").querySelectorAll("input,select,button").forEach(x=>x.disabled=true);
+        $("#rfb").innerHTML=`<div class="fb ${ok?"ok":okN||okT?"ns":"ko"}"><strong>${ok?"¡Bien!":"Es "+esc(R[0])+": "+esc(R[1].toLowerCase())+"."}</strong>${okN&&!ex?"Se escribe así: <b>"+esc(R[0])+"</b>. ":""}${!okT&&okN?"El nombre está bien; el tipo es "+esc(R[1].toLowerCase())+". ":""}${esc(R[2])}</div><button class="btn" id="rnx">Siguiente →</button>`;
+        $("#rnx").addEventListener("click",()=>viewRocas());$("#rnx").focus()})}}
   else{if(!s.items){s.items=shuffle(ROCAS.map((R,j)=>({j,k:Math.random()<.5?0:1}))).slice(0,10);s.n=0;s.ok=0;s.fails=[];s.step=0;s.bad=false}
     if(s.n>=s.items.length){const pass=s.ok>=8||(s.attempt||1)>=2;if(!s.saved){s.saved=true;saveResult({key:"rocas",materia:"Rocas por foto",sub:"identificar rocas y su tipo"+((s.attempt||1)>=2?" · 2º intento":""),ok:s.ok,total:s.items.length,ns:0,temas:{},fallos:s.fails,cuenta:pass})}
       a.innerHTML=`<div data-s="bio" class="wrap" style="gap:16px">${head}<section class="card"><span class="big">${s.ok}/${s.items.length}</span><p>${pass?"¡Bien! Esto cuenta.":"Para terminar el bloque, otra ronda: necesitas 8 de 10."}</p>${s.fails.length?`<p class="small">Repasa: ${s.fails.map(esc).join(" · ")}</p>`:""}<div class="row"><button class="btn" id="ragain">Otra ronda</button><button class="btn ghost" data-rm="ver">Repasar las fotos</button></div></section></div>`;
@@ -2668,7 +2687,12 @@ function genPot(t){const b=[2,3,5,7,10][rnd(0,4)],m=rnd(2,6),n=rnd(2,5);const B=
 const nrm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-zñ0-9 ]/g," ").replace(/\s+/g," ").trim();
 function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array(n+1).fill(0).map((_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
 /* Parecido, con margen para faltas de ortografía (se avisa, pero no resta en el contenido) */
-function near(ans,opts){const a=nrm(ans);if(!a)return false;return [].concat(opts).some(o=>{const b=nrm(o);return a===b||lev(a,b)<=Math.max(1,Math.floor(b.length/5))})}
+/* Vocabulario del examen: si lo escrito se parece MÁS a otra palabra del tema, no se da por buena (p. ej. «exosfera» no vale por «termosfera») */
+const EX_VOCAB=["corteza","manto","nucleo externo","nucleo interno","continental","oceanica","troposfera","estratosfera","mesosfera","termosfera","exosfera","obsidiana","pizarra","conglomerado","pumita","arcilla","esquisto","carbon","granito","basalto","sienita","gneis","arenisca","forma","dureza","color","exfoliacion","brillo","raya","atmosfera","hidrosfera","geosfera","biosfera"];
+function near(ans,opts){const a=nrm(ans);if(!a)return false;const O=[].concat(opts).map(nrm);if(O.includes(a))return true;
+  const dT=Math.min(...O.map(b=>lev(a,b)));const lim=Math.max(1,Math.floor(Math.max(...O.map(b=>b.length))/4));if(dT>lim)return false;
+  const dOther=Math.min(...EX_VOCAB.filter(w=>!O.includes(w)).map(w=>lev(a,w)));return dT<dOther}
+function exact(ans,opts){return [].concat(opts).map(nrm).includes(nrm(ans))}
 function isPrime(n){if(n<2)return false;for(let k=2;k*k<=n;k++)if(n%k===0)return false;return true}
 const SUPN={"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","⁻":"-"};
 function supToCaret(s){return String(s).replace(/([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g,m=>"^"+m.split("").map(c=>SUPN[c]).join(""))}
@@ -2757,7 +2781,7 @@ function viewExamen(s){const a=$("#app");if(!EXGEN[s])return go("inicio");
     const doIt=()=>exCorrect(s);if(blank)askConfirm("¿Entregar ya?",`Hay ${blank} ejercicio${blank>1?"s":""} sin contestar. Si sabes algo, escríbelo: también puntúa.`,"Sí, entregar",doIt);else doIt()})}
 function exScoreLocal(X){const out={};
   X.items.forEach(it=>{let p=0;const det=[];
-    if(it.campos)it.campos.forEach((c,k)=>{const v=X.r[it.id+"_"+k]||"";const sc=chkScore(c.chk,v);p+=sc*c.w;det.push({l:c.img?"Foto":c.l,v,ok:sc>=1?"bien":sc>0?"a medias":"mal",sol:c.sol})});
+    if(it.campos)it.campos.forEach((c,k)=>{const v=X.r[it.id+"_"+k]||"";const sc=chkScore(c.chk,v);p+=sc*c.w;det.push({l:c.img?"Foto":c.l,v,ok:sc>=1?"bien":sc>0?"a medias":"mal",sol:c.sol,orto:sc>=1&&c.chk&&c.chk.t==="near"&&!exact(v,c.chk.v)?c.sol:""})});
     if(it.combis)it.combis.forEach((e,k)=>{const T=cbTok(e),v0=cbValue(T);const L=String(X.r[it.id+"_c"+k]||"").split(/\n+/).map(x=>x.trim()).filter(Boolean);const last=L.length?nInt(L[L.length-1].replace(/^=/,"")):NaN;
       let cons=0,bad=-1;L.forEach((x,j)=>{const U=cbParseTyped(x);if(U&&cbValue(U)===v0)cons++;else if(bad<0)bad=j});const okR=last===v0;const proc=L.length>=2&&bad<0;
       const sc=(okR?.6:0)+(proc?.4:L.length>=2&&cons>=L.length/2?.2:0);p+=sc*(it.pts/it.combis.length);det.push({l:cbPlain(T),v:L.join("  ")||"(en blanco)",ok:sc>=1?"bien":sc>0?"a medias":"mal",sol:"Resultado: "+fmtZ(v0)+(bad>=0?" · la línea "+(bad+1)+" ya no da lo mismo: ahí está el fallo":"")})});
@@ -2783,7 +2807,7 @@ function exResult(s){const X=state.ex,sc=X.sc,a=$("#app");const prev=results.fil
     ${prev.length?`<p class="small muted">Exámenes de práctica anteriores: ${prev.map(r=>(r.ok/10).toLocaleString("es-ES")).join(" · ")}</p>`:""}
     <div class="semaf">${X.items.map(it=>{const p=sc[it.id].p/it.pts;return `<div class="sm ${p>=.75?"v":p>=.4?"a":"r"}"><span>${esc(it.tema)}</span><b>${String(sc[it.id].p).replace(".",",")} / ${String(it.pts).replace(".",",")}</b></div>`}).join("")}</div></section>
    ${X.items.map((it,n)=>`<details class="card"${sc[it.id].p<it.pts?" open":""}><summary><b>${n+1}. ${esc(it.tema)}</b> · ${String(sc[it.id].p).replace(".",",")} de ${String(it.pts).replace(".",",")}</summary>
-     ${sc[it.id].det.map(d=>`<div class="fb ${d.ok==="bien"?"ok":d.ok==="a medias"?"ns":"ko"}" style="margin-top:8px"><strong>${d.l}</strong>Has puesto: ${esc(d.v||"(en blanco)")}${d.ok!=="bien"?`<br><b>Correcto:</b> ${esc(d.sol)}`:""}${d.ia?`<br><i>${esc(d.ia)}</i>`:""}</div>`).join("")}</details>`).join("")}
+     ${sc[it.id].det.map(d=>`<div class="fb ${d.ok==="bien"?"ok":d.ok==="a medias"?"ns":"ko"}" style="margin-top:8px"><strong>${d.l}</strong>Has puesto: ${esc(d.v||"(en blanco)")}${d.ok!=="bien"?`<br><b>Correcto:</b> ${esc(d.sol)}`:d.orto?`<br><span class="small">Vale. Se escribe así: <b>${esc(d.orto)}</b></span>`:""}${d.ia?`<br><i>${esc(d.ia)}</i>`:""}</div>`).join("")}</details>`).join("")}
    <section class="card"><div class="row"><button class="btn" data-go="inicio">Terminar</button><button class="btn ghost" id="exagain">Hacer otro (con otras preguntas)</button></div></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#exagain").addEventListener("click",()=>{state={};viewExamen(s)})}
 

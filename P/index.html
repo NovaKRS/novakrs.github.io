@@ -1611,7 +1611,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-11.1";
+const APP_VERSION="2026-11-11.2";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -2195,7 +2195,7 @@ function viewOral(id){const O=ORAL[id];if(!O)return go("inicio");const a=$("#app
     <div class="seg">${modes.map(m=>`<button data-m="${m[0]}" aria-pressed="${state.mode===m[0]}">${m[1]}</button>`).join("")}</div></section>`;
   let body="";
   if(state.done){const hits=state.hits;const ok=hits.filter(Boolean).length;
-    body=`<section class="card"><div class="row" style="gap:18px"><span class="big">${ok}/${O.p.length}</span><p>${ok===O.p.length?"¡Lo has explicado completo!":ok>=O.p.length/2?"¡Bien! Te han faltado algunas ideas:":"Te han faltado varias ideas. Repasa la ficha y vuelve a intentarlo."}</p></div>
+    body=`<section class="card"><div class="row" style="gap:18px"><span class="big">${ok}/${O.p.length}</span><p>${ok===O.p.length?"¡Lo has explicado completo!":ok>=O.p.length/2?"¡Bien! Te han faltado algunas ideas:":(ok===0?"Todavía no ha salido ninguna idea: para que cuente el bloque, necesitas al menos una. Repasa la ficha y vuelve a intentarlo, o hazlo con papá o mamá.":"Te han faltado varias ideas. Repasa la ficha y vuelve a intentarlo.")}</p></div>
       <ul class="pts">${O.p.map((p,i)=>`<li class="${hits[i]?"ok":"ko"}">${hits[i]?"✓":"✗"} ${esc(p[0])}</li>`).join("")}</ul>
       ${state.mode==="voz"&&ok===0?`<div class="fb ns"><strong>Parece que el micrófono no te ha entendido bien.</strong>No pasa nada: prueba a escribirlo o hazlo con papá o mamá.</div><div class="row"><button class="btn small" data-m="escrito">Escribirlo</button><button class="btn ghost small" data-m="adulto">Con papá o mamá</button></div>`:""}
       ${state.mode!=="adulto"&&state.txt?`<details><summary class="small">Ver lo que has dicho</summary><p class="small muted">${esc(state.txt)}</p></details>`:""}
@@ -2211,11 +2211,13 @@ function viewOral(id){const O=ORAL[id];if(!O)return go("inicio");const a=$("#app
   a.querySelectorAll("[data-m]").forEach(b=>b.addEventListener("click",()=>{stopRec();const m=b.dataset.m;if(state.done)state={mode:m};else state.mode=m;viewOral(id)}));
   const finish=(hits,txt)=>{state.done=true;state.hits=hits;state.txt=txt||"";const ok=hits.filter(Boolean).length;
     if(state.mode==="voz"){const vb=ok===0?(LS.get("voiceZero",0)+1):0;LS.set("voiceZero",vb);if(vb>=2)LS.set("voiceBad",true)}
-    saveResult({key:"oral-"+id,materia:"Explicar: "+O.title,sub:{voz:"hablando",escrito:"por escrito",adulto:"con un adulto"}[state.mode],ok,total:O.p.length,ns:0,temas:{},fallos:O.p.filter((p,i)=>!hits[i]).map(p=>p[0]),texto:txt?txt.slice(0,1500):undefined});viewOral(id)};
+    saveResult({key:"oral-"+id,materia:"Explicar: "+O.title,sub:{voz:"hablando",escrito:"por escrito",adulto:"con un adulto"}[state.mode],ok,total:O.p.length,ns:0,temas:{},fallos:O.p.filter((p,i)=>!hits[i]).map(p=>p[0]),texto:txt?txt.slice(0,1500):undefined,cuenta:ok>=1||state.mode==="adulto"});viewOral(id)};
   const ag=$("#oagain");if(ag)ag.addEventListener("click",()=>{state={mode:state.mode};viewOral(id)});
   const otx=$("#otx");if(otx){["paste","drop"].forEach(ev=>otx.addEventListener(ev,e=>{e.preventDefault();const n=document.getElementById("onopaste");if(!n)otx.insertAdjacentHTML("afterend",'<p class="small" id="onopaste" style="color:var(--ko)">Aquí no se puede pegar: escríbelo con tus palabras.</p>')}))}
   const ck=$("#ochk");if(ck)ck.addEventListener("click",()=>{const t=$("#otx").value.trim();if(t.length<10)return;
     const copied=/[✓✗]/.test(t)||O.p.filter(p=>p[0].length>12&&t.toLowerCase().includes(p[0].toLowerCase().slice(0,18))).length>=2;
+    {const W=t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").split(/[^a-zñ]+/).filter(Boolean);const real=W.filter(w=>w.length>=2&&/[aeiou]/.test(w)&&!/(.)\1\1/.test(w)&&!/[^aeiou]{5}/.test(w));
+     if(real.length<4||real.length/Math.max(1,W.length)<.6){const n=document.getElementById("onopaste");const msg="Eso no parecen palabras. Escribe con frases cortas las ideas que recuerdes, aunque tengan faltas. Si prefieres, díselo a papá o mamá (botón «Con papá o mamá»).";if(n)n.textContent=msg;else otx.insertAdjacentHTML("afterend",`<p class="small" id="onopaste" style="color:var(--ko)">${msg}</p>`);logEvent({evento:"explicación sin sentido",materia:O.title,sub:t.slice(0,80)});return}}
     if(copied){const n=document.getElementById("onopaste");const msg="Parece copiado de la lista. Explícalo con tus palabras, aunque sea con frases cortas.";if(n)n.textContent=msg;else otx.insertAdjacentHTML("afterend",`<p class="small" id="onopaste" style="color:var(--ko)">${msg}</p>`);logEvent({evento:"explicación copiada",materia:O.title});return}
     finish(scoreOral(id,t),t)});
   const ad=$("#oadl");if(ad)ad.addEventListener("click",()=>finish(O.p.map((p,i)=>a.querySelector(`[data-pt="${i}"]`).checked),""));

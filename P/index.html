@@ -261,7 +261,7 @@ body{padding-bottom:110px;padding-top:56px}
 .modal-box{background:var(--card);color:var(--ink);border-radius:18px;padding:22px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
 .btn.danger{background:var(--ko);color:#fff}
 .linkbtn{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;font-size:inherit;min-height:0}
-.profe{display:flex;flex-direction:column;gap:8px;margin-top:8px}.exf{display:flex;flex-direction:column;gap:4px;margin:8px 0}.exf select,.exf .txtin{font-size:1.05rem;max-width:none}.exf select{padding:10px 12px;border-radius:12px;border:2px solid var(--line,#cfe3df);background:#fff;min-height:46px}.exta{width:100%;box-sizing:border-box;max-width:none;font-size:1.05rem;line-height:1.5}.exgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.estsl input[type=range]{width:100%;accent-color:var(--accent,#0E8C80);height:36px}.tutor{border-left:5px solid var(--warm,#E8781E);background:#FFF6EE;border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;flex-direction:column;gap:6px}.tutor[hidden]{display:none}
+.profe{display:flex;flex-direction:column;gap:8px;margin-top:8px}.txtin.bad,select.bad{border-color:#D9534F!important;background:#FDECEC}.exf{display:flex;flex-direction:column;gap:4px;margin:8px 0}.exf select,.exf .txtin{font-size:1.05rem;max-width:none}.exf select{padding:10px 12px;border-radius:12px;border:2px solid var(--line,#cfe3df);background:#fff;min-height:46px}.exta{width:100%;box-sizing:border-box;max-width:none;font-size:1.05rem;line-height:1.5}.exgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.estsl input[type=range]{width:100%;accent-color:var(--accent,#0E8C80);height:36px}.tutor{border-left:5px solid var(--warm,#E8781E);background:#FFF6EE;border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;flex-direction:column;gap:6px}.tutor[hidden]{display:none}
 .profe [data-profe-body]{display:flex;flex-direction:column;gap:8px}
 .profe [data-profe-body][hidden]{display:none}
 .profe-log{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto}
@@ -976,7 +976,7 @@ let results=LS.get("results",[]);
   }catch(e){dbState="local";softRender()}
 })();
 function savePlan(){LS.set("plan",planDone);if(DB){DB.doc("estado/plan").set({done:planDone,ts:Date.now()}).catch(()=>{})}}
-function saveResult(r){
+function saveResult(r){tagResult(r);try{r.ayuda=(ayudaNow()||{}).v||""}catch(e){}
   try{const k=r.key||"";if(!DIAG[k]&&!k.startsWith("sim-")){const n=k==="mcd"?(r.ok?5:2):k==="tablas"?(r.cuenta?5:2):k.startsWith("oral-")?(r.ok||0)*2:k.startsWith("mapa-")||k.startsWith("deck-")?Math.min(10,r.ok||0):(r.ok||0)*2;if(typeof addXP==="function")addXP(n)}}catch(e){}
   setTimeout(()=>{const m=r.cuenta===false?null:autoMark(r.key);logEvent(Object.assign({evento:"resultado"},r,{bloque_completado:m||""}))},0);
   r.id=r.id||("r"+Date.now()+Math.random().toString(36).slice(2,6));
@@ -1135,12 +1135,15 @@ function viewQuiz(key){
       op.insertAdjacentHTML("beforebegin",'<p class="small muted veilnote" id="veilnote">Lee la pregunta…</p>');
       setTimeout(()=>{op.classList.remove("veil");const i2=$("#idk");if(i2)i2.classList.remove("veil");const vn=$("#veilnote");if(vn)vn.remove()},ms)}else state.veilMs=0}
   const ql=$("#qlisten");if(ql)ql.addEventListener("click",()=>(state.heard=state.i,0)||speak(q.vf?q.q.replace(/…$/,"")+" "+q.vf+". ¿Verdadero o falso?":q.q+". Las opciones son: "+q.opts.join(". ")));
-  const showNext=()=>{$("#after").innerHTML=`<button class="btn" id="next">${i+1<qs.length?"Siguiente →":"Ver resultado"}</button>`;$("#next").addEventListener("click",()=>{state.i++;state.answered=false;state.fixing=false;viewQuiz(key)});$("#next").focus()};
+  const showNext=()=>{if(state.recetaPend){const tp=state.recetaPend;state.recetaPend=null;$("#after").innerHTML=`<div class="fb ns" style="width:100%"><strong>Esta regla se te resiste.</strong>Vamos a verla paso a paso, escribiendo tú cada paso.</div><button class="btn" id="rpgo">Vamos a verlo paso a paso</button>`;$("#rpgo").addEventListener("click",()=>{const mm=modalBox('<div id="rpz"></div>');recetaPot(tp,mm.querySelector("#rpz"),()=>{mm.remove();showNext()})});$("#rpgo").focus();return}
+    $("#after").innerHTML=`<button class="btn" id="next">${i+1<qs.length?"Siguiente →":"Ver resultado"}</button>`;$("#next").addEventListener("click",()=>{state.i++;state.answered=false;state.fixing=false;viewQuiz(key)});$("#next").focus()};
   const finish=(res)=>{
     if(state.answered)return;state.answered=true;state.ans.push(res);qhRecord(q,res==="ok");
     {const dt=state.t0?Math.round((Date.now()-state.t0)/100)/10:0;state.qlog=state.qlog||[];state.qlog.push((q.retry?"rep ":"")+(state.qlog.length+1)+") "+q.t+": "+(res==="ok"?"bien":res==="ns"?"no lo sé":"mal")+" "+String(dt).replace(".",",")+" s"+(state.heard===state.i?" · escuchada":"")+(state.awayCur?" · salió de la app":"")+(res==="ko"&&state.pick?" · eligió «"+String(state.pick).slice(0,40)+"»":""));state.awayCur=false}const wasRushed=res!=="ns"?rushCheck(q):false;
     if(!wasRushed)addXP(res==="ok"&&!q.retry?2:1);
     if(res!=="ok"&&!q.retry&&!q.gen&&!qs.some(x=>x.retry&&qkey(x)===qkey(q)))qs.push(Object.assign({},q,{retry:true,opts:q.o?shuffle(q.o):null}));
+    if(res!=="ok"&&!q.retry&&!q.gen&&!q.vf)errNote("q:"+key+":"+qkey(q),q.q,{t:"q",dk:key,qk:qkey(q)},D.s);
+    if(res!=="ok"&&q.puente&&key==="mat3"){state.recetaPend=q.t;errNote("pot:"+q.t,"Potencias: "+q.t,{t:"pot",tipo:q.t},"mat")}
     if(res!=="ok"&&key==="mat3"&&!isPureTest()&&!q.puente&&!q.vf){const g=genPot(q.t);qs.splice(state.i+1,0,Object.assign(g,{gen:true,puente:true,opts:shuffle(g.o)}))}
     const cls=res==="ok"?"ok":res==="ns"?"ns":"ko";
     if(res==="ns")LS.set("idkUsed",true);
@@ -1608,7 +1611,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-08.7";
+const APP_VERSION="2026-11-11.1";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -1864,11 +1867,13 @@ const CATALOGO=`ACTIVIDADES (campo "act"):
 - "sim:bio","sim:len","sim:ing","sim:mat","sim:gh" SIMULACRO DE EXAMEN de toda la asignatura (20 preguntas, nota al final, ~15 min): solo en los 1-3 días antes de su examen.
 - param {"nivel":true} en una "diag:" = PRUEBA DE NIVEL (15 preguntas, ~10 min). Si una unidad aparece como «sin hacer» en la evolución, su primer bloque debe ser la prueba de nivel.
 - "" tarea sin pantalla (explicar en voz alta, dibujar…), describirla en "texto"`;
-function dayCap(d){const k=dayKind(d);return k==="largo"?120:k==="entreno"?40:50}
-function tandaCaps(d){const k=dayKind(d);return k==="largo"?{1:30,2:30,3:30,4:30}:k==="entreno"?{1:25,2:20}:{1:35,2:20}}
+function dayCap(d){const k=dayKind(d);if(k!=="largo"&&eveSubject(d.d))return 55;return k==="largo"?120:k==="entreno"?40:50}
+function tandaCaps(d){const k=dayKind(d);if(k!=="largo"&&eveSubject(d.d))return {1:40,2:15};return k==="largo"?{1:30,2:30,3:30,4:30}:k==="entreno"?{1:25,2:20}:{1:35,2:20}}
 function compactStats(ds){
   const L=[];const ex=EXAMS.map(e=>`${e.name} en ${examDays(e.s,ds)} días`).join(", ");L.push("Exámenes: "+ex);
-  const last={};results.slice().reverse().forEach(r=>{(last[r.key]=last[r.key]||[]).push(r)});
+  const last={};results.slice().reverse().filter(r=>!r.practica).forEach(r=>{(last[r.key]=last[r.key]||[]).push(r)});
+  ["bio","mat"].forEach(sj=>{const a=(last["ex-"+sj]||[]);if(a.length)L.push(`examen de práctica de ${SNAME[sj]} (nota sobre 10): ${a.map(r=>(r.ok/10).toLocaleString("es-ES")+(r.ayuda==="con ayuda"?" con ayuda":r.ayuda==="sola"?" sola":"")+(r.bateria?" con poca batería":"")).join(" → ")}; flojo en el último: ${Object.entries(a[a.length-1].temas||{}).filter(([t,v])=>v.ok/v.total<.6).map(([t])=>t).join(", ")||"nada"}`)});
+  L.push("Nota: los resultados marcados «con ayuda» los hizo con un adulto; los «con poca batería» valen menos. Las repeticiones inmediatas no se cuentan.");
   Object.keys(DIAG).forEach(k=>{const a=last[k];if(!a){L.push(`${k}: sin hacer`);return}const r=a[a.length-1];
     const weak=r.temas?Object.entries(r.temas).filter(([t,v])=>v.ok/v.total<.6).map(([t,v])=>`${t} ${v.ok}/${v.total}`).join("; "):"";
     const lvv=levelOf(k);L.push(`${k}: ${a.length} intentos, nivel inicial ${lvv?lvv.txt:"?"}, último ${r.ok}/${r.total}${weak?" · flojo: "+weak:""}`)});
@@ -1896,7 +1901,8 @@ const BASE={};PLAN.forEach(d=>{BASE[d.d]=d.b.map(x=>x.slice())});
 function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan7:"+d.d,null);const off=LS.get("aioff:"+d.d,false);
   const started=d.b.some((b,i)=>planDone[d.d+"#"+i]||prog[d.d+"#"+i]);
   if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.filter((x,i)=>!(x[5]&&x[5].nivel&&x[3]&&x[3].startsWith("diag:")&&results.some(r=>r.key===x[3].slice(5)&&isFull(r)&&!sameDay(r.ts,d.d))&&!planDone[d.d+"#"+i])).map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan7:"+d.d,ai)}}
-  else{d.b=BASE[d.d].map(x=>x.slice());d.ai=false}})}
+  else{d.b=BASE[d.d].map(x=>x.slice());d.ai=false}
+  if(d.d===todayStr())try{eveAugment(d)}catch(e){}})}
 let aiBusy=false;
 async function requestAIPlan(ds,force){const c=cfg();const d=PLAN.find(p=>p.d===ds);if(!c.url||!d||!d.b.length||aiBusy||!navigator.onLine)return;
   const forceSrv=force||!LS.get("aiplan7:"+ds,null);if(!force){if(LS.get("aiplan7:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
@@ -1948,6 +1954,7 @@ function tandas(d){const kind=dayKind(d);const map={};
   if(d.b.length&&d.b.every(b=>b[6])){d.b.forEach((b,i)=>{(map[b[6]]=map[b[6]]||[]).push(i)})}
   else{let t=1,acc=0;const cap=32;order(d).forEach(i=>{const b=d.b[i];if(kind!=="largo"&&/^(con papá|repaso:)/i.test(b[1])){(map[9]=map[9]||[]).push(i);return}
     if(acc+b[2]>cap&&acc>0){t++;acc=0}(map[t]=map[t]||[]).push(i);acc+=b[2]})}
+  if(eveSubject(d.d))Object.values(map).forEach(a=>a.sort((x,y)=>eveRank(d.b[x])-eveRank(d.b[y])||x-y));
   const ks=Object.keys(map).map(Number).sort((a,b)=>a-b);
   return ks.map((k,j)=>({n:j+1,idx:map[k],noche:kind!=="largo"&&j>0,label:kind==="largo"?(j<2?`Mañana · tanda ${j+1}`:`Tarde · tanda ${j+1}`):j===0?"Al llegar del cole":"Repaso de la noche (mejor con papá o mamá, si pueden)"}))}
 function seq(d){return tandas(d).flatMap(t=>t.idx)}
@@ -1966,7 +1973,7 @@ function bindRows(root){root.querySelectorAll("[data-open]").forEach(b=>b.addEve
 function openBlock(id){const [dd,ii]=id.split("#");const d=PLAN.find(p=>p.d===dd);if(!d)return;const b=d.b[+ii];const target=targetOf(b);
   {const T=tandas(d).find(t=>t.idx.includes(+ii));const k=dd+"#t"+(T?T.n:0);if(needAyuda(k))return askAyuda(k,()=>{
       if(dd!==todayStr())return openBlock(id);const first=!LS.get("estado",null)||LS.get("estado",null).d!==todayStr();
-      askEstado(SNAME[b[0]]||"esto",first,low=>{const LIGHT=/^(verbs|tablas|rocas|mapas|tarjetas-|oral:)/;
+      askEstado(SNAME[b[0]]||"esto",first,low=>{const due=errDue();if(due&&!low){return showDrill(due[0],due[1],()=>openBlock(id))}const LIGHT=/^(verbs|tablas|rocas|mapas|tarjetas-|oral:)/;
         const alt=low&&!LIGHT.test(b[3]||"")&&T?T.idx.find(j=>!planDone[dd+"#"+j]&&LIGHT.test(d.b[j][3]||"")):undefined;
         if(alt===undefined)return openBlock(id);
         const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="modal-box"><h2>¿Empezamos por algo más ligero?</h2><p>Parece que hoy vas con poca batería. Puedes arrancar con <b>${esc(d.b[alt][1])}</b> y después hacer lo demás.</p><div class="row"><button class="btn" data-a>Sí, empiezo por eso</button><button class="btn ghost" data-b>No, sigo con ${esc(b[1])}</button></div></div>`;document.body.appendChild(m);
@@ -2590,7 +2597,7 @@ function viewCbEscrito(){const a=$("#app"),c=state.cb,T=c.T;
     c.tries++;c.exErr=(c.exErr||0)+1;c.steps++;const i0=cbValid(T)[0],A=T[i0-1].v,OP=T[i0].v,B=T[i0+1].v,r=cbCalc(A,OP,B);
     if(c.tries===1)c.fails.push(`${cbPlain(T)} → escribió ${inp.value.trim()}`);
     const N=cbClone(T);N.splice(i0-1,3,{t:"n",v:r});cbCollapse(N);
-    const X=cbClassify(T,U);const prevT=c.lastX&&c.lastX.tipo;c.lastX=X;c.lastWrong=inp.value.trim();cbErrAdd(X.tipo==="otro"||X.tipo==="varias"?null:X.tipo,1);
+    const X=cbClassify(T,U);const prevT=c.lastX&&c.lastX.tipo;if(X.tipo!=="otro"&&X.tipo!=="varias")errNote("cb:"+X.tipo,"Combinadas: "+TUT_NOMBRE[X.tipo],{t:"cb",tipo:X.tipo},"mat");c.lastX=X;c.lastWrong=inp.value.trim();cbErrAdd(X.tipo==="otro"||X.tipo==="varias"?null:X.tipo,1);
     c.llog=c.llog||[];c.llog.push(cbPlain(T)+" → escribió "+inp.value.trim()+" · error: "+(TUT_NOMBRE[X.tipo]||X.tipo));
     c.msg=c.tries>=3?`<div class="fb ns"><strong>Te lo enseño:</strong>Lo primero era ${zIn(A)} ${OP} ${zIn(B)} = ${fmtZ(r)}. La línea queda así:<br><b>= ${cbPlain(N)}</b><br>Escríbela (o corrige la tuya) para seguir.</div>`
       :`<div class="fb ko"><span class="small muted">Intento ${c.tries} de 3 · </span>${tutMsg(X)}</div>`;
@@ -2794,6 +2801,7 @@ async function exCorrect(s){const X=state.ex;X.done=true;X.min=Math.round((Date.
   if(open.length&&c.url){try{const res=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"corregir",disp:deviceInfo(),clave:c.clave||"",materia:SNAME[X.s],items:open.map(it=>({id:it.id,pregunta:it.enun.replace(/<[^>]+>/g,""),respuesta:String(X.r[it.id]).slice(0,1200),claves:it.abierta.claves,puntos:it.pts}))})});
       const j=await res.json();if(j&&Array.isArray(j.notas))j.notas.forEach(n=>{const it=X.items.find(i=>i.id===n.id);if(!it||isNaN(+n.puntos))return;const P=Math.max(0,Math.min(it.pts,+n.puntos));sc[it.id].p=Math.round(P*100)/100;sc[it.id].det[0].ok=P>=it.pts*.9?"bien":P>0?"a medias":"mal";if(n.comentario)sc[it.id].det[0].ia=String(n.comentario).slice(0,400)})}catch(e){}}
   const nota=Math.round(Object.values(sc).reduce((a,b)=>a+b.p,0)*10)/10;X.nota=nota;
+  X.items.forEach(it=>{if(sc[it.id].p>=it.pts*.75)return;if(DRILL_EX[it.id])errNote("ex:"+X.s+":"+it.id,it.tema,{t:"ex",id:it.id},X.s);else if(it.abierta)errNote("ex:"+X.s+":"+it.tema,it.tema,{t:"ex",claves:it.abierta.claves},X.s);else if(it.id==="m8")errNote("pot:Mezcla","Potencias: Mezcla",{t:"pot",tipo:"Mezcla"},"mat")});
   const temas={};X.items.forEach(it=>{temas[it.tema]={ok:Math.round(sc[it.id].p*100)/100,total:it.pts}});
   saveResult({key:"ex-"+s,materia:X.title,sub:"nota "+nota.toLocaleString("es-ES")+" sobre 10 · "+X.min+" min",ok:Math.round(nota*10),total:100,ns:0,temas,
     fallos:X.items.filter(it=>sc[it.id].p<it.pts*.5).map(it=>it.tema),cuenta:true,
@@ -2810,6 +2818,104 @@ function exResult(s){const X=state.ex,sc=X.sc,a=$("#app");const prev=results.fil
      ${sc[it.id].det.map(d=>`<div class="fb ${d.ok==="bien"?"ok":d.ok==="a medias"?"ns":"ko"}" style="margin-top:8px"><strong>${d.l}</strong>Has puesto: ${esc(d.v||"(en blanco)")}${d.ok!=="bien"?`<br><b>Correcto:</b> ${esc(d.sol)}`:d.orto?`<br><span class="small">Vale. Se escribe así: <b>${esc(d.orto)}</b></span>`:""}${d.ia?`<br><i>${esc(d.ia)}</i>`:""}</div>`).join("")}</details>`).join("")}
    <section class="card"><div class="row"><button class="btn" data-go="inicio">Terminar</button><button class="btn ghost" id="exagain">Hacer otro (con otras preguntas)</button></div></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#exagain").addEventListener("click",()=>{state={};viewExamen(s)})}
+
+/* ====================== v8: errores que se repiten, receta de potencias, víspera del examen ====================== */
+const SUBJ_UNITS={bio:["bio1","bio2"],len:["len1","len2"],ing:["ing1","ing2"],mat:["mat1","mat2","mat3"],gh:["gh1","gh2"]};
+function sessId(){return todayStr()+"@"+Math.floor(Date.now()/72e5)}   // tramos de 2 horas = sesiones distintas
+/* ---------- 1. Errores que se repiten en sesiones distintas ---------- */
+function errNote(key,label,drill,s){try{const E=LS.get("errP",{});const e=E[key]||{label,drill,s,sess:[],ok:0,lastDrill:0};const id=sessId();
+  if(!e.sess.includes(id))e.sess.push(id);e.sess=e.sess.slice(-6);e.label=label;e.drill=drill;e.s=s||e.s;e.ok=Math.min(e.ok,1);E[key]=e;
+  const keys=Object.keys(E);if(keys.length>80){keys.sort((a,b)=>(E[a].sess.slice(-1)[0]||"").localeCompare(E[b].sess.slice(-1)[0]||""));keys.slice(0,keys.length-80).forEach(k=>delete E[k])}LS.set("errP",E)}catch(e){}}
+function errDue(){const E=LS.get("errP",{});const now=Date.now();
+  const L=Object.entries(E).filter(([k,e])=>e.sess.length>=2&&e.ok<2&&now-(e.lastDrill||0)>5*36e5&&(!e.s||examDays(e.s,todayStr())<99));
+  L.sort((a,b)=>(examDays(a[1].s||"x",todayStr())-examDays(b[1].s||"x",todayStr()))||(b[1].sess.length-a[1].sess.length));return L[0]||null}
+function errDone(key,ok){const E=LS.get("errP",{});if(!E[key])return;E[key].lastDrill=Date.now();if(ok)E[key].ok++;LS.set("errP",E);logEvent({evento:"tarjeta de error repetido",materia:SNAME[E[key].s]||"",sub:E[key].label+" → "+(ok?"bien":"todavía no")})}
+function modalBox(html){const m=document.createElement("div");m.className="modal";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.innerHTML=`<div class="modal-box" style="max-height:90vh;overflow:auto">${html}</div>`;document.body.appendChild(m);return m}
+const DRILL_EX={
+  b2:{t:"Capas de la atmósfera",truco:"De abajo arriba: «<b>T</b>odos <b>E</b>stamos <b>M</b>uy <b>T</b>ranquilos <b>E</b>studiando» → Troposfera, Estratosfera, Mesosfera, Termosfera, Exosfera. La capa de <b>ozono</b> está en la <b>estratosfera</b> (la 2.ª).",campos:[["1.ª (abajo)",["troposfera"]],["2.ª",["estratosfera"]],["3.ª",["mesosfera"]],["4.ª",["termosfera"]],["5.ª (arriba)",["exosfera"]],["¿Dónde está el ozono?",["estratosfera"]]]},
+  b1:{t:"Capas de la Tierra",truco:"Como un <b>melocotón</b>: piel (<b>corteza</b>), pulpa (<b>manto</b>) y hueso (<b>núcleo</b>, que tiene parte externa líquida e interna sólida). La corteza puede ser <b>continental</b> u <b>oceánica</b>.",campos:[["1.ª (fuera)",["corteza"]],["2.ª",["manto"]],["3.ª",["nucleo externo"]],["4.ª (centro)",["nucleo interno"]]]},
+  b6:{t:"Propiedades de los minerales",truco:"«<b>F</b>ue <b>D</b>ifícil <b>C</b>omer <b>E</b>sta <b>B</b>uena <b>R</b>osquilla» → Forma, Dureza, Color, Exfoliación, Brillo, Raya.",lista:["forma","dureza","color","exfoliacion","brillo","raya"]},
+  b4:{t:"Subsistemas",truco:"<b>Atmósfera</b> = el aire · <b>Hidrosfera</b> = el agua (mar, ríos, hielo, nubes) · <b>Geosfera</b> = rocas y minerales · <b>Biosfera</b> = todo lo que está vivo.",sel:[["Las nubes","hidrosfera"],["El viento","atmósfera"],["Un pino","biosfera"],["La arena","geosfera"],["Un glaciar","hidrosfera"],["Las gaviotas","biosfera"]]},
+  b5:{t:"Mineral y roca",truco:"Los minerales son los <b>ingredientes</b> y la roca es el <b>plato</b>. Un <b>mineral</b> es natural, sólido, inorgánico (no viene de seres vivos) y siempre igual por dentro (cuarzo, galena). Una <b>roca</b> es una <b>mezcla de minerales</b> (granito = cuarzo + feldespato + mica).",vf:[["El granito es un mineral.",false],["Una roca es una mezcla de minerales.",true],["Los minerales vienen de seres vivos.",false],["El cuarzo es un mineral.",true]]}};
+function showDrill(key,e,done){const d=e.drill||{};const fin=ok=>{errDone(key,ok);m.remove();done()};let m;
+  const head=`<p class="small muted" style="margin:0">Tarjeta de repaso · esto se te ha resistido más de una vez</p>`;
+  if(d.t==="ex"&&DRILL_EX[d.id]){const D=DRILL_EX[d.id];
+    m=modalBox(`${head}<h2>${D.t}</h2><div class="fb ns" style="margin:6px 0"><strong>El truco</strong>${D.truco}</div><div class="row">${listenBtn("drl")}<button class="btn" id="drgo">Ya lo tengo: pruébame</button></div><div id="drz"></div>`);
+    $("#drl").addEventListener("click",()=>speak(D.truco.replace(/<[^>]+>/g,"")));
+    $("#drgo").addEventListener("click",()=>{$("#drgo").remove();const z=$("#drz");
+      if(D.campos)z.innerHTML=D.campos.map((c,k)=>`<label class="exf"><span>${c[0]}</span><input class="txtin" data-k="${k}" autocomplete="off" spellcheck="false"></label>`).join("");
+      else if(D.lista)z.innerHTML=`<div class="exgrid">${D.lista.map((x,k)=>`<input class="txtin" data-k="${k}" autocomplete="off" aria-label="Propiedad ${k+1}">`).join("")}</div>`;
+      else if(D.sel)z.innerHTML=shuffle(D.sel).slice(0,4).map((c,k)=>`<label class="exf"><span>${c[0]}</span><select data-k="${k}" data-a="${c[1]}"><option value="">—</option>${["atmósfera","hidrosfera","geosfera","biosfera"].map(o=>`<option>${o}</option>`).join("")}</select></label>`).join("");
+      else if(D.vf)z.innerHTML=shuffle(D.vf).map((c,k)=>`<label class="exf"><span>${c[0]}</span><select data-k="${k}" data-a="${c[1]?"Verdadero":"Falso"}"><option value="">—</option><option>Verdadero</option><option>Falso</option></select></label>`).join("");
+      z.insertAdjacentHTML("beforeend",`<button class="btn" id="drchk" style="margin-top:8px">Comprobar</button><div id="drfb"></div>`);
+      $("#drchk").addEventListener("click",()=>{const ins=[...z.querySelectorAll("[data-k]")];let ok=0;
+        if(D.campos)ins.forEach(el=>{const c=D.campos[+el.dataset.k];const g=near(el.value,c[1]);el.classList.toggle("bad",!g);if(g)ok++});
+        else if(D.lista){const got=new Set();ins.forEach(el=>{const x=D.lista.find(w=>near(el.value,[w]));if(x)got.add(x)});ok=got.size}
+        else ins.forEach(el=>{const g=el.value===el.dataset.a;el.classList.toggle("bad",!g);if(g)ok++});
+        const tot=D.campos?D.campos.length:D.lista?6:ins.length;const good=ok===tot;
+        $("#drfb").innerHTML=`<div class="fb ${good?"ok":"ko"}" style="margin-top:8px"><strong>${good?"¡Perfecto!":"Llevas "+ok+" de "+tot+"."}</strong>${good?"Ahora sí. Vamos con lo que toca.":"Mira otra vez el truco de arriba y corrige lo que está en rojo."}</div>${good?'<button class="btn" id="drend">Seguir</button>':'<button class="btn ghost small" id="drskip">Seguir de todas formas</button>'}`;
+        const en=$("#drend");if(en)en.addEventListener("click",()=>fin(true));const sk=$("#drskip");if(sk)sk.addEventListener("click",()=>fin(false))})});return}
+  if(d.t==="ex"&&d.claves){m=modalBox(`${head}<h2>${esc(e.label)}</h2><p>En el examen de práctica te faltó esto. Léelo en voz alta:</p><ul>${d.claves.map(c=>`<li>${esc(c)}</li>`).join("")}</ul><div class="row">${listenBtn("drl")}<button class="btn" id="drend" disabled>Léelo con calma…</button></div>`);
+    $("#drl").addEventListener("click",()=>speak(d.claves.join(". ")));setTimeout(()=>{const b=$("#drend");if(b){b.disabled=false;b.textContent="Ya lo he leído"}},9000);$("#drend").addEventListener("click",()=>fin(true));return}
+  if(d.t==="pot"){m=modalBox(`${head}<div id="rpz"></div>`);recetaPot(d.tipo,$("#rpz"),ok=>fin(ok));return}
+  if(d.t==="cb"){const B=[tutBridge(d.tipo),tutBridge(d.tipo)].filter(Boolean);if(!B.length){done();return}let k=0,ok=0;
+    m=modalBox(`${head}<h2>${esc(TUT_NOMBRE[d.tipo]||"Combinadas")}</h2><div class="fb ns"><strong>Recuerda</strong>${esc(d.tipo==="jerarquia"?"Primero paréntesis; después · y : de izquierda a derecha; al final + y −.":d.tipo.startsWith("signo")?"Al multiplicar o dividir: signos iguales → +, distintos → −. Restar un negativo es sumar.":"Haz la cuenta primero sin signos y pon el signo al final.")}</div><div id="drz"></div>`);
+    const one=()=>{if(k>=B.length)return fin(ok===B.length);const b=B[k];const z=$("#drz");z.innerHTML=`<p class="qtext" style="margin:8px 0">${b.q}</p>`+(b.o?`<div class="opts">${shuffle(b.o).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="drf"><input id="dri" inputmode="text" autocomplete="off" style="width:7ch"><button class="btn small">Comprobar</button></form>`)+`<div id="drfb"></div>`;
+      const res=g=>{if(g)ok++;$("#drfb").innerHTML=`<div class="fb ${g?"ok":"ko"}"><strong>${g?"¡Bien!":"Era "+(b.o?esc(b.o[0]):fmtZ(b.n))+"."}</strong>${esc(b.e)}</div><button class="btn small" id="drn">Seguir</button>`;$("#drn").addEventListener("click",()=>{k++;one()})};
+      if(b.o)z.querySelectorAll("[data-o]").forEach(x=>x.addEventListener("click",()=>{z.querySelectorAll("[data-o]").forEach(y=>y.disabled=true);res(x.dataset.o===b.o[0])}));
+      else{$("#dri").focus();$("#drf").addEventListener("submit",ev=>{ev.preventDefault();const v=parseInt($("#dri").value.replace(/[−–]/g,"-").replace(/[^\d-]/g,""),10);if(isNaN(v))return;$("#dri").disabled=true;res(v===b.n)})}};one();return}
+  if(d.t==="q"){const D=DIAG[d.dk];const q=D&&D.qs.find(x=>qkey(x)===d.qk);if(!q||!q.o){done();return}const right=q.o[0];
+    m=modalBox(`${head}<h2>Esta se te resiste</h2><p class="qtext">${esc(q.q)}</p><div class="fb ok"><strong>La respuesta es: ${esc(right)}</strong>${EXPL[q.q]||esc(q.e||"")}</div><div class="row">${listenBtn("drl")}<button class="btn" id="drgo" disabled>Léela con calma…</button></div><div id="drz"></div>`);
+    $("#drl").addEventListener("click",()=>speak(q.q+" La respuesta es: "+right+". "+(q.e||"")));setTimeout(()=>{const b=$("#drgo");if(b){b.disabled=false;b.textContent="Ahora tú"}},6000);
+    $("#drgo").addEventListener("click",()=>{const m1=m.querySelector(".fb.ok");if(m1)m1.remove();$("#drgo").remove();const z=$("#drz");z.innerHTML=`<div class="opts">${shuffle(q.o).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div><div id="drfb"></div>`;
+      z.querySelectorAll("[data-o]").forEach(x=>x.addEventListener("click",()=>{z.querySelectorAll("[data-o]").forEach(y=>y.disabled=true);const g=x.dataset.o===right;x.classList.add(g?"right":"wrong");$("#drfb").innerHTML=`<div class="fb ${g?"ok":"ko"}"><strong>${g?"¡Eso es!":"Era: "+esc(right)}</strong></div><button class="btn" id="drend">Seguir</button>`;$("#drend").addEventListener("click",()=>fin(g))}))});return}
+  done()}
+/* ---------- 2. Receta de potencias, paso a paso y escribiendo ---------- */
+function recetaPot(tipo,box,onDone){const b=[2,3,5,7][rnd(0,3)],m=rnd(2,6),n=rnd(2,5),c=rnd(1,3);let steps,title,expr;const P=(x,e)=>x+(e===1?"":supT(e));
+  if(tipo==="Producto"){const one=Math.random()<.4;const m1=one?1:m;expr=`${one?b:P(b,m1)} · ${P(b,n)}`;title="Multiplicar potencias de la misma base";
+    steps=(one?[{q:`El ${b} sin exponente, ¿cómo se escribe como potencia?`,o:[`${b}¹`,`${b}⁰`,`${b}²`]}]:[]).concat([{q:"¿Las dos potencias tienen la misma base?",o:["Sí","No"]},{q:"¿Qué operación hay entre ellas?",o:["Multiplicar","Dividir"]},{q:"Entonces, con los exponentes…",o:["Se suman","Se restan","Se multiplican"]},{q:"¿Y la base?",o:[`Se queda igual: ${b}`,`Se multiplica: ${b*b}`]},{q:`Exponente: ${m1} + ${n} =`,n:m1+n},{fin:P(b,m1+n)}])}
+  else if(tipo==="Cociente"){const M=m+n;expr=`${P(b,M)} : ${P(b,n)}`;title="Dividir potencias de la misma base";
+    steps=[{q:"¿Las dos potencias tienen la misma base?",o:["Sí","No"]},{q:"¿Qué operación hay entre ellas?",o:["Dividir","Multiplicar"]},{q:"Entonces, con los exponentes…",o:["Se restan","Se suman","Se dividen"]},{q:"¿Y la base?",o:[`Se queda igual: ${b}`,`Se divide: 1`]},{q:`Exponente: ${M} − ${n} =`,n:M-n},{fin:P(b,M-n)}]}
+  else if(tipo==="Potencia de potencia"){expr=`(${P(b,m)})${supT(n)}`;title="Potencia de una potencia";
+    steps=[{q:"¿Es una potencia elevada a otro exponente (con paréntesis)?",o:["Sí","No"]},{q:"Entonces, con los exponentes…",o:["Se multiplican","Se suman","Se restan"]},{q:`Exponente: ${m} · ${n} =`,n:m*n},{fin:P(b,m*n)}]}
+  else{const r=m+n-c;if(r<1)return recetaPot("Producto",box,onDone);expr=`${P(b,m)} · ${P(b,n)} : ${P(b,c)}`;title="Varias operaciones: de izquierda a derecha";
+    steps=[{q:`Primero lo de la izquierda: ${P(b,m)} · ${P(b,n)}. ¿Qué hago con los exponentes?`,o:["Sumarlos","Restarlos","Multiplicarlos"]},{q:`${m} + ${n} =`,n:m+n},{q:`Ahora queda ${P(b,m+n)} : ${P(b,c)}. ¿Qué hago con los exponentes?`,o:["Restarlos","Sumarlos","Dividirlos"]},{q:`${m+n} − ${c} =`,n:r},{fin:P(b,r)}]}
+  let k=0,fails=0;const lines=[];
+  const draw=()=>{const s=steps[k];box.innerHTML=`<h2 style="margin:0 0 4px">${title}</h2><p class="qtext" style="font-size:1.4rem;margin:4px 0">${expr} = ?</p>
+    <div class="small" style="margin:6px 0">${lines.map(l=>`<div>✓ ${l}</div>`).join("")}</div>
+    ${s.fin?`<div class="fb ok"><strong>${expr} = ${s.fin}</strong>¡Así se hace! Una regla cada vez: base igual, y los exponentes según la operación.</div><button class="btn" id="rpend">Seguir</button>`
+      :`<p class="qtext" style="margin:8px 0">${s.q}</p>${s.o?`<div class="opts">${shuffle(s.o).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="rpf"><input id="rpi" inputmode="numeric" autocomplete="off" style="width:6ch"><button class="btn small">Comprobar</button></form>`}<div id="rpfb"></div>`}`;
+    if(s.fin){$("#rpend").addEventListener("click",()=>{logEvent({evento:"receta de potencias",materia:"Mates: potencias",sub:tipo+" · "+expr+" · fallos en los pasos: "+fails});onDone(fails<=1)});return}
+    const good=()=>{lines.push(s.q.replace(/<[^>]+>/g,"")+" → "+(s.o?s.o[0]:s.n));k++;beep(784,.1);draw()};
+    const bad=()=>{fails++;$("#rpfb").innerHTML=`<div class="fb ko"><strong>Casi.</strong>${s.o?"Piensa: ¿qué pone en la regla? Prueba otra vez.":"Revisa la cuenta."}</div>`};
+    if(s.o)box.querySelectorAll("[data-o]").forEach(x=>x.addEventListener("click",()=>{if(x.dataset.o===s.o[0])good();else{x.disabled=true;x.classList.add("wrong");bad()}}));
+    else{$("#rpi").focus();$("#rpf").addEventListener("submit",e=>{e.preventDefault();if(+$("#rpi").value===s.n)good();else{$("#rpi").value="";bad()}})}};draw()}
+/* ---------- 3. Primer intento = el que mide · 4. Poca batería ---------- */
+function tagResult(r){try{if(/2º intento|repaso con calma/.test(r.sub||""))r.practica=true;
+  else if((r.key==="rocas"||String(r.key).startsWith("ex-"))&&results.some(x=>x.key===r.key&&Date.now()-x.ts<30*60e3))r.practica=true;
+  if(r.practica&&!/práctica/.test(r.sub||""))r.sub=(r.sub||"")+" · práctica (repite enseguida)";
+  const est=LS.get("estado",null);if(est&&est.d===todayStr()&&est.low&&Date.now()-est.ts<90*60e3){r.bateria="baja";r.sub=(r.sub||"")+" · con poca batería"}}catch(e){}return r}
+/* ---------- 5. Víspera del examen: arrancar con lo que domina, repasar lo flojo y terminar con el examen de práctica ---------- */
+const EX_TEMA_ACT={bio:{"Capas de la atmósfera":"ficha-atmosfera","Composición del aire":"ficha-atmosfera","Capas de la Tierra":"ficha-tierra","Subsistemas":"ficha-tierra","Minerales":"ficha-minerales","Propiedades":"ficha-minerales","Rocas por foto":"rocas","El ciclo de las rocas":"ficha-rocas","Efecto invernadero":"ficha-contaminacion","Capa de ozono":"ficha-contaminacion","Lluvia ácida":"ficha-contaminacion"},
+  mat:{"MCD y mcm":"mcd","Problema MCD/mcm":"tipo","Redondeo":"redondeo","Combinadas":"combinadas","Problema con enteros":"problemas","Potencias":"diag:mat3","Ordenar enteros":"diag:mat2","Criterios":"diag:mat1"}};
+const ACT_LABEL={"ficha-atmosfera":"la atmósfera y sus capas","ficha-tierra":"la Tierra: capas y subsistemas","ficha-minerales":"los minerales","rocas":"las rocas por foto","ficha-rocas":"el ciclo de las rocas","ficha-contaminacion":"contaminación, ozono y efecto invernadero","mcd":"MCD y mcm","tipo":"¿MCD o mcm?","redondeo":"el redondeo","combinadas":"las combinadas","problemas":"los problemas con negativos","diag:mat3":"las potencias","diag:mat2":"los enteros","diag:mat1":"los criterios"};
+function eveBlocks(s,ds){const k="eve:"+s+":"+ds;const c=LS.get(k,null);if(c)return c;const out=[];
+  // lo que ya domina (≥75 % en su último resultado), para empezar con buen pie
+  const strong=[];(SUBJ_UNITS[s]||[]).forEach(u=>{const r=results.find(x=>x.key===u&&x.temas&&!x.practica);if(!r)return;Object.entries(r.temas).forEach(([t,v])=>{if(v.total&&v.ok/v.total>=.75)strong.push([u,t])})});
+  if(strong.length){const u=strong[0][0];out.push([s,"Para arrancar: lo que ya dominas",4,"diag:"+u,1,{temas:strong.filter(x=>x[0]===u).map(x=>x[1]),n:4}])}
+  // lo flojo del último o los dos últimos exámenes de práctica (media < 60 %)
+  const exs=results.filter(r=>r.key==="ex-"+s&&r.temas).slice(0,2);const agg={};exs.forEach(r=>Object.entries(r.temas).forEach(([t,v])=>{agg[t]=agg[t]||[0,0];agg[t][0]+=v.ok;agg[t][1]+=v.total}));
+  const weak=Object.entries(agg).filter(([t,v])=>v[1]&&v[0]/v[1]<.6).sort((a,b)=>a[1][0]/a[1][1]-b[1][0]/b[1][1]);const acts=[];
+  weak.forEach(([t])=>{const a=(EX_TEMA_ACT[s]||{})[t];if(a&&!acts.includes(a))acts.push(a)});
+  if(!acts.length&&!EX_TEMA_ACT[s]){const u=(SUBJ_UNITS[s]||[]).map(u=>[u,results.find(x=>x.key===u&&!x.practica)]).filter(x=>x[1]).sort((a,b)=>a[1].ok/a[1].total-b[1].ok/b[1].total)[0];if(u)acts.push("diag:"+u[0])}
+  acts.slice(0,2).forEach(a=>out.push([s,"Repaso antes del examen: "+(ACT_LABEL[a]||"lo que falla"),8,a,1,a.startsWith("diag:")?{fallos:true}:a==="rocas"?{}:{}]));
+  if(results.length)LS.set(k,out);return out}
+function eveSubject(ds){const nx=EXAMS.find(e=>examDays(e.s,ds)===1);return nx?nx.s:null}
+/* Orden dentro de cada tanda la víspera: arrancar → repasos → examen de práctica / simulacro al final */
+function eveRank(b){if(/^Para arrancar/.test(b[1]))return 0;if(/^(ex-|sim:)/.test(b[3]||""))return 3;if(/^Repaso antes del examen/.test(b[1]))return 1;return 2}
+/* Añade los bloques de la víspera al plan de hoy sin tocar los que ya hay (se añaden al final: no cambian los números de los bloques hechos) */
+function eveAugment(d){const s=eveSubject(d.d);if(!s)return;const add=eveBlocks(s,d.d);const T=Math.min(...d.b.map(b=>b[6]||1));
+  add.forEach(m=>{if(d.b.some(b=>b[1]===m[1]||(b[3]===m[3]&&!/^diag:/.test(m[3]))))return;const nb=m.concat([T]);nb.mand=true;d.b.push(nb)})}
 
 /* ---------- Problemas con negativos, escribiendo la operación ---------- */
 const PROBS=[
@@ -3057,6 +3163,7 @@ function mandatory(ds){const d=PLAN.find(p=>p.d===ds);if(!d)return [];const out=
    if(ds<"2026-11-13"&&day%3===0)out.push(["len","Tarjetas de Lengua: repaso corto",5,"tarjetas-len",1,{}])}
   /* Víspera de examen: solo lo de ese examen y repasos ligeros */
   const nx=EXAMS.find(e=>examDays(e.s,ds)===1);
+  if(nx)try{eveBlocks(nx.s,ds).forEach(m=>out.push(m))}catch(e){}
   if(nx)return out.filter(m=>m[0]===nx.s||m[3]==="verbs"&&nx.s==="ing").filter(m=>!(m[5]&&m[5].nivel));
   return out}
 function injectMandatory(v,d,ds){const M=mandatory(ds);const tc=tandaCaps(d);const T=Object.keys(tc).map(Number);const used={};v.b.forEach(b=>{used[b[6]]=(used[b[6]]||0)+b[2]});

@@ -1124,7 +1124,7 @@ function viewQuiz(key){
       <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${esc(q.q)}${q.n!==undefined&&!q.o&&/[×:−+]/.test(q.q)?" =":""}</p>${q.o?listenBtn("qlisten"):""}</div>${qImg(q)}
       ${q.wr&&!state.fixing?`<p class="small muted" style="margin:0">Escríbela tú, sin opciones: así te lo preguntarán en el examen.</p><form class="numin" id="wf"><input id="win" class="txtin" autocomplete="off" spellcheck="false" aria-label="Tu respuesta" style="max-width:none;flex:1"><button class="btn">Comprobar</button></form>`
         :q.opts?`<div class="opts" id="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`
-        :`<form class="numin" id="nf"><input id="nin" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Comprobar</button></form>`}`}
+        :`<form class="numin" id="nf"><input id="nin" inputmode="${q.n<0?"text":"numeric"}" autocomplete="off" aria-label="Tu respuesta"${q.n<0||/[−-]\s*\d|\(−/.test(q.q)?' data-keys="−"':""}><button class="btn">Comprobar</button></form>`}`}
       <div id="fb"></div><div id="fix"></div>
       <div class="row" id="after"><button class="idk" id="idk">No lo sé</button></div>
     </section></div>`;
@@ -1157,8 +1157,8 @@ function viewQuiz(key){
     if(q.o){const re=shuffle(q.o);{const op0=$("#opts");if(op0)op0.hidden=true;const wf0=$("#wf");if(wf0)wf0.hidden=true}
       $("#fix").innerHTML=(rq?`<div class="row"><button class="btn" id="qred">${posMastered()?"Hazlo paso a paso con este número":"Practica primero las posiciones"}</button></div>`:"")+`<p class="small"><b>Lee la explicación y elige ahora la respuesta correcta para seguir:</b></p><div class="opts">${re.map(o=>`<button class="opt">${esc(o)}</button>`).join("")}</div>`+(pure?"":profeHtml("profe-q"));
       $("#fix").querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{if(b.textContent===right){b.classList.add("right");$("#fix").querySelectorAll(".opt").forEach(x=>x.disabled=true);beep(784,.12);showNext()}else{b.classList.add("wrong");b.disabled=true;autoHelp()}}))}
-    else{$("#fix").innerHTML=`<p class="small"><b>Escribe ahora el resultado correcto para seguir:</b></p><form class="numin" id="ff"><input id="fin" inputmode="numeric" autocomplete="off" aria-label="Resultado correcto"><button class="btn">OK</button></form>`+(pure?"":profeHtml("profe-q"));
-      $("#fin").focus();$("#ff").addEventListener("submit",e=>{e.preventDefault();if(+$("#fin").value.replace(/[^0-9]/g,"")===q.n){$("#fin").disabled=true;beep(784,.12);showNext()}else{$("#fin").value="";autoHelp()}})}
+    else{$("#fix").innerHTML=`<p class="small"><b>Escribe ahora el resultado correcto para seguir:</b></p><form class="numin" id="ff"><input id="fin" inputmode="${q.n<0?"text":"numeric"}" autocomplete="off" aria-label="Resultado correcto"${q.n<0?' data-keys="−"':""}><button class="btn">OK</button></form>`+(pure?"":profeHtml("profe-q"));
+      $("#fin").focus();$("#ff").addEventListener("submit",e=>{e.preventDefault();if(nInt($("#fin").value)===q.n){$("#fin").disabled=true;beep(784,.12);showNext()}else{$("#fin").value="";autoHelp()}})}
     if(!pure)bindProfe("profe-q",D.title+" · "+q.t,()=>`Pregunta: ${q.q} | Respuesta correcta: ${right} | Ha contestado: ${res==="ns"?"No lo sé":(state.pick||"?")} | Explicación de la app: ${q.e||""}`+(key==="mat3"?" | Eres su profesor sentado a su lado: dile en 2 o 3 frases muy cortas qué regla ha fallado (por ejemplo, si ha sumado los exponentes cuando había que restarlos), con un ejemplo pequeño, y termina con UNA pregunta corta. Ahora le saldrá un ejercicio parecido.":""));
     if(!pure&&key==="mat3"&&!q.puente){const pb=document.getElementById("profe-q");state.tutN=state.tutN||0;if(pb&&pb._ask&&state.tutN<3){state.tutN++;pb._onReply=r=>{if(tutVoz())speak(r.replace(/\*\*/g,""))};pb._open();pb._ask(res==="ns"?"No lo sé. ¿Me lo explicas?":"Me he equivocado. ¿Qué regla he fallado?");logEvent({evento:"profe en tiempo real",materia:"Mates: potencias",sub:q.t+" · "+q.q+" · eligió: "+(res==="ns"?"No lo sé":state.pick||"?")})}}
     const qrd=$("#qred");if(qrd)qrd.addEventListener("click",()=>openRedondeoWith(rq,curHash));
@@ -1175,7 +1175,7 @@ function viewQuiz(key){
     const val=q.opts[+b.dataset.o];const ok=val===q.o[0];state.pick=val;
     $("#opts").querySelectorAll(".opt").forEach(x=>{x.disabled=true});
     b.classList.add(ok?"right":"wrong");finish(ok?"ok":"ko")}))}
-  else{$("#nin").focus();$("#nf").addEventListener("submit",e=>{e.preventDefault();const v=$("#nin").value.replace(/[^0-9]/g,"");if(!v)return;$("#nin").disabled=true;finish(+v===q.n?"ok":"ko")})}
+  else{$("#nin").focus();$("#nf").addEventListener("submit",e=>{e.preventDefault();const raw=$("#nin").value.trim();if(!raw)return;$("#nin").disabled=true;finish(nInt(raw)===q.n?"ok":"ko")})}
   $("#idk").addEventListener("click",()=>{const op1=$("#opts");if(op1)op1.querySelectorAll(".opt").forEach(x=>{x.disabled=true});const wi1=$("#win");if(wi1)wi1.disabled=true;finish("ns")});
 }
 function stuckCard(key,D,q){const right=q.o[0];const ex=EXPL[q.q]||esc(q.e||"");
@@ -1297,7 +1297,7 @@ function viewVerbs(){
 /* Acepta el número (6) o la multiplicación de factores (2x3, 2·3, 2²·3, 2^2*3, «2·3 = 6») */
 function prodVal(str){let t=String(str).trim();if(t.includes("="))t=t.split("=").pop();const sup={"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9"};
   t=t.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g,m=>"^"+m.split("").map(c=>sup[c]).join("")).replace(/\s+/g,"").replace(/[x×X·*]/g,"*");
-  if(/^\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,"");else t=t.replace(/\./g,"*");
+  if(/^\d{1,3}([.,]\d{3})+$/.test(t))t=t.replace(/[.,]/g,"");else t=t.replace(/[.,]/g,"*");
   if(!/^\d+(\^\d+)?(\*\d+(\^\d+)?)*$/.test(t))return 0;return t.split("*").reduce((acc,f)=>{const [b,e]=f.split("^");return acc*Math.pow(+b,e?+e:1)},1)}
 const PAIRS=[[12,18],[36,84],[30,45],[24,36],[20,30],[40,60],[18,27],[50,75],[16,24],[42,56],[60,90],[150,180],[28,42],[48,72],[10,15],[36,30],[84,30]];
 const CRIT={2:"Se puede dividir entre 2 si acaba en 0, 2, 4, 6 u 8.",3:"Entre 3 si al sumar sus cifras sale 3, 6, 9, 12, 15…",5:"Entre 5 si acaba en 0 o en 5.",7:"Entre 7: prueba a dividir. Si no sale ninguno de los otros, prueba el 7."};
@@ -1315,12 +1315,12 @@ function viewMCD(){
   }else if(m.phase==="mcd"){
     step=`<p class="fact">${A} = ${factStr(fA)}<br>${B} = ${factStr(fB)}</p>
       <div class="recipe"><b>MCD:</b> factores <b>comunes</b> (los que están en los dos) con el exponente <b>más pequeño</b>.</div>
-      <form class="numin" id="qf"><label for="qin" class="fact">MCD =</label><input id="qin" inputmode="numeric" autocomplete="off"><button class="btn">Comprobar</button></form>
+      <form class="numin" id="qf"><label for="qin" class="fact">MCD =</label><input id="qin" autocomplete="off" data-keys="^ ·"><button class="btn">Comprobar</button></form>
       <div class="row"><button class="btn ghost small" id="hint">Ayuda</button></div><div id="mfb"></div>`;
   }else if(m.phase==="mcm"){
     step=`<p class="fact">${A} = ${factStr(fA)}<br>${B} = ${factStr(fB)}</p>
       <div class="recipe"><b>mcm:</b> <b>todos</b> los factores (comunes y no comunes) con el exponente <b>más grande</b>.</div>
-      <form class="numin" id="qf"><label for="qin" class="fact">mcm =</label><input id="qin" inputmode="numeric" autocomplete="off"><button class="btn">Comprobar</button></form>
+      <form class="numin" id="qf"><label for="qin" class="fact">mcm =</label><input id="qin" autocomplete="off" data-keys="^ ·"><button class="btn">Comprobar</button></form>
       <div class="row"><button class="btn ghost small" id="hint">Ayuda</button></div><div id="mfb"></div>`;
   }else{
     step=`<div class="fb ok"><strong>¡Receta completa!</strong>MCD(${A}, ${B}) = ${mcdVal(fA,fB)} · mcm(${A}, ${B}) = ${mcmVal(fA,fB)}</div>
@@ -1611,7 +1611,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-14.4";
+const APP_VERSION="2026-11-14.7";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -2059,12 +2059,12 @@ function viewSim(s){if(!SIMU[s])return go("inicio");const a=$("#app");
   a.innerHTML=`<div data-s="${s}" class="wrap" style="gap:16px"><div class="qhead"><button class="back" data-go="inicio">← Pausar (se guarda)</button><span class="small muted">${st.i+1} de ${qs.length}</span></div>
     <div class="prog" aria-hidden="true">${qs.map((x,j)=>`<i class="${j<st.i?"done":j===st.i?"cur":""}"></i>`).join("")}</div>
     <section class="card"><span class="qtag">Simulacro · ${SNAME[s]} · sin correcciones hasta el final</span><p class="qtext">${esc(q.q)}${q.n!==undefined&&/[×:−]/.test(q.q)?" =":""}</p>${qImg(q)}
-    ${q.opts?`<div class="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="sf"><input id="sin" inputmode="numeric" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Siguiente</button></form>`}
+    ${q.opts?`<div class="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="sf"><input id="sin" ${q.n<0?'data-keys="−" ':""}inputmode="${q.n<0?"text":"numeric"}" autocomplete="off" aria-label="Tu respuesta"><button class="btn">Siguiente</button></form>`}
     <div class="row"><button class="idk" id="sidk">No lo sé</button></div></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
   const next=(v,ok,ns)=>{st.ans.push({v,ok,ns:!!ns});st.i++;viewSim(s)};
   if(q.opts)a.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{const v=q.opts[+b.dataset.o];next(v,v===q.o[0])}));
-  else{$("#sin").focus();$("#sf").addEventListener("submit",e=>{e.preventDefault();const v=$("#sin").value.replace(/[^0-9]/g,"");if(!v)return;next(v,+v===q.n)})}
+  else{$("#sin").focus();$("#sf").addEventListener("submit",e=>{e.preventDefault();const v=$("#sin").value.trim();if(!v)return;next(v,nInt(v)===q.n)})}
   $("#sidk").addEventListener("click",()=>next("",false,true))}
 
 /* Esquemas dentro de las fichas y fichas de Historia */
@@ -2582,7 +2582,7 @@ function cbKey(T){return T.map(x=>x.t==="n"?String(x.v):x.t==="o"?"(":x.t==="c"?
 function cbClone(T){return T.map(x=>Object.assign({},x))}
 function cbReach(T,depth){const seen=new Map();let fr=[T];for(let d=1;d<=depth;d++){const nf=[];fr.forEach(S=>cbValid(S).forEach(i=>{const N=cbClone(S);const r=cbCalc(N[i-1].v,N[i].v,N[i+1].v);if(!Number.isInteger(r))return;N.splice(i-1,3,{t:"n",v:r});cbCollapse(N);const k=cbKey(N);if(!seen.has(k)){seen.set(k,d);nf.push(N)}}));fr=nf}return seen}
 function cbValue(T){let S=cbClone(T),g=0;while(S.length>1&&g++<60){const v=cbValid(S);if(!v.length)return NaN;const i=v[0];const r=cbCalc(S[i-1].v,S[i].v,S[i+1].v);S.splice(i-1,3,{t:"n",v:r});cbCollapse(S)}return S.length===1&&S[0].t==="n"?S[0].v:NaN}
-function cbParseTyped(s){s=s.replace(/^\s*=\s*/,"").replace(/[·x×X]/g,"*").replace(/[:÷]/g,"/").replace(/[−–—]/g,"-").replace(/\s+/g,"").replace(/\./g,"");
+function cbParseTyped(s){s=s.replace(/(\d)[.,](?=\d{3}(?!\d))/g,"$1").replace(/^\s*=\s*/,"").replace(/[·x×X]/g,"*").replace(/[:÷]/g,"/").replace(/[−–—]/g,"-").replace(/\s+/g,"").replace(/\./g,"");
   if(!s||!/^[-+*/()\[\]0-9]+$/.test(s))return null;let d=0;for(const ch of s){if("([".includes(ch))d++;if(")]".includes(ch))d--;if(d<0)return null}if(d)return null;
   const T=cbTok(s);for(let i=0;i<T.length;i++){const x=T[i],p=T[i-1];if(x.t==="op"&&(!p||p.t==="op"||p.t==="o"))return null;if(x.t==="n"&&p&&(p.t==="n"||p.t==="c"))return null}return T}
 function cbPlain(T){return cbHtml(T).replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim()}
@@ -2681,7 +2681,7 @@ function tutorIntervene(c,x,linea,escrito){const box=$("#tutor");if(!box)return;
         if(ok){beep(784,.12);setTimeout(()=>{const i=$("#cwin");if(i)i.focus()},400)}const m=$("#bmore");if(m)m.addEventListener("click",()=>show(tutBridge(x.tipo),k+1))};
       if(B.o)bz.querySelectorAll("[data-bo]").forEach(b=>b.addEventListener("click",()=>{bz.querySelectorAll("[data-bo]").forEach(z=>z.disabled=true);const ok=b.dataset.bo===B.o[0];b.classList.add(ok?"right":"wrong");done(ok)}));
       else{const inp=$("#bin");$("#bpm").addEventListener("click",()=>{inp.value=inp.value.startsWith("-")||inp.value.startsWith("−")?inp.value.slice(1):"-"+inp.value;inp.focus()});
-        $("#bf").addEventListener("submit",e=>{e.preventDefault();const v=parseInt(inp.value.replace(/[−–]/g,"-").replace(/[^\d-]/g,""),10);if(isNaN(v))return;inp.disabled=true;done(v===B.n)})}};
+        $("#bf").addEventListener("submit",e=>{e.preventDefault();const v=nInt(inp.value);if(isNaN(v))return;inp.disabled=true;done(v===B.n)})}};
     show(br,0)}
   // el profe (IA) explica y pregunta
   if(pb&&pb._ask&&c.tutN<TUT_MAX&&x.tipo!=="otro"){c.tutN++;pb._open();
@@ -2720,44 +2720,49 @@ function isPrime(n){if(n<2)return false;for(let k=2;k*k<=n;k++)if(n%k===0)return
 const SUPN={"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","⁻":"-"};
 function supToCaret(s){return String(s).replace(/([⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+)/g,m=>"^"+m.split("").map(c=>SUPN[c]).join(""))}
 /* «2^2·3», «2²·3», «2x2x3» → valor y si todos los factores son primos */
-function factParse(s){let t=supToCaret(String(s).replace(/=.*$/,"").trim()).replace(/\s+/g,"");if(!t)return null;const parts=t.split(/[·x×*.]/);let v=1,primes=true;
+function factParse(s){let t=supToCaret(String(s).replace(/=.*$/,"").trim()).replace(/\s+/g,"");if(!t)return null;const parts=t.split(/[·x×X*.,]/);let v=1,primes=true;
   for(const p of parts){const m=p.match(/^(\d+)(?:\^(\d+))?$/);if(!m)return null;const b=+m[1],e=m[2]?+m[2]:1;if(!isPrime(b))primes=false;v*=Math.pow(b,e)}return {v,primes}}
 /* «7^5», «7⁵», «(−2)^5» → "7^5" normalizado */
-function powNorm(s){let t=supToCaret(String(s)).replace(/[−–]/g,"-").replace(/\s+/g,"").replace(/=.*$/,"");const m=t.match(/^\(?(-?\d+)\)?\^(-?\d+)$/);if(!m)return null;return m[1]+"^"+m[2]}
-function nInt(s){const t=String(s||"").replace(/[−–]/g,"-").replace(/\./g,"").replace(/\s+/g,"");return /^-?\d+$/.test(t)?parseInt(t,10):NaN}
+function powNorm(s){let t=supToCaret(String(s)).replace(/[−–]/g,"-").replace(/[·*x×]/g,"").replace(/\s+/g,"").replace(/=.*$/,"");const m=t.match(/^\(?(-?\d+)\)?\^(-?\d+)$/);if(!m)return null;return m[1]+"^"+m[2]}
+/* Números como se escriben en España: punto o coma para los miles (8.848 / 8,848) y coma decimal (4,5) */
+function nNum(s){let t=String(s||"").replace(/[−–]/g,"-").replace(/\s+/g,"");if(!t)return NaN;
+  if(/^-?\d{1,3}([.,]\d{3})+$/.test(t))t=t.replace(/[.,]/g,"");else if(/^-?\d{1,3}(\.\d{3})+,\d+$/.test(t))t=t.replace(/\./g,"").replace(",",".");else t=t.replace(",",".");return /^-?\d+(\.\d+)?$/.test(t)?parseFloat(t):NaN}
+function nInt(s){const v=nNum(s);return Number.isInteger(v)?v:NaN}
 function chkScore(k,v){v=String(v||"").trim();if(!v||!k)return 0;switch(k.t){
   case "near":return near(v,k.v)?1:0;case "eq":return v===k.v?1:0;case "int":return nInt(v)===k.v?1:0;case "intin":return k.v.includes(nInt(v))?1:0;
   case "abs":return Math.abs(nInt(v)-k.v)<=(k.tol||0)?1:0;case "fact":{const f=factParse(v);return f&&f.v===k.v&&f.primes?1:0}
   case "pow":{const a=powNorm(v);return a&&a===powNorm(k.v)?1:0}
   case "near2":{const a=nrm(v);return k.v.some(o=>{const b=nrm(o);return a===b||(b.length>=4&&lev(a,b)<=Math.max(1,Math.floor(b.length/4)))})?1:0}
   case "enx":return enOk(v,k.v,false)?1:0;case "env":return enOk(v,k.v,true)?1:0;
+  case "factint":{const n=nInt(v);if(!isNaN(n))return n===k.v?1:0;const f=factParse(v);return f&&f.v===k.v?1:0}
   case "orden":{const a=v.replace(/[−–]/g,"-").split(/[;,\s<]+/).filter(Boolean).map(Number);if(a.length!==k.v.length||a.some(isNaN))return 0;const ok=a.filter((x,j)=>x===k.v[j]).length;return ok===a.length?1:ok>=a.length-2?.5:0}}return 0}
 
 /* ---------- Generadores ---------- */
 function exMat(){const it=[];
   {const S=shuffle([[84,36,30],[60,90,48],[24,36,60],[72,48,40],[50,75],[150,180],[42,56,70],[18,24,30]])[0];const g=S.reduce((a,b)=>{while(b){[a,b]=[b,a%b]}return a});const l=S.reduce((a,b)=>{let x=a,y=b;while(y){[x,y]=[y,x%y]}return a*b/x});
    it.push({id:"m1",tema:"MCD y mcm",pts:1.5,enun:`Realiza la descomposición en factores primos y calcula el MCD y el mcm de <b>${S.join(", ")}</b>.`,
-    campos:S.map(n=>({l:n+" =",ph:"p. ej. 2²·3",w:.75/S.length,chk:{t:"fact",v:n},sol:factorStr(n)})).concat([{l:"MCD =",w:.375,chk:{t:"int",v:g},sol:String(g)},{l:"mcm =",w:.375,chk:{t:"int",v:l},sol:String(l)}])})}
+    campos:S.map(n=>({l:n+" =",ph:"p. ej. 2^2·3",keys:"^ ·",w:.75/S.length,chk:{t:"fact",v:n},sol:factorStr(n)})).concat([{l:"MCD =",keys:"^ ·",w:.375,chk:{t:"factint",v:g},sol:String(g)},{l:"mcm =",keys:"^ ·",w:.375,chk:{t:"factint",v:l},sol:String(l)}])})}
   {const C=[];const mk=()=>{const T=shuffle([["9",n=>n%9===0],["3",n=>n%3===0],["11",n=>{const d=String(n).split("").map(Number);let a=0,b=0;d.forEach((x,i)=>(i%2?b+=x:a+=x));return (a-b)%11===0}],["4",n=>n%4===0],["25",n=>n%25===0],["2 y 3 a la vez",n=>n%6===0]]);
      return T.slice(0,4).map(([k,f])=>{let base,pos,valid;for(let g=0;g<200;g++){const len=rnd(3,5);base=String(rnd(Math.pow(10,len-1),Math.pow(10,len)-1));pos=k==="4"||k==="25"?len-2+rnd(0,1):rnd(1,len-1);valid=[];for(let dg=0;dg<10;dg++){const n=+(base.slice(0,pos)+dg+base.slice(pos+1));if(f(n))valid.push(dg)}if(valid.length&&valid.length<10)break}
        return {l:`${base.slice(0,pos)}_${base.slice(pos+1)} sea ${/^\d+$/.test(k)?"divisible por "+k:"múltiplo de "+k}`,w:.25,chk:{t:"intin",v:valid},sol:valid.join(" o ")}})};
    it.push({id:"m2",tema:"Criterios",pts:1,enun:"Completa el hueco con una cifra para que se cumpla la condición.",campos:mk()})}
   {const P=[["unidad de millón",1e6],["decena de millar",1e4],["centena de millar",1e5],["millar",1e3],["centena",100]];const two=shuffle(P).slice(0,2);
    it.push({id:"m3",tema:"Redondeo",pts:1,enun:"Redondea.",campos:two.map(([nm,p])=>{const n=rnd(p*10+1,p*1000-1)+rnd(1,p-1);const r=Math.round(n/p)*p;return {l:`${n.toLocaleString("es-ES")} a la <b>${nm}</b>`,w:.5,chk:{t:"int",v:r},sol:r.toLocaleString("es-ES")}})})}
-  {const T=[()=>{const g=rnd(2,6)*5,a=g*rnd(3,7),b=g*rnd(4,9);const G=gcd(a,b);return {q:`Una pastelería tiene ${a} pasteles de limón y ${b} de fresa. Quiere repartirlos en bandejas iguales, todas con la misma cantidad y sin mezclar sabores. ¿Cuántos pasteles caben como máximo en cada bandeja?`,ans:G,u:"pasteles",t:"MCD"}},
-     ()=>{const a=rnd(2,6)*10,b=rnd(3,9)*5;const L=a*b/gcd(a,b);return {q:`Dos autobuses salen a la vez de la estación. Uno tarda ${a} minutos en hacer su recorrido y el otro ${b} minutos. ¿Dentro de cuántos minutos volverán a coincidir en la estación?`,ans:L,u:"minutos",t:"mcm"}},
-     ()=>{const a=rnd(2,5)*6,b=rnd(2,6)*4;const G=gcd(a,b);return {q:`Tenemos dos cuerdas de ${a} m y ${b} m. Queremos cortarlas en trozos iguales, lo más largos posible, sin que sobre nada. ¿Cuánto medirá cada trozo?`,ans:G,u:"m",t:"MCD"}},
-     ()=>{const a=rnd(2,4)*4,b=rnd(2,5)*3,c=rnd(1,3)*5;const L=[a,b,c].reduce((x,y)=>x*y/gcd(x,y));return {q:`Tres luces se encienden: la roja cada ${a} segundos, la azul cada ${b} y la verde cada ${c}. Si se encienden juntas ahora, ¿dentro de cuántos segundos volverán a encenderse las tres a la vez?`,ans:L,u:"segundos",t:"mcm"}}];
+  {const T=[()=>{const [a,b]=goodPair(()=>{const g=rnd(2,6)*5;return [g*rnd(3,7),g*rnd(4,9)]});const G=gcd(a,b);return {q:`Una pastelería tiene ${a} pasteles de limón y ${b} de fresa. Quiere repartirlos en bandejas iguales, todas con la misma cantidad y sin mezclar sabores. ¿Cuántos pasteles caben como máximo en cada bandeja?`,ans:G,u:"pasteles",t:"MCD"}},
+     ()=>{const [a,b]=goodPair(()=>[rnd(2,6)*10,rnd(3,9)*5]);const L=a*b/gcd(a,b);return {q:`Dos autobuses salen a la vez de la estación. Uno tarda ${a} minutos en hacer su recorrido y el otro ${b} minutos. ¿Dentro de cuántos minutos volverán a coincidir en la estación?`,ans:L,u:"minutos",t:"mcm"}},
+     ()=>{const [a,b]=goodPair(()=>[rnd(2,5)*6,rnd(2,6)*4]);const G=gcd(a,b);return {q:`Tenemos dos cuerdas de ${a} m y ${b} m. Queremos cortarlas en trozos iguales, lo más largos posible, sin que sobre nada. ¿Cuánto medirá cada trozo?`,ans:G,u:"m",t:"MCD"}},
+     ()=>{let a,b,c;for(let k=0;k<200;k++){a=rnd(2,4)*4;b=rnd(2,5)*3;c=rnd(1,3)*5;const v=[a,b,c];if(new Set(v).size===3&&!v.some(x=>v.some(y=>x!==y&&y%x===0)))break}const L=[a,b,c].reduce((x,y)=>x*y/gcd(x,y));return {q:`Tres luces se encienden: la roja cada ${a} segundos, la azul cada ${b} y la verde cada ${c}. Si se encienden juntas ahora, ¿dentro de cuántos segundos volverán a encenderse las tres a la vez?`,ans:L,u:"segundos",t:"mcm"}}];
    const P=shuffle(T)[0]();it.push({id:"m4",tema:"Problema MCD/mcm",pts:1.5,enun:P.q,campos:[{l:"¿MCD o mcm?",w:.5,chk:{t:"eq",v:P.t},sol:P.t,opts:["MCD","mcm"]},{l:"Solución ("+P.u+")",w:1,chk:{t:"int",v:P.ans},sol:P.ans+" "+P.u}]})}
   {const L=[];while(L.length<6){const x=rnd(-15,15);if(!L.includes(x))L.push(x)}const s=L.slice().sort((a,b)=>a-b);
-   it.push({id:"m5",tema:"Ordenar enteros",pts:.75,enun:`Ordena de <b>menor a mayor</b>: ${shuffle(L).map(fmtZ).join(" ; ")}`,campos:[{l:"De menor a mayor",ph:"separa con ; o espacios",w:.75,chk:{t:"orden",v:s},sol:s.map(fmtZ).join(" < ")}]})}
+   it.push({id:"m5",tema:"Ordenar enteros",pts:.75,enun:`Ordena de <b>menor a mayor</b>: ${shuffle(L).map(fmtZ).join(" ; ")}`,campos:[{l:"De menor a mayor",ph:"separa con ; o espacios",w:.75,keys:"− ;",chk:{t:"orden",v:s},sol:s.map(fmtZ).join(" < ")}]})}
   {const E=[cbPick(CB_BANK.examen),cbPick(CB_BANK.facil)];
    it.push({id:"m6",tema:"Combinadas",pts:2,enun:"Resuelve paso a paso. Escribe <b>una línea por renglón</b>, como en el papel.",combis:E})}
-  {const P=shuffle(PROBS)[0];it.push({id:"m7",tema:"Problema con enteros",pts:1,enun:esc(P.q),campos:[{l:"Solución"+(P.u?" ("+P.u+")":""),w:1,chk:{t:"int",v:P.ans},sol:P.sol}]})}
+  {const P=shuffle(PROBS)[0];it.push({id:"m7",tema:"Problema con enteros",pts:1,enun:esc(P.q),campos:[{l:"Solución"+(P.u?" ("+P.u+")":""),w:1,keys:"−",chk:{t:"int",v:P.ans},sol:P.sol}]})}
   {const G=["Producto","Cociente","Potencia de potencia","Mezcla"].map(t=>genPot(t));
-   it.push({id:"m8",tema:"Potencias",pts:1.25,enun:"Expresa como <b>una sola potencia</b> (puedes escribir 7^5).",campos:G.map(g=>({l:g.q,w:1.25/4,chk:{t:"pow",v:g.o[0]},sol:g.o[0]}))})}
+   it.push({id:"m8",tema:"Potencias",pts:1.25,enun:"Expresa como <b>una sola potencia</b> (puedes escribir 7^5).",campos:G.map(g=>({l:g.q,w:1.25/4,keys:"^ ( ) −",chk:{t:"pow",v:g.o[0]},sol:g.o[0]}))})}
   return {s:"mat",title:"Examen de práctica: Matemáticas",sub:"Temas 1, 2 y 3",items:it}}
 function gcd(a,b){while(b){[a,b]=[b,a%b]}return a}
+function goodPair(gen){for(let k=0;k<200;k++){const [a,b]=gen();if(a!==b&&a%b!==0&&b%a!==0&&gcd(a,b)>1)return [a,b]}return [12,18]}
 function factorStr(n){const f={};let m=n,k=2;while(m>1){while(m%k===0){f[k]=(f[k]||0)+1;m/=k}k++}return Object.entries(f).map(([b,e])=>b+(e>1?supT(e):"")).join("·")}
 
 const EX_TIPOS=["Magmática volcánica","Magmática plutónica","Metamórfica","Sedimentaria detrítica","Sedimentaria química","Sedimentaria orgánica"];
@@ -2786,7 +2791,7 @@ function viewExamen(s){const a=$("#app");if(!EXGEN[s])return go("inicio");
   {const bp=takeParams("ex-"+s);if(bp||!state.ex){state.ex=Object.assign(EXGEN[s](),{t0:Date.now(),r:{}});state.ex.gen=true}}
   const X=state.ex;if(X.done)return exResult(s);
   const field=(it,c,k)=>{const id=it.id+"_"+k,v=X.r[id]||"";const src=c.img&&c.img.startsWith("F:")?FIMG[c.img.slice(2)]:c.img;return `${src?`<figure class="rfig" style="max-width:420px"><img src="${src}" alt="Imagen para comentar"><figcaption>Imagen del PDF del colegio</figcaption></figure>`:""}${c.map?`<div class="mapbox" style="max-width:520px">${c.map.kind==="pol"?mapSvg(c.map.mk,{cls:{[c.map.id]:"hl"}}):mapSvg(c.map.mk,{fis:true,hl:c.map.it})}</div>`:""}
-    <label class="exf"><span>${c.l}</span>${c.opts?`<select data-r="${id}"><option value="">—</option>${c.opts.map(o=>`<option${o===v?" selected":""}>${esc(o)}</option>`).join("")}</select>`:`<input class="txtin" data-r="${id}" value="${esc(v)}" placeholder="${esc(c.ph||"")}" autocomplete="off" spellcheck="false">`}</label>`};
+    <label class="exf"><span>${c.l}</span>${c.opts?`<select data-r="${id}"><option value="">—</option>${c.opts.map(o=>`<option${o===v?" selected":""}>${esc(o)}</option>`).join("")}</select>`:`<input class="txtin" data-r="${id}" value="${esc(v)}" placeholder="${esc(c.ph||"")}" autocomplete="off" spellcheck="false"${c.keys?` data-keys="${c.keys}"`:""}>`}</label>`};
   const body=X.items.map((it,n)=>`<section class="card exq"><div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext" style="font-size:1.05rem;margin:0"><b>${n+1}.</b> ${it.enun} <span class="small muted">(${String(it.pts).replace(".",",")} p.)</span></p>${listenBtn("exl"+n)}</div>
     ${it.campos?it.campos.map((c,k)=>field(it,c,k)).join(""):""}
     ${it.combis?it.combis.map((e,k)=>`<p class="qtext" style="margin:8px 0 2px"><b>${String.fromCharCode(97+k)})</b> ${cbPlain(cbTok(e))}</p><textarea class="txtin exta" data-r="${it.id}_c${k}" rows="5" placeholder="= …&#10;= …&#10;= resultado">${esc(X.r[it.id+"_c"+k]||"")}</textarea>`).join(""):""}
@@ -2886,10 +2891,10 @@ function showDrill(key,e,done){const d=e.drill||{};const fin=ok=>{errDone(key,ok
   if(d.t==="pot"){m=modalBox(`${head}<div id="rpz"></div>`);recetaPot(d.tipo,$("#rpz"),ok=>fin(ok));return}
   if(d.t==="cb"){const B=[tutBridge(d.tipo),tutBridge(d.tipo)].filter(Boolean);if(!B.length){done();return}let k=0,ok=0;
     m=modalBox(`${head}<h2>${esc(TUT_NOMBRE[d.tipo]||"Combinadas")}</h2><div class="fb ns"><strong>Recuerda</strong>${esc(d.tipo==="jerarquia"?"Primero paréntesis; después · y : de izquierda a derecha; al final + y −.":d.tipo.startsWith("signo")?"Al multiplicar o dividir: signos iguales → +, distintos → −. Restar un negativo es sumar.":"Haz la cuenta primero sin signos y pon el signo al final.")}</div><div id="drz"></div>`);
-    const one=()=>{if(k>=B.length)return fin(ok===B.length);const b=B[k];const z=$("#drz");z.innerHTML=`<p class="qtext" style="margin:8px 0">${b.q}</p>`+(b.o?`<div class="opts">${shuffle(b.o).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="drf"><input id="dri" inputmode="text" autocomplete="off" style="width:7ch"><button class="btn small">Comprobar</button></form>`)+`<div id="drfb"></div>`;
+    const one=()=>{if(k>=B.length)return fin(ok===B.length);const b=B[k];const z=$("#drz");z.innerHTML=`<p class="qtext" style="margin:8px 0">${b.q}</p>`+(b.o?`<div class="opts">${shuffle(b.o).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div>`:`<form class="numin" id="drf"><input id="dri" inputmode="text" autocomplete="off" style="width:7ch" data-keys="−"><button class="btn small">Comprobar</button></form>`)+`<div id="drfb"></div>`;
       const res=g=>{if(g)ok++;$("#drfb").innerHTML=`<div class="fb ${g?"ok":"ko"}"><strong>${g?"¡Bien!":"Era "+(b.o?esc(b.o[0]):fmtZ(b.n))+"."}</strong>${esc(b.e)}</div><button class="btn small" id="drn">Seguir</button>`;$("#drn").addEventListener("click",()=>{k++;one()})};
       if(b.o)z.querySelectorAll("[data-o]").forEach(x=>x.addEventListener("click",()=>{z.querySelectorAll("[data-o]").forEach(y=>y.disabled=true);res(x.dataset.o===b.o[0])}));
-      else{$("#dri").focus();$("#drf").addEventListener("submit",ev=>{ev.preventDefault();const v=parseInt($("#dri").value.replace(/[−–]/g,"-").replace(/[^\d-]/g,""),10);if(isNaN(v))return;$("#dri").disabled=true;res(v===b.n)})}};one();return}
+      else{$("#dri").focus();$("#drf").addEventListener("submit",ev=>{ev.preventDefault();const v=nInt($("#dri").value);if(isNaN(v))return;$("#dri").disabled=true;res(v===b.n)})}};one();return}
   if(d.t==="q"){const D=DIAG[d.dk];const q=D&&D.qs.find(x=>qkey(x)===d.qk);if(!q||!q.o){done();return}const right=q.o[0];
     m=modalBox(`${head}<h2>Esta se te resiste</h2><p class="qtext">${esc(q.q)}</p><div class="fb ok"><strong>La respuesta es: ${esc(right)}</strong>${EXPL[q.q]||esc(q.e||"")}</div><div class="row">${listenBtn("drl")}<button class="btn" id="drgo" disabled>Léela con calma…</button></div><div id="drz"></div>`);
     $("#drl").addEventListener("click",()=>speak(q.q+" La respuesta es: "+right+". "+(q.e||"")));setTimeout(()=>{const b=$("#drgo");if(b){b.disabled=false;b.textContent="Ahora tú"}},6000);
@@ -3573,6 +3578,14 @@ function tryReload(){const p=LS.get("updPend",null);if(!p)return;if(verCmp(p,APP
 setTimeout(checkUpdate,8000);setInterval(checkUpdate,10*60e3);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 window.addEventListener("hashchange",()=>setTimeout(tryReload,800));
+
+/* ---------- Botones de símbolos (^ · − …) para cualquier casilla de Mates: data-keys="^ · −" ---------- */
+function addMathKeys(root){(root||document).querySelectorAll("input[data-keys]:not([data-kd]),textarea[data-keys]:not([data-kd])").forEach(inp=>{inp.dataset.kd=1;
+  const row=document.createElement("div");row.className="row mkeys";row.style.cssText="gap:6px;margin:4px 0 2px";
+  inp.dataset.keys.split(" ").filter(Boolean).forEach(k=>{const b=document.createElement("button");b.type="button";b.className="chip kb";b.textContent=k;b.setAttribute("aria-label","Escribir "+k);
+    b.addEventListener("click",()=>{const p0=inp.selectionStart!=null?inp.selectionStart:inp.value.length,q0=inp.selectionEnd!=null?inp.selectionEnd:p0;inp.value=inp.value.slice(0,p0)+k+inp.value.slice(q0);inp.focus();try{inp.setSelectionRange(p0+k.length,p0+k.length)}catch(e){}inp.dispatchEvent(new Event("input",{bubbles:true}))});row.appendChild(b)});
+  const host=inp.closest("form.numin")||inp;host.insertAdjacentElement("afterend",row)})}
+try{new MutationObserver(()=>addMathKeys(document.body)).observe(document.body,{childList:true,subtree:true})}catch(e){}
 /* ---------- Temporizador ---------- */
 let tmr=null;
 function startTimer(min,rest){

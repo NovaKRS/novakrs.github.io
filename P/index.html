@@ -1062,17 +1062,17 @@ function viewHome(){
     ${today}
     <section class="exams" aria-label="Cuenta atrás de exámenes">${exams}</section>
     <section class="card"><h2>Simulacros de examen</h2><p class="muted small">Como un examen: sin correcciones hasta el final. Al terminar ves tu nota y repasas los fallos.</p>
-      <div class="tiles">${["bio","mat"].map(s=>{const r=results.find(x=>x.key==="ex-"+s);return `<button class="tile" data-s="${s}" data-go="ex-${s}"><b>${SNAME[s]}: examen de práctica</b><span>Como el del cole: respuestas escritas y nota sobre 10</span>${r?`<span class="st">Última nota: ${(r.ok/10).toLocaleString("es-ES")}</span>`:'<span class="st">Sin hacer</span>'}</button>`}).join("")}${["bio","len","ing","mat","gh"].map(simTile).join("")}</div></section>
+      <div class="tiles">${["bio","mat","ing"].map(s=>{const r=results.find(x=>x.key==="ex-"+s);return `<button class="tile" data-s="${s}" data-go="ex-${s}"><b>${SNAME[s]}: examen de práctica</b><span>Como el del cole: respuestas escritas y nota sobre 10</span>${r?`<span class="st">Última nota: ${(r.ok/10).toLocaleString("es-ES")}</span>`:'<span class="st">Sin hacer</span>'}</button>`}).join("")}${["bio","len","ing","mat","gh"].map(simTile).join("")}</div></section>
     <section class="card"><h2>Pruebas completas por unidad</h2><p class="muted small">15 preguntas, con la explicación de cada fallo. Si no sabes una respuesta, pulsa «No lo sé».</p>
       <div class="tiles">${tile("bio1","diag-bio1")}${tile("bio2","diag-bio2")}${tile("mat0","diag-mat0")}${tile("mat1","diag-mat1")}${tile("ent0","diag-ent0")}${tile("mat2","diag-mat2")}${tile("mat3","diag-mat3")}
-${tile("len1","diag-len1")}${tile("len2","diag-len2")}${tile("ing1","diag-ing1")}${tile("ing2","diag-ing2")}${tile("gh1","diag-gh1")}${tile("gh2","diag-gh2")}</div></section>
+${tile("len1","diag-len1")}${tile("len2","diag-len2")}${tile("ing1","diag-ing1")}${tile("ing2","diag-ing2")}${tile("ing3","diag-ing3")}${tile("ing4","diag-ing4")}${tile("gh1","diag-gh1")}${tile("gh2","diag-gh2")}</div></section>
     <section class="card"><h2>Entrenamientos</h2>
       <div class="tiles">
         <button class="tile" data-s="bio" data-go="fichas"><b>Fichas de estudio</b><span>Resúmenes cortos de Biología y de los temas de Lengua, para leer y dibujar.</span></button>
         <button class="tile" data-s="gh" data-go="mapas"><b>Mapas</b><span>España y Europa: comunidades, países, capitales, ríos, montañas y mares.</span></button>
         <button class="tile" data-s="gh" data-go="tarjetas-gh"><b>Tarjetas de la Prehistoria</b><span>Las palabras clave del tema, para decirlas en voz alta.</span></button>
         <button class="tile" data-s="len" data-go="tarjetas-len"><b>Tarjetas de Lengua</b><span>Las definiciones que entran en el examen.</span></button>
-        <button class="tile" data-s="ing" data-go="tarjetas-hal"><b>Tarjetas de inglés</b><span>Vocabulario de Halloween y phrasal verbs.</span></button>
+        <button class="tile" data-s="ing" data-go="tarjetas-viaje"><b>Vocabulary: travelling</b><span>Viajes (entra en el examen).</span></button><button class="tile" data-s="ing" data-go="tarjetas-casa"><b>Vocabulary: the house</b><span>La casa (entra en el examen).</span></button><button class="tile" data-s="ing" data-go="tarjetas-tareas"><b>Vocabulary: chores</b><span>Tareas de casa (entra en el examen).</span></button><button class="tile" data-s="ing" data-go="tarjetas-phrasal"><b>Phrasal verbs</b><span>Entran en el examen.</span></button><button class="tile" data-s="ing" data-go="tarjetas-hal"><b>Halloween</b><span>No entra en el examen.</span></button>
         <button class="tile" data-s="ing" data-go="historia"><b>Mi historia de miedo</b><span>Escribe tu historia paso a paso con past simple y past continuous.</span></button>
         <button class="tile" data-s="ing" data-go="verbos"><b>Verbos irregulares</b><span>Por familias: aprende, elige o escribe. 10 minutos al día.</span></button>
         <button class="tile" data-s="mat" data-go="tablas"><b>Tablas de multiplicar</b><span>5 minutos al día para ganar soltura. Insiste en las que más cuestan.</span></button>
@@ -1611,7 +1611,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-11.3";
+const APP_VERSION="2026-11-14.2";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -1835,7 +1835,7 @@ function order(d){const drills=[],papa=[],groups={},subs=[];
 function takeParams(target){const bp=LS.get("bp",null);if(!bp||bp.target!==target)return null;LS.set("bp",null);return bp.params||{}}
 
 /* ---------- Plan del día generado por la IA ---------- */
-const AI_TARGETS=["rocas","problemas","posiciones","combinadas","diag:ent0","diag:mat2","diag:mat3","redondeo","oral:lenguas","oral:dialectos","oral:niveles","oral:escritura","oral:tierra","oral:rocas","oral:atmosfera","oral:invernadero","oral:prehistoria","oral:metales","ficha-prehistoria","ficha-metales","sim:bio","sim:len","sim:ing","sim:mat","sim:gh","diag:bio1","diag:bio2","diag:mat0","diag:mat1","diag:len1","diag:len2","diag:ing1","diag:ing2","diag:gh1","diag:gh2","ficha-tierra","ficha-minerales","ficha-rocas","ficha-atmosfera","ficha-tiempo","ficha-contaminacion","ficha-lengua","tarjetas-len","tarjetas-gh","tarjetas-hal","verbs","tablas","mcd","tipo","mapas","historia",""];
+const AI_TARGETS=["ex-bio","ex-mat","ex-ing","diag:ing3","diag:ing4","tarjetas-viaje","tarjetas-casa","tarjetas-tareas","tarjetas-phrasal","rocas","problemas","posiciones","combinadas","diag:ent0","diag:mat2","diag:mat3","redondeo","oral:lenguas","oral:dialectos","oral:niveles","oral:escritura","oral:tierra","oral:rocas","oral:atmosfera","oral:invernadero","oral:prehistoria","oral:metales","ficha-prehistoria","ficha-metales","sim:bio","sim:len","sim:ing","sim:mat","sim:gh","diag:bio1","diag:bio2","diag:mat0","diag:mat1","diag:len1","diag:len2","diag:ing1","diag:ing2","diag:gh1","diag:gh2","ficha-tierra","ficha-minerales","ficha-rocas","ficha-atmosfera","ficha-tiempo","ficha-contaminacion","ficha-lengua","tarjetas-len","tarjetas-gh","tarjetas-hal","verbs","tablas","mcd","tipo","mapas","historia",""];
 const CATALOGO=`ACTIVIDADES (campo "act"):
 - "diag:bio1" prueba Biología: Tierra, minerales y rocas (16 preguntas, ~12 min) · "diag:bio2" prueba atmósfera, tiempo y contaminación (12, ~10 min)
 - "diag:len1" prueba Lengua teoría (17, ~12 min) · "diag:len2" Lengua ejercicios: signos, comunicación, niveles, letra h (17, ~12 min)
@@ -1844,7 +1844,8 @@ const CATALOGO=`ACTIVIDADES (campo "act"):
 - "diag:gh1" Historia: Paleolítico, Neolítico y arte (12, ~10 min) · "diag:gh2" Edad de los Metales y megalitos (12, ~10 min)
   Por defecto, una "diag:" en un bloque es una MINI-PRUEBA de 8 preguntas (~6 min) que empieza por lo que falló. param {"fallos":true} = repaso solo de lo fallado (~6 min). param {"sim":true} = prueba completa / simulacro (los minutos indicados arriba): solo en los 2-3 días antes del examen.
 - "ficha-tierra","ficha-minerales","ficha-rocas","ficha-atmosfera","ficha-tiempo","ficha-contaminacion","ficha-lengua": leer un resumen, hacer un dibujo y terminar con su prueba (15-25 min)
-- "tarjetas-len" definiciones de Lengua · "tarjetas-gh" palabras de Prehistoria · "tarjetas-hal" vocabulario inglés (10-15 min)
+- "tarjetas-len" definiciones de Lengua · "tarjetas-gh" palabras de Prehistoria · "tarjetas-hal" Halloween (NO ENTRA en el examen de Inglés: no lo pongas) (10-15 min)
+- INGLÉS (examen el 16; entra: past simple, past continuous, present perfect, artículos a/an/the, vocabulario de viajes, casa y tareas de casa, phrasal verbs): "diag:ing3" present perfect y artículos · "diag:ing4" vocabulario de viajes, casa, tareas y phrasal verbs · "tarjetas-viaje", "tarjetas-casa", "tarjetas-tareas", "tarjetas-phrasal" (5-10 min) · "ex-ing" EXAMEN DE PRÁCTICA de Inglés con el formato del colegio (20 min)
 - "verbs" verbos irregulares, ronda de 5-11 verbos (~3 min por ronda). param {"fam":id} con id en: no (las 3 iguales), ought, t, d, mix, iau, en1, en2, en3, n, esp, all
 - "tablas" tablas de multiplicar, ronda de 20 (~2,5 min por ronda). param {"t":[números del 2 al 9]}
 - "mcd" ejercicio guiado de MCD y mcm (~8 min por ejercicio) · "tipo" juego ¿MCD o mcm? (10 problemas, ~8 min)
@@ -1902,9 +1903,18 @@ function applyAIPlans(){PLAN.forEach(d=>{const ai=LS.get("aiplan7:"+d.d,null);co
   const started=d.b.some((b,i)=>planDone[d.d+"#"+i]||prog[d.d+"#"+i]);
   if(ai&&!off&&ai.b){if(!d.ai&&started&&!ai.applied)return;d.b=ai.b.filter((x,i)=>!(x[5]&&x[5].nivel&&x[3]&&x[3].startsWith("diag:")&&results.some(r=>r.key===x[3].slice(5)&&isFull(r)&&!sameDay(r.ts,d.d))&&!planDone[d.d+"#"+i])).map(x=>x.slice());d.ai=true;d.nota=ai.nota;if(!ai.applied){ai.applied=true;LS.set("aiplan7:"+d.d,ai)}}
   else{d.b=BASE[d.d].map(x=>x.slice());d.ai=false}
+  if(d.d<="2026-11-16")d.b.forEach((b,i)=>{if(b[3]==="tarjetas-hal"&&!planDone[d.d+"#"+i]){b[3]="tarjetas-viaje";b[1]="Vocabulario: viajes (entra en el examen)"}});
+  if(d.d===todayStr())try{Object.entries(EXD_DAYS).forEach(([sj,dd])=>{if(dd.includes(examDays(sj,d.d))&&!d.b.some(b=>b[3]==="ex-"+sj)&&d.b.length){const T=Math.max(...d.b.map(b=>b[6]||1));const nb=[sj,"Examen de práctica (como el del cole)",20,"ex-"+sj,1,{},T];nb.mand=true;d.b.push(nb)}})}catch(e){}
+  if(!d.b.length&&d.d<EXAMS.map(e=>e.date).sort().pop())try{d.b=fallbackPlan(d);d.fallback=true}catch(e){}
   if(d.d===todayStr())try{eveAugment(d)}catch(e){}})}
+/* Si un día se queda sin bloques (plan base vacío y la IA no ha generado el suyo), se monta uno con lo obligatorio y lo más urgente */
+function fallbackPlan(d){const M=mandatory(d.d);const LIGHT=/^(verbs|rocas|tarjetas-|mapas|oral:)/;const out=[];
+  const next=EXAMS.filter(e=>examDays(e.s,d.d)>=1&&examDays(e.s,d.d)<99).sort((a,b)=>examDays(a.s,d.d)-examDays(b.s,d.d))[0];
+  if(next&&!M.some(m=>m[0]===next.s&&/^(ex-|sim:)/.test(m[3]||"")))M.push(next.s==="bio"||next.s==="mat"?[next.s,"Examen de práctica (como el del cole)",20,"ex-"+next.s,1,{}]:[next.s,"Simulacro de examen: "+SNAME[next.s],15,"sim:"+next.s,1,{}]);
+  M.forEach(m=>{const t=LIGHT.test(m[3]||"")?2:1;const nb=m.concat([t]);nb.mand=true;out.push(nb)});
+  if(!out.some(b=>b[6]===1)&&out.length)out[0][6]=1;return out}
 let aiBusy=false;
-async function requestAIPlan(ds,force){const c=cfg();const d=PLAN.find(p=>p.d===ds);if(!c.url||!d||!d.b.length||aiBusy||!navigator.onLine)return;
+async function requestAIPlan(ds,force){const c=cfg();const d=PLAN.find(p=>p.d===ds);if(!c.url||!d||(!d.b.length&&ds>=EXAMS.map(e=>e.date).sort().pop())||aiBusy||!navigator.onLine)return;
   const forceSrv=force||!LS.get("aiplan7:"+ds,null);if(!force){if(LS.get("aiplan7:"+ds,null))return;const fail=LS.get("aifail:"+ds,0);if(Date.now()-fail<3600e3)return;if(BASE[ds].some((b,i)=>planDone[ds+"#"+i]||prog[ds+"#"+i]))return}
   aiBusy=true;
   try{const base=BASE[ds].map(b=>`${b[0]} | ${b[1]} | ${b[2]} min | ${b[3]||""}`).join("\n");
@@ -2025,7 +2035,7 @@ function pickQs(key,mode){const D=DIAG[key];if(key==="mat0")return genMat0();if(
   else pool.sort((x,y)=>scoreQ(y,h)-scoreQ(x,h));
   return shuffle(pool.slice(0,8))}
 function mkState(key,mode,blk){return {qs:pickQs(key,mode).map(q=>Object.assign({},q,{opts:q.o?shuffle(q.o):null})),i:0,ans:[],answered:false,mini:mode==="completa"?null:mode==="fallos"?"repaso de fallos":"mini-prueba",blk}}
-const SIMU={bio:["bio1","bio2"],len:["len1","len2"],ing:["ing1","ing2"],mat:["mat1"],gh:["gh1","gh2"]};
+const SIMU={bio:["bio1","bio2"],len:["len1","len2"],ing:["ing1","ing3","ing4"],mat:["mat1"],gh:["gh1","gh2"]};
 function viewSim(s){if(!SIMU[s])return go("inicio");const a=$("#app");
   {const bp0=LS.get("bp",null);const bp=takeParams("sim-"+s);if(bp||!state.qs){let qs=[];const h=qhGet();
     if(s==="mat"){qs=genMat0().slice(0,2).map(q=>Object.assign({u:"mat0"},q)).concat(genEnt0().slice(0,3).map(q=>Object.assign({u:"ent0"},q)));
@@ -2715,6 +2725,7 @@ function chkScore(k,v){v=String(v||"").trim();if(!v||!k)return 0;switch(k.t){
   case "near":return near(v,k.v)?1:0;case "eq":return v===k.v?1:0;case "int":return nInt(v)===k.v?1:0;case "intin":return k.v.includes(nInt(v))?1:0;
   case "abs":return Math.abs(nInt(v)-k.v)<=(k.tol||0)?1:0;case "fact":{const f=factParse(v);return f&&f.v===k.v&&f.primes?1:0}
   case "pow":{const a=powNorm(v);return a&&a===powNorm(k.v)?1:0}
+  case "enx":return enOk(v,k.v,false)?1:0;case "env":return enOk(v,k.v,true)?1:0;
   case "orden":{const a=v.replace(/[−–]/g,"-").split(/[;,\s<]+/).filter(Boolean).map(Number);if(a.length!==k.v.length||a.some(isNaN))return 0;const ok=a.filter((x,j)=>x===k.v[j]).length;return ok===a.length?1:ok>=a.length-2?.5:0}}return 0}
 
 /* ---------- Generadores ---------- */
@@ -2763,7 +2774,7 @@ function exBio(){const it=[];
   {const VF=shuffle([["El gas más abundante del aire es el oxígeno.",false,"Es el nitrógeno (78 %)."],["La corteza oceánica es más fina que la continental.",true,"5–10 km frente a 35–70 km."],["El basalto es una roca plutónica.",false,"Es volcánica: se enfría rápido fuera."],["En la mesosfera se queman los meteoritos.",true,"Son las estrellas fugaces."],["El granito está formado por cuarzo, feldespato y mica.",true,"«Come Fresas con Miel»."],["La mena es la parte del mineral que se tira.",false,"Eso es la ganga; la mena es lo que se aprovecha."],["Las rocas metamórficas se forman cuando otras rocas se funden.",false,"Cambian por presión y temperatura sin fundirse."],["La troposfera es la capa donde llueve y hace viento.",true,"Ahí está el tiempo atmosférico."]]).slice(0,4);
    it.push({id:"b10",tema:"Verdadero o falso",pts:1,enun:"¿Verdadero o falso?",campos:VF.map(([q,v,e])=>({l:q,w:.25,opts:["Verdadero","Falso"],chk:{t:"eq",v:v?"Verdadero":"Falso"},sol:(v?"Verdadero":"Falso")+". "+e}))})}
   return {s:"bio",title:"Examen de práctica: Biología",sub:"Geosfera, minerales, rocas y atmósfera",items:it}}
-const EXGEN={bio:exBio,mat:exMat};
+const EXGEN={bio:exBio,mat:exMat,ing:()=>exIng()};
 
 /* ---------- Vista ---------- */
 function viewExamen(s){const a=$("#app");if(!EXGEN[s])return go("inicio");
@@ -2783,7 +2794,7 @@ function viewExamen(s){const a=$("#app");if(!EXGEN[s])return go("inicio");
     <section class="card"><button class="btn" id="exsend">Entregar el examen</button><p class="small muted" style="margin:0">Repasa antes de entregar: ¿has contestado todo lo que sabes?</p></section></div>`;
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
   a.querySelectorAll("[data-r]").forEach(el=>el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{X.r[el.dataset.r]=el.value;persist()}));
-  X.items.forEach((it,n)=>{const b=$("#exl"+n);if(b)b.addEventListener("click",()=>speak(it.enun.replace(/<[^>]+>/g,"")+(it.campos?" "+it.campos.map(c=>c.img?"":c.l.replace(/<[^>]+>/g,"")).join(". "):"")))});
+  X.items.forEach((it,n)=>{const b=$("#exl"+n);if(b)b.addEventListener("click",()=>(X.s==="ing"?speakEn:speak)(it.enun.replace(/<[^>]+>/g,"")+(it.campos?" "+it.campos.map(c=>c.img?"":c.l.replace(/<[^>]+>/g,"")).join(". "):"")))});
   a.querySelectorAll("[data-mic]").forEach(b=>b.addEventListener("click",()=>{const R=new SR();R.lang="es-ES";R.interimResults=false;const ta=a.querySelector(`[data-r="${b.dataset.mic}"]`);b.textContent="● Escuchando…";R.onresult=e=>{ta.value=(ta.value?ta.value+" ":"")+e.results[0][0].transcript;X.r[b.dataset.mic]=ta.value;persist()};R.onend=()=>{b.textContent="🎤 Dictar"};R.start()}));
   const clk=()=>{const el=$("#exclock");if(!el)return;el.textContent="Llevas "+Math.floor((Date.now()-X.t0)/60000)+" min";setTimeout(clk,30000)};clk();
   $("#exsend").addEventListener("click",()=>{const blank=X.items.filter(it=>!Object.keys(X.r).some(k=>k.startsWith(it.id+"_")||k===it.id?String(X.r[k]).trim():false)).length;
@@ -2822,7 +2833,8 @@ function exResult(s){const X=state.ex,sc=X.sc,a=$("#app");const prev=results.fil
   a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));$("#exagain").addEventListener("click",()=>{state={};viewExamen(s)})}
 
 /* ====================== v8: errores que se repiten, receta de potencias, víspera del examen ====================== */
-const SUBJ_UNITS={bio:["bio1","bio2"],len:["len1","len2"],ing:["ing1","ing2"],mat:["mat1","mat2","mat3"],gh:["gh1","gh2"]};
+const EXD_DAYS={bio:[4,2,1],mat:[4,3,1],ing:[2,1]};
+const SUBJ_UNITS={bio:["bio1","bio2"],len:["len1","len2"],ing:["ing1","ing2","ing3","ing4"],mat:["mat1","mat2","mat3"],gh:["gh1","gh2"]};
 function sessId(){return todayStr()+"@"+Math.floor(Date.now()/72e5)}   // tramos de 2 horas = sesiones distintas
 /* ---------- 1. Errores que se repiten en sesiones distintas ---------- */
 function errNote(key,label,drill,s){try{const E=LS.get("errP",{});const e=E[key]||{label,drill,s,sess:[],ok:0,lastDrill:0};const id=sessId();
@@ -2899,8 +2911,9 @@ function tagResult(r){try{if(/2º intento|repaso con calma/.test(r.sub||""))r.pr
   const est=LS.get("estado",null);if(est&&est.d===todayStr()&&est.low&&Date.now()-est.ts<90*60e3){r.bateria="baja";r.sub=(r.sub||"")+" · con poca batería"}}catch(e){}return r}
 /* ---------- 5. Víspera del examen: arrancar con lo que domina, repasar lo flojo y terminar con el examen de práctica ---------- */
 const EX_TEMA_ACT={bio:{"Capas de la atmósfera":"ficha-atmosfera","Composición del aire":"ficha-atmosfera","Capas de la Tierra":"ficha-tierra","Subsistemas":"ficha-tierra","Minerales":"ficha-minerales","Propiedades":"ficha-minerales","Rocas por foto":"rocas","El ciclo de las rocas":"ficha-rocas","Efecto invernadero":"ficha-contaminacion","Capa de ozono":"ficha-contaminacion","Lluvia ácida":"ficha-contaminacion"},
+  ing:{"Past simple: formas":"verbs","Past simple: frases":"diag:ing1","Preguntas en past simple":"diag:ing1","Forma -ing":"diag:ing1","Past continuous":"diag:ing1","¿Past simple o continuous?":"diag:ing1","Present perfect":"diag:ing3","for/since, already/yet, ever/never":"diag:ing3","Articles":"diag:ing3","Vocabulario":"diag:ing4","Phrasal verbs":"tarjetas-phrasal"},
   mat:{"MCD y mcm":"mcd","Problema MCD/mcm":"tipo","Redondeo":"redondeo","Combinadas":"combinadas","Problema con enteros":"problemas","Potencias":"diag:mat3","Ordenar enteros":"diag:mat2","Criterios":"diag:mat1"}};
-const ACT_LABEL={"ficha-atmosfera":"la atmósfera y sus capas","ficha-tierra":"la Tierra: capas y subsistemas","ficha-minerales":"los minerales","rocas":"las rocas por foto","ficha-rocas":"el ciclo de las rocas","ficha-contaminacion":"contaminación, ozono y efecto invernadero","mcd":"MCD y mcm","tipo":"¿MCD o mcm?","redondeo":"el redondeo","combinadas":"las combinadas","problemas":"los problemas con negativos","diag:mat3":"las potencias","diag:mat2":"los enteros","diag:mat1":"los criterios"};
+const ACT_LABEL={"verbs":"los verbos irregulares","diag:ing1":"past simple y past continuous","diag:ing3":"present perfect y artículos","diag:ing4":"el vocabulario","tarjetas-phrasal":"los phrasal verbs","ficha-atmosfera":"la atmósfera y sus capas","ficha-tierra":"la Tierra: capas y subsistemas","ficha-minerales":"los minerales","rocas":"las rocas por foto","ficha-rocas":"el ciclo de las rocas","ficha-contaminacion":"contaminación, ozono y efecto invernadero","mcd":"MCD y mcm","tipo":"¿MCD o mcm?","redondeo":"el redondeo","combinadas":"las combinadas","problemas":"los problemas con negativos","diag:mat3":"las potencias","diag:mat2":"los enteros","diag:mat1":"los criterios"};
 function eveBlocks(s,ds){const k="eve:"+s+":"+ds;const c=LS.get(k,null);if(c)return c;const out=[];
   // lo que ya domina (≥75 % en su último resultado), para empezar con buen pie
   const strong=[];(SUBJ_UNITS[s]||[]).forEach(u=>{const r=results.find(x=>x.key===u&&x.temas&&!x.practica);if(!r)return;Object.entries(r.temas).forEach(([t,v])=>{if(v.total&&v.ok/v.total>=.75)strong.push([u,t])})});
@@ -2918,6 +2931,66 @@ function eveRank(b){if(/^Para arrancar/.test(b[1]))return 0;if(/^(ex-|sim:)/.tes
 /* Añade los bloques de la víspera al plan de hoy sin tocar los que ya hay (se añaden al final: no cambian los números de los bloques hechos) */
 function eveAugment(d){const s=eveSubject(d.d);if(!s)return;const add=eveBlocks(s,d.d);const T=Math.min(...d.b.map(b=>b[6]||1));
   add.forEach(m=>{if(d.b.some(b=>b[1]===m[1]||(b[3]===m[3]&&!/^diag:/.test(m[3]))))return;const nb=m.concat([T]);nb.mand=true;d.b.push(nb)})}
+
+/* ====================== Inglés: lo que entra en el examen del 16 ====================== */
+/* Past simple, past continuous, present perfect (Unit 0), artículos (Unit 0), vocabulario de viajes, casa y tareas de casa, phrasal verbs */
+const VOC_VIAJE=[["pasaporte","passport"],["billete","ticket"],["equipaje","luggage",["baggage"]],["maleta","suitcase"],["mochila","backpack",["rucksack"]],["andén","platform"],["vuelo","flight"],["aeropuerto","airport"],["estación de tren","train station",["railway station","station"]],["horario (de trenes, autobuses)","timetable"],["retraso","delay"],["recuerdo (de un viaje)","souvenir"],["guía de viaje (libro)","guidebook"],["tarjeta de embarque","boarding pass"],["billete de ida y vuelta","return ticket"],["billete de solo ida","single ticket",["one-way ticket"]],["hacer turismo","go sightseeing",["sightseeing"]],["viaje (trayecto)","journey",["trip"]]];
+const VOC_CASA=[["cocina (habitación)","kitchen"],["salón","living room",["sitting room","lounge"]],["dormitorio","bedroom"],["cuarto de baño","bathroom"],["escaleras","stairs"],["jardín","garden"],["armario (de ropa)","wardrobe"],["estantería","bookcase",["shelves","shelf"]],["frigorífico","fridge"],["fregadero","sink"],["lavadora","washing machine"],["lavavajillas","dishwasher"],["sofá","sofa"],["sillón","armchair"],["espejo","mirror"],["cortinas","curtains"],["techo (por dentro)","ceiling"],["desván","attic"],["cocina (aparato para cocinar)","cooker"],["alfombra","carpet",["rug"]]];
+const VOC_TAREAS=[["fregar los platos","do the washing-up",["wash the dishes","do the dishes","do the washing up"]],["hacer la cama","make the bed"],["planchar","do the ironing",["iron"]],["hacer la compra","do the shopping"],["poner la mesa","set the table",["lay the table"]],["recoger la mesa","clear the table"],["sacar la basura","take out the rubbish",["take out the trash","take the rubbish out"]],["pasar la aspiradora","hoover",["vacuum","do the hoovering","vacuum the floor","hoover the floor"]],["barrer el suelo","sweep the floor"],["ordenar tu cuarto","tidy your room",["tidy my room","tidy the room","tidy up your room"]],["quitar el polvo","dust",["do the dusting","dust the furniture"]],["sacar al perro","walk the dog"],["regar las plantas","water the plants"],["poner la lavadora","do the washing",["do the laundry"]],["cocinar, hacer la cena","make dinner",["cook dinner","cook"]],["dar de comer a la mascota","feed the pet"]];
+const VOC_PHRASAL=[["subir (a un autobús o tren)","get on"],["bajar (de un autobús o tren)","get off"],["salir de viaje","set off"],["recoger (a alguien)","pick up"],["buscar","look for"],["cuidar","look after"],["rendirse, dejar de hacer algo","give up"],["averiguar, descubrir","find out"],["encender","turn on"],["apagar","turn off"],["ponerse (ropa)","put on"],["quitarse (ropa)","take off"],["despertarse","wake up"],["levantarse","get up"],["crecer, hacerse mayor","grow up"]];
+DECKS.viaje={s:"ing",title:"Vocabulary: travelling",cards:VOC_VIAJE.map(x=>[x[1],x[0]])};
+DECKS.casa={s:"ing",title:"Vocabulary: the house",cards:VOC_CASA.map(x=>[x[1],x[0]])};
+DECKS.tareas={s:"ing",title:"Vocabulary: chores",cards:VOC_TAREAS.map(x=>[x[1],x[0]])};
+DECKS.phrasal={s:"ing",title:"Phrasal verbs",cards:VOC_PHRASAL.map(x=>[x[1],x[0]])};
+DIAG.ing3={s:"ing",title:"Inglés 3",sub:"Present perfect y artículos (Unit 0)",qs:[
+ {t:"Present perfect",q:"I ___ never ___ to London.",o:["have … been","has … been","have … went"],e:"Present perfect: have/has + participio. I → have. Be → been."},
+ {t:"Present perfect",q:"She ___ already finished her homework.",o:["has","have","is"],e:"He/she/it → has + participio."},
+ {t:"Present perfect",q:"___ you ever eaten sushi?",o:["Have","Did","Has"],e:"Pregunta: Have/Has + sujeto + participio. You → Have."},
+ {t:"Present perfect",q:"We haven't ___ the new film yet.",o:["seen","saw","see"],e:"Después de have/has va el participio: see – saw – seen."},
+ {t:"Present perfect",q:"My dad has just ___ a new car.",o:["bought","buyed","buy"],e:"Buy es irregular: buy – bought – bought."},
+ {t:"Present perfect",q:"El participio de «write» es…",o:["written","wrote","writed"],e:"write – wrote – written."},
+ {t:"Present perfect",q:"El participio de «go» es…",o:["gone","went","goed"],e:"go – went – gone."},
+ {t:"for / since",q:"I've lived here ___ three years.",o:["for","since","yet"],e:"for + un periodo de tiempo (three years, two weeks)."},
+ {t:"for / since",q:"She's been ill ___ Monday.",o:["since","for","already"],e:"since + el momento en que empezó (Monday, 2020, 3 o'clock)."},
+ {t:"already / yet",q:"Have you finished ___?",o:["yet","already","since"],e:"yet va al final, en preguntas y negativas."},
+ {t:"already / yet",q:"I've ___ seen this film. Let's watch another one.",o:["already","yet","ever"],e:"already = ya (en afirmativas), entre have y el participio."},
+ {t:"ever / never",q:"I've ___ eaten snails. I don't want to try them.",o:["never","ever","yet"],e:"never = nunca (la frase ya es negativa por never)."},
+ {t:"Articles",q:"I've got ___ umbrella.",o:["an","a","the"],e:"an delante de sonido de vocal: an umbrella, an apple."},
+ {t:"Articles",q:"She's ___ teacher.",o:["a","an","—"],e:"Profesiones con a/an: She's a teacher."},
+ {t:"Articles",q:"___ sun is very hot today.",o:["The","A","—"],e:"the con lo que es único: the sun, the moon."},
+ {t:"Articles",q:"I love ___ music.",o:["—","the","a"],e:"Hablando en general (música, deporte, comida) no se pone artículo."},
+ {t:"Articles",q:"It takes ___ hour to get there.",o:["an","a","the"],e:"hour se pronuncia sin h: an hour."},
+ {t:"Articles",q:"He studies at ___ university in Madrid.",o:["a","an","the"],e:"university empieza por sonido /ju/: a university."},
+ {t:"Articles",q:"We play ___ football on Saturdays.",o:["—","the","a"],e:"Deportes sin artículo: play football."},
+ {t:"Articles",q:"Can you close ___ door, please?",o:["the","a","an"],e:"the = una cosa concreta que los dos sabemos cuál es."}]};
+DIAG.ing4={s:"ing",title:"Inglés 4",sub:"Vocabulary: travelling, the house, chores y phrasal verbs",qs:[]};
+[[VOC_VIAJE,"Travelling"],[VOC_CASA,"The house"],[VOC_TAREAS,"Chores"],[VOC_PHRASAL,"Phrasal verbs"]].forEach(([L,t])=>L.forEach((x,i)=>{const others=shuffle(L.filter(y=>y!==x)).slice(0,2).map(y=>y[1]);
+  DIAG.ing4.qs.push(i%2?{t,q:`¿Cómo se dice «${x[0]}»?`,o:[x[1]].concat(others),e:`${x[0]} = ${x[1]}.`}:{t,q:`«${x[1]}» significa…`,o:[x[0]].concat(shuffle(L.filter(y=>y!==x)).slice(0,2).map(y=>y[0])),e:`${x[1]} = ${x[0]}.`})}));
+/* ---------- Examen de práctica de Inglés, con el formato de las fichas Out & About ---------- */
+const enN=s=>String(s||"").toLowerCase().replace(/[’`´]/g,"'").replace(/[.?!,;:]+/g," ").replace(/\s+/g," ").trim();
+function enOk(v,acc,lenient){const a=enN(v);if(!a)return false;return [].concat(acc).some(x=>{const b=enN(x);return a===b||(lenient&&b.length>=5&&lev(a,b)<=1)})}
+const ING_PS=[["cry","cried"],["travel","travelled"],["send","sent"],["enjoy","enjoyed"],["stop","stopped"],["break","broke"],["fall","fell"],["chat","chatted"],["happen","happened"],["say","said"],["try","tried"],["know","knew"],["cut","cut"],["buy","bought"],["think","thought"],["write","wrote"],["study","studied"],["go","went"],["see","saw"],["take","took"],["come","came"],["eat","ate"],["plan","planned"],["drink","drank"]];
+const ING_S2=[["Last summer we ___ (visit) London.","visited"],["I ___ (not / see) the film yesterday.",["didn't see","did not see"]],["She ___ (lose) her phone last week.","lost"],["My parents ___ (buy) a new car.","bought"],["We ___ (not / go) to school on Monday.",["didn't go","did not go"]],["He ___ (study) for the exam all weekend.","studied"],["They ___ (win) the match.","won"],["I ___ (drop) my glasses on the floor.","dropped"]];
+const ING_Q=[["When / you / buy / that tablet?","When did you buy that tablet?"],["What / you / do / after school yesterday?","What did you do after school yesterday?"],["Why / you / not / call / me last night?",["Why didn't you call me last night?","Why did you not call me last night?"]],["Where / Dad / save / the photos?","Where did Dad save the photos?"],["How much / your new computer / cost?","How much did your new computer cost?"],["Who / you / meet / at the party?","Who did you meet at the party?"]];
+const ING_ING=[["attach","attaching"],["tie","tying"],["run","running"],["save","saving"],["give","giving"],["get","getting"],["delete","deleting"],["change","changing"],["upload","uploading"],["win","winning"],["swim","swimming"],["write","writing"],["sit","sitting"],["lie","lying"]];
+const ING_PC=[["I ___ (make) my dinner at 8 o'clock last night.","was making"],["Joe and Sam ___ (use) the wrong program.","were using"],["Paula ___ (dance) with her friends at the party.","was dancing"],["We ___ (not / watch) TV when you called.",["weren't watching","were not watching"]],["It ___ (rain) when we left school.","was raining"],["They ___ (sit) at the back of the classroom.","were sitting"],["My father ___ (live) in Dublin in 1999.","was living"]];
+const ING_PSPC=[["I ___ to the radio when I heard this song.",["was listening","listened"]],["While I ___, I fell and broke my arm.",["was dancing","danced"]],["When the teacher ___ «Stop!», I was still writing.",["said","was saying"]],["Ron ___ a website when he noticed a virus.",["was looking at","looked at"]],["My mum ___ breakfast when the phone rang.",["was having","had"]],["When you ___ me yesterday, I was going to the doctor's.",["saw","were seeing"]]];
+const ING_PP=[["I ___ (never / be) to London.",["have never been","'ve never been","ve never been"]],["She ___ (already / finish) her homework.",["has already finished","'s already finished"]],["We ___ (not / see) the new film yet.",["haven't seen","have not seen"]],["My dad ___ (just / buy) a new car.",["has just bought","'s just bought"]],["They ___ (live) here since 2020.",["have lived","'ve lived"]],["He ___ (lose) his keys.",["has lost","'s lost"]],["You ___ (not / stop) talking since you got here!",["haven't stopped","have not stopped"]]];
+const ING_FS=[["I've lived here ___ three years.","for",["for","since"]],["She's been ill ___ Monday.","since",["for","since"]],["We've known each other ___ 2019.","since",["for","since"]],["He hasn't called me ___ two weeks.","for",["for","since"]],["Have you finished your homework ___?","yet",["already","yet"]],["I've ___ seen this film. Let's watch another one.","already",["already","yet"]],["Have you ___ been to Paris?","ever",["ever","never"]],["I've ___ eaten snails.","never",["ever","never"]]];
+const ING_ART=[["I've got ___ umbrella.","an"],["She's ___ teacher.","a"],["___ sun is very hot today.","the"],["I love ___ music.","—"],["Can you close ___ door, please?","the"],["It takes ___ hour to get there.","an"],["He studies at ___ university in Madrid.","a"],["We play ___ football on Saturdays.","—"],["There's ___ apple on the table.","an"],["___ Eiffel Tower is in Paris.","the"],["I have ___ breakfast at 7 o'clock.","—"],["My brother is ___ engineer.","an"]];
+function exIng(){const it=[];const pick=(a,n)=>shuffle(a).slice(0,n);
+  it.push({id:"i1",tema:"Past simple: formas",pts:1,enun:"Write the past simple form of these verbs. <span class='small muted'>(Escribe el pasado.)</span>",campos:pick(ING_PS,8).map(([v,p])=>({l:v,w:.125,chk:{t:"enx",v:[p]},sol:p}))});
+  it.push({id:"i2",tema:"Past simple: frases",pts:1,enun:"Complete the sentences with the past simple of the verbs in brackets.",campos:pick(ING_S2,5).map(([q,a])=>({l:q,w:.2,chk:{t:"enx",v:[].concat(a)},sol:[].concat(a)[0]}))});
+  it.push({id:"i3",tema:"Preguntas en past simple",pts:1,enun:"Write questions with the past simple. <span class='small muted'>(Escribe la pregunta completa.)</span>",campos:pick(ING_Q,3).map(([q,a])=>({l:q,w:1/3,chk:{t:"enx",v:[].concat(a)},sol:[].concat(a)[0]}))});
+  it.push({id:"i4",tema:"Forma -ing",pts:.5,enun:"Write the <b>-ing</b> form of the verbs.",campos:pick(ING_ING,5).map(([v,p])=>({l:v,w:.1,chk:{t:"enx",v:[p]},sol:p}))});
+  it.push({id:"i5",tema:"Past continuous",pts:1,enun:"Complete the sentences with the past continuous of the verbs in brackets.",campos:pick(ING_PC,4).map(([q,a])=>({l:q,w:.25,chk:{t:"enx",v:[].concat(a)},sol:[].concat(a)[0]}))});
+  it.push({id:"i6",tema:"¿Past simple o continuous?",pts:1,enun:"Choose the correct option.",campos:pick(ING_PSPC,4).map(([q,o])=>({l:q,w:.25,opts:shuffle(o),chk:{t:"eq",v:o[0]},sol:o[0]}))});
+  it.push({id:"i7",tema:"Present perfect",pts:1,enun:"Complete the sentences with the present perfect of the verbs in brackets.",campos:pick(ING_PP,4).map(([q,a])=>({l:q,w:.25,chk:{t:"enx",v:[].concat(a)},sol:[].concat(a)[0]}))});
+  it.push({id:"i8",tema:"for/since, already/yet, ever/never",pts:.5,enun:"Choose the correct option.",campos:pick(ING_FS,4).map(([q,a,o])=>({l:q,w:.125,opts:o,chk:{t:"eq",v:a},sol:a}))});
+  it.push({id:"i9",tema:"Articles",pts:.75,enun:"Complete with <b>a</b>, <b>an</b>, <b>the</b> or <b>—</b> (no article).",campos:pick(ING_ART,6).map(([q,a])=>({l:q,w:.125,opts:["a","an","the","—"],chk:{t:"eq",v:a},sol:a}))});
+  it.push({id:"i10",tema:"Vocabulario",pts:1.5,enun:"Write the words in English. <span class='small muted'>(Viajes, la casa y las tareas de casa.)</span>",campos:pick(VOC_VIAJE,3).concat(pick(VOC_CASA,3),pick(VOC_TAREAS,3)).map(x=>({l:x[0],w:1.5/9,chk:{t:"env",v:[x[1]].concat(x[2]||[])},sol:x[1]}))});
+  it.push({id:"i11",tema:"Phrasal verbs",pts:.75,enun:"Write the phrasal verb.",campos:pick(VOC_PHRASAL,3).map(x=>({l:x[0],w:.25,chk:{t:"env",v:[x[1]]},sol:x[1]}))});
+  return {s:"ing",title:"Examen de práctica: Inglés",sub:"Past simple, past continuous, present perfect, articles y vocabulario",items:it}}
 
 /* ---------- Problemas con negativos, escribiendo la operación ---------- */
 const PROBS=[
@@ -3158,9 +3231,10 @@ function mandatory(ds){const d=PLAN.find(p=>p.d===ds);if(!d)return [];const out=
     else if(rot===1)out.push(["mat","Potencias: mini-prueba",7,"diag:mat3",1,{}]);
     else out.push(day%8===3?["mat","Problemas con negativos",8,"problemas",1,{}]:["mat","MCD y mcm: 1 ejercicio guiado",8,"mcd",1,{}])}
   if(ds<"2026-11-12"&&!rocasMastered())out.push(["bio","Rocas por foto",6,"rocas",1,{}]);
-  {const EXD={bio:[4,2,1],mat:[4,3,1]};Object.entries(EXD).forEach(([sj,dd])=>{if(dd.includes(examDays(sj,ds)))out.push([sj,"Examen de práctica (como el del cole)",20,"ex-"+sj,1,{}])})}
+  {const EXD=EXD_DAYS;Object.entries(EXD).forEach(([sj,dd])=>{if(dd.includes(examDays(sj,ds)))out.push([sj,"Examen de práctica (como el del cole)",20,"ex-"+sj,1,{}])})}
   {const day=new Date(ds+"T12:00").getDate();
    if(ds<"2026-11-16")out.push(["ing","Verbos irregulares: 5 minutos",5,"verbs",1,{}]);
+   if(ds>="2026-11-14"&&ds<"2026-11-16"){out.push(["ing","Present perfect y artículos: mini-prueba",8,"diag:ing3",1,{}]);const dk=[["viaje","viajes"],["casa","la casa"],["tareas","tareas de casa"]][day%3];out.push(["ing","Vocabulario de Inglés: "+dk[1],6,"tarjetas-"+dk[0],1,{}])}
    if(ds>="2026-11-09"&&ds<"2026-11-18"&&day%2===1){const sets=[{set:"esp",modo:"find"},{set:"eur",modo:"find"},{set:"espf",modo:"what"},{set:"eur",modo:"cap"},{set:"eurf",modo:"what"}];out.push(["gh","Mapas: 5 minutos",5,"mapas",1,sets[Math.floor(day/2)%sets.length]])}
    if(ds<"2026-11-13"&&day%3===0)out.push(["len","Tarjetas de Lengua: repaso corto",5,"tarjetas-len",1,{}])}
   /* Víspera de examen: solo lo de ese examen y repasos ligeros */
@@ -3172,7 +3246,7 @@ function injectMandatory(v,d,ds){const M=mandatory(ds);const tc=tandaCaps(d);con
   const has=m=>v.b.some(b=>b[3]===m[3]&&(!m[3].startsWith("diag:")||!!(b[5]&&b[5].nivel)===!!(m[5]&&m[5].nivel)));
   M.forEach(m=>v.b.forEach(b=>{if(b[3]===m[3])b.mand=true}));
   M.forEach(m=>{if(has(m))return;
-    const light=["verbs","rocas","tarjetas-len","mapas"].includes(m[3]);const pref=dayKind(d)==="entreno"&&!light?[T[0]]:(m[5]&&m[5].nivel&&dayKind(d)!=="entreno")||light?T.slice().reverse():T;/* pruebas de nivel: mejor en la última tanda; Mates: en la primera */
+    const light=["verbs","rocas","mapas"].includes(m[3])||/^tarjetas-/.test(m[3]);const pref=dayKind(d)==="entreno"&&!light?[T[0]]:(m[5]&&m[5].nivel&&dayKind(d)!=="entreno")||light?T.slice().reverse():T;/* pruebas de nivel: mejor en la última tanda; Mates: en la primera */
     let t=pref.find(k=>(used[k]||0)+m[2]<=tc[k]);
     if(t===undefined){t=pref[0];/* primero acortar bloques (mínimo 8 min) y solo si no basta, quitar */
       let guard=0;while((used[t]||0)+m[2]>tc[t]&&guard++<60){const sh=v.b.filter(b=>b[6]===t&&!b.mand&&b[2]>8).sort((x,y)=>y[2]-x[2])[0];if(!sh)break;sh[2]--;used[t]--}

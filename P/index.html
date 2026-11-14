@@ -1611,7 +1611,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-14.3";
+const APP_VERSION="2026-11-14.4";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Misión 1ª Evaluación</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -3562,7 +3562,9 @@ window.addEventListener("blur",awayStart);window.addEventListener("focus",awayEn
 function verCmp(a,b){const A=String(a).split(/[-.]/).map(Number),B=String(b).split(/[-.]/).map(Number);for(let i=0;i<Math.max(A.length,B.length);i++){const x=A[i]||0,y=B[i]||0;if(x!==y)return x-y}return 0}
 async function checkUpdate(){if(location.protocol==="file:"||!navigator.onLine)return;try{const u=location.href.split("#")[0].split("?")[0]+"?v="+Date.now();const r=await fetch(u,{cache:"no-store"});if(!r.ok)return;const t=await r.text();const m=t.match(/const APP_VERSION="([^"]+)"/);
   if(m&&verCmp(m[1],APP_VERSION)>0){LS.set("updPend",m[1]);tryReload()}}catch(e){}}
-function safeToReload(){const h=curHash||"inicio";if(h!=="inicio")return false;if(document.querySelector(".modal"))return false;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return false;try{if(window.speechSynthesis&&speechSynthesis.speaking)return false}catch(e){}return true}
+/* Pantallas donde no hay ninguna tarea a medias: inicio, plan, listas de fichas, progreso e informe */
+const SAFE_PAGES=["inicio","plan","fichas","progreso","informe",""];
+function safeToReload(){const h=curHash||"inicio";if(!SAFE_PAGES.includes(h))return false;if(document.querySelector(".modal"))return false;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return false;try{if(window.speechSynthesis&&speechSynthesis.speaking)return false}catch(e){}return true}
 function tryReload(){const p=LS.get("updPend",null);if(!p)return;if(verCmp(p,APP_VERSION)<=0){LS.set("updPend",null);return}
   const last=LS.get("updTry",0);if(Date.now()-last<15*60e3)return;   // si la nueva aún no se ve tras recargar, no insistir enseguida
   if(!safeToReload())return;try{persist()}catch(e){}LS.set("updTry",Date.now());LS.set("updFrom",APP_VERSION);location.reload()}

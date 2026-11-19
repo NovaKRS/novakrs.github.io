@@ -1614,7 +1614,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-20.1";
+const APP_VERSION="2026-11-20.2";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Mi práctica diaria</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -3903,7 +3903,7 @@ function viewFechas(){const t=todayStr();const A=fechasVivas();const prox=A.filt
    <section class="card"><h2>Apuntar una fecha</h2><form id="ff" class="col" style="gap:10px">
      <label>¿Qué es?<select id="ftipo" class="txtin">${TIPOS_F.map(x=>`<option>${x}</option>`).join("")}</select></label>
      <label>Asignatura<select id="fsub" class="txtin">${SUBJ.map(s=>`<option value="${s}">${SNAME[s]}</option>`).join("")}</select></label>
-     <label>Fecha<input id="ffecha" type="date" class="txtin" min="${t}" required></label>
+     <div><p style="margin:0 0 4px;font-weight:600">Fecha</p><div class="row" style="gap:8px;flex-wrap:nowrap"><select id="fd" class="txtin" aria-label="Día" style="flex:0 0 5.5em"><option value="">Día</option>${Array.from({length:31},(_,i)=>`<option>${i+1}</option>`).join("")}</select><select id="fm" class="txtin" aria-label="Mes" style="flex:1"><option value="">Mes</option>${["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"].map((m,i)=>`<option value="${i+1}">${m}</option>`).join("")}</select></div></div>
      <div id="funits"></div>
      <label>Algo más que haya que tener en cuenta (opcional)<textarea id="fnota" class="txtin" rows="2" style="max-width:none;width:100%;box-sizing:border-box" placeholder="Por ejemplo: entra solo la parte de ejercicios, hay que llevar el cuaderno…"></textarea></label>
      <div class="row"><button class="btn">Guardar</button></div><div id="fmsg"></div></form></section>
@@ -3912,7 +3912,7 @@ function viewFechas(){const t=todayStr();const A=fechasVivas();const prox=A.filt
   const a=$("#app");a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
   const drawU=()=>{const s=$("#fsub").value;const L=UNITS.filter(u=>u.s===s);$("#funits").innerHTML=`<p style="margin:0 0 4px">¿Qué entra?</p>${L.map(u=>`<label class="vchk"><input type="checkbox" value="${esc(u.id)}"${u.ev===2&&u===currentUnit(s)?" checked":""}> ${u.ev===1?"Lo de la 1ª evaluación":esc(u.title)}</label>`).join("")}<p class="small muted" style="margin:2px 0 0">Si no marcas nada, la app repasará toda la asignatura.</p>`};
   $("#fsub").addEventListener("change",drawU);$("#ftipo").addEventListener("change",()=>{if($("#ftipo").value==="Recuperación"){const c=$("#funits").querySelector('input[value^="1ev-"]');if(c)c.checked=true}});drawU();
-  $("#ff").addEventListener("submit",e=>{e.preventDefault();const fecha=$("#ffecha").value;if(!fecha){$("#fmsg").innerHTML='<div class="fb ns">Falta la fecha.</div>';return}
+  $("#ff").addEventListener("submit",e=>{e.preventDefault();const dd=+$("#fd").value,mm=+$("#fm").value;if(!dd||!mm){$("#fmsg").innerHTML='<div class="fb ns">Elige el día y el mes.</div>';return}let yy=+t.slice(0,4);if(mm<+t.slice(5,7))yy++;const dt=new Date(yy,mm-1,dd);if(dt.getMonth()!==mm-1){$("#fmsg").innerHTML='<div class="fb ns">Esa fecha no existe.</div>';return}const fecha=yy+"-"+String(mm).padStart(2,"0")+"-"+String(dd).padStart(2,"0");
     const f={id:"f"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),tipo:$("#ftipo").value,s:$("#fsub").value,fecha,units:[...$("#funits").querySelectorAll("input:checked")].map(x=>x.value),nota:$("#fnota").value.trim().slice(0,300),ts:Date.now()};
     const A2=agenda();A2.fechas.push(f);A2.ts=Date.now();LS.set("agenda",A2);logEvent({evento:"fecha apuntada",materia:fechaTxt(f),sub:fmtDate(f.fecha)+(f.nota?" · nota: "+f.nota:"")});
     if(daysBetween(t,f.fecha)<=3)regenToday();agendaSync(true);viewFechas();setTimeout(()=>{const m=$("#fmsg");if(m)m.innerHTML='<div class="fb ok"><strong>Apuntado.</strong> La práctica de los próximos días lo tendrá en cuenta.</div>'},0)});

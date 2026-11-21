@@ -300,7 +300,7 @@ textarea{width:100%;min-height:160px;font:inherit;font-size:.85rem;border-radius
 .syncnote{font-size:.8rem;color:var(--soft)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<style>.vchk{display:flex;gap:8px;align-items:flex-start;padding:6px 0;cursor:pointer}.vchk input{margin-top:3px;width:18px;height:18px}.vgrp{margin:6px 0 10px}.vgrp>b{display:block;margin-bottom:2px}.frow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)}.tile[disabled],.tile[aria-disabled="true"]{opacity:.55}#ff label{display:flex;flex-direction:column;gap:4px;font-weight:600}#ff label.vchk{flex-direction:row;font-weight:400;align-items:center}#ff select,#ff input[type=date]{max-width:none}details.card summary{cursor:pointer;font-weight:600}.toastv{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#24403c;color:#fff;padding:12px 18px;border-radius:14px;font-weight:600;z-index:9999;max-width:min(92vw,520px);text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.25)}</style>
+<style>.vchk{display:flex;gap:8px;align-items:flex-start;padding:6px 0;cursor:pointer}.vchk input{margin-top:3px;width:18px;height:18px}.vgrp{margin:6px 0 10px}.vgrp>b{display:block;margin-bottom:2px}.frow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)}.tile[disabled],.tile[aria-disabled="true"]{opacity:.55}#ff label{display:flex;flex-direction:column;gap:4px;font-weight:600}#ff label.vchk{flex-direction:row;font-weight:400;align-items:center}#ff select,#ff input[type=date]{max-width:none}details.card summary{cursor:pointer;font-weight:600}.ebars{position:relative;display:flex;gap:4px;align-items:flex-end;height:110px;padding:4px 0 18px;border-bottom:1px solid var(--line,#ddd)}.eb{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}.eb i{display:block;width:100%;max-width:26px;background:#9fd3cc;border-radius:5px 5px 0 0;min-height:2px}.eb i.ok{background:#0E8C80}.eb span{position:absolute;bottom:-17px;font-size:.7rem;color:var(--soft,#777)}.eline{position:absolute;left:0;right:0;border-top:2px dashed #E8781E;pointer-events:none}.prem{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line,#e5e5e5)}.xptoast{white-space:nowrap}.toastv{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#24403c;color:#fff;padding:12px 18px;border-radius:14px;font-weight:600;z-index:9999;max-width:min(92vw,520px);text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.25)}</style>
 
 <div class="wrap" id="app"></div>
 <div class="timer" id="timer" hidden></div>
@@ -979,7 +979,7 @@ let results=LS.get("results",[]);
 function savePlan(){LS.set("plan",planDone);if(DB){DB.doc("estado/plan").set({done:planDone,ts:Date.now()}).catch(()=>{})}}
 function saveResult(r){tagResult(r);try{r.ev=evOfKey(r.key)}catch(e){}try{r.ayuda=(ayudaNow()||{}).v||""}catch(e){}
   try{const k=r.key||"";if(!DIAG[k]&&!k.startsWith("sim-")){const n=k==="mcd"?(r.ok?5:2):k==="tablas"?(r.cuenta?5:2):k.startsWith("oral-")?(r.ok||0)*2:k.startsWith("mapa-")||k.startsWith("deck-")?Math.min(10,r.ok||0):(r.ok||0)*2;if(typeof addXP==="function")addXP(n)}}catch(e){}
-  setTimeout(()=>{const m=r.cuenta===false?null:autoMark(r.key);logEvent(Object.assign({evento:"resultado"},r,{bloque_completado:m||""}))},0);
+  setTimeout(()=>{const dd=PLAN.find(p=>p.d===todayStr());const m=(r.cuenta===false&&!(dd&&dd.cont))?null:autoMark(r.key);logEvent(Object.assign({evento:"resultado"},r,{bloque_completado:m||""}))},0);
   r.id=r.id||("r"+Date.now()+Math.random().toString(36).slice(2,6));
   r.ts=r.ts||Date.now();
   results.unshift(r);LS.set("results",results.slice(0,200));try{syncSoon()}catch(e){}
@@ -1007,6 +1007,7 @@ function render(){
   const app=$("#app");
   if(h.startsWith("asig-")) return viewAsig(h.slice(5));
   if(h==="fechas") return viewFechas();
+  if(h==="premios") return viewPremios();
   if(h.startsWith("diag-")) return viewQuiz(h.slice(5));
   if(h==="verbos") return viewVerbs();
   if(h==="mcd") return viewMCD();
@@ -1143,7 +1144,7 @@ function viewQuiz(key){
     $("#after").innerHTML=`<button class="btn" id="next">${i+1<qs.length?"Siguiente →":"Ver resultado"}</button>`;$("#next").addEventListener("click",()=>{state.i++;state.answered=false;state.fixing=false;viewQuiz(key)});$("#next").focus()};
   const finish=(res)=>{
     if(state.answered)return;state.answered=true;state.ans.push(res);qhRecord(q,res==="ok");
-    {const dt=state.t0?Math.round((Date.now()-state.t0)/100)/10:0;state.qlog=state.qlog||[];state.qlog.push((q.retry?"rep ":"")+(state.qlog.length+1)+") "+q.t+": "+(res==="ok"?"bien":res==="ns"?"no lo sé":"mal")+" "+String(dt).replace(".",",")+" s"+(state.heard===state.i?" · escuchada":"")+(state.awayCur?" · salió de la app":"")+(res==="ko"&&state.pick?" · eligió «"+String(state.pick).slice(0,40)+"»":""));state.awayCur=false}calmaCheck(q,res);if(q.calma)state.calma=Math.max(0,(state.calma||0)-1);const wasRushed=res!=="ns"?rushCheck(q):false;
+    {const dt=state.t0?Math.round((Date.now()-state.t0)/100)/10:0;state.qlog=state.qlog||[];state.qlog.push((q.retry?"rep ":"")+(state.qlog.length+1)+") "+q.t+": "+(res==="ok"?"bien":res==="ns"?"no lo sé":"mal")+" "+String(dt).replace(".",",")+" s"+(state.heard===state.i?" · escuchada":"")+(state.awayCur?" · salió de la app":"")+(res==="ko"&&state.pick?" · eligió «"+String(state.pick).slice(0,40)+"»":""));state.awayCur=false}calmaCheck(q,res);if(q.calma&&res==="ok")addXP(5);if(q.calma)state.calma=Math.max(0,(state.calma||0)-1);const wasRushed=res!=="ns"?rushCheck(q):false;
     if(!wasRushed)addXP(res==="ok"&&!q.retry?2:1);
     if(res!=="ok"&&!q.retry&&!q.gen&&!qs.some(x=>x.retry&&qkey(x)===qkey(q)))qs.push(Object.assign({},q,{retry:true,opts:q.o?shuffle(q.o):null}));
     if(res!=="ok"&&!q.retry&&!q.gen&&!q.vf)errNote("q:"+key+":"+qkey(q),q.q,{t:"q",dk:key,qk:qkey(q)},D.s);
@@ -1266,7 +1267,7 @@ function viewVerbs(){
   const vq=state.vq;
   if(vq.i>=vq.items.length){
     const vpass=vq.ok/vq.items.length>=.8;if(!vq.saved){vq.saved=true;saveResult({cuenta:vpass,key:"verbs",materia:"Verbos irregulares",sub:(state.fam==="all"?"Todas":VERBS.find(x=>x[0]===state.fam)[1])+" · "+(state.col==="past"?"pasado":"participio")+" · "+({pick:"elegir",write:"escribir",listen:"escuchar"})[state.mode],ok:vq.ok,total:vq.items.length,ns:0,temas:{},fallos:vq.fails})}
-    z.innerHTML=`<span class="big">${vq.ok}/${vq.items.length}</span><p>${vq.ok===vq.items.length?"¡Perfecto! Prueba en modo Escribir o con otra familia.":(vpass?"¡Bien! Esta ronda cuenta. Repite hasta sacarlos todos.":"Esta ronda no cuenta todavía: necesitas "+Math.ceil(vq.items.length*.8)+" de "+vq.items.length+". ¡Otra!")}</p>${vq.fails.length?`<p class="small muted">Repasa: ${esc(vq.fails.join(", "))}</p>`:""}<div class="row"><button class="btn" id="vagain">Otra ronda</button></div>`;
+    z.innerHTML=`<span class="big">${vq.ok}/${vq.items.length}</span><p>${vq.ok===vq.items.length?"¡Perfecto! Prueba en modo Escribir o con otra familia.":(vpass?"¡Bien! Esta ronda cuenta. Repite hasta sacarlos todos.":(((PLAN.find(p=>p.d===todayStr())||{}).cont)?"Vas aprendiendo. Fíjate bien en los que has fallado:":"Esta ronda no cuenta todavía: necesitas "+Math.ceil(vq.items.length*.8)+" de "+vq.items.length+". ¡Otra!"))}</p>${vq.fails.length?`<p class="small muted">Repasa: ${esc(vq.fails.join(", "))}</p>`:""}<div class="row"><button class="btn" id="vagain">Otra ronda</button></div>`;
     $("#vagain").addEventListener("click",()=>{state.vq=null;viewVerbs()});return;
   }
   const v=vq.items[vq.i], key=state.col, right=v[key];
@@ -1615,7 +1616,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-21.1";
+const APP_VERSION="2026-11-21.3";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Mi práctica diaria</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -2864,7 +2865,7 @@ function errNote(key,label,drill,s){try{const E=LS.get("errP",{});const e=E[key]
 function errDue(){const E=LS.get("errP",{});const now=Date.now();
   const L=Object.entries(E).filter(([k,e])=>e.sess.length>=2&&e.ok<2&&now-(e.lastDrill||0)>5*36e5&&(!e.s||examDays(e.s,todayStr())<99));
   L.sort((a,b)=>(examDays(a[1].s||"x",todayStr())-examDays(b[1].s||"x",todayStr()))||(b[1].sess.length-a[1].sess.length));return L[0]||null}
-function errDone(key,ok){const E=LS.get("errP",{});if(!E[key])return;E[key].lastDrill=Date.now();if(ok)E[key].ok++;LS.set("errP",E);logEvent({evento:"tarjeta de error repetido",materia:SNAME[E[key].s]||"",sub:E[key].label+" → "+(ok?"bien":"todavía no")})}
+function errDone0(key,ok){const E=LS.get("errP",{});if(!E[key])return;E[key].lastDrill=Date.now();if(ok)E[key].ok++;LS.set("errP",E);logEvent({evento:"tarjeta de error repetido",materia:SNAME[E[key].s]||"",sub:E[key].label+" → "+(ok?"bien":"todavía no")})}
 function modalBox(html){const m=document.createElement("div");m.className="modal";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");m.innerHTML=`<div class="modal-box" style="max-height:90vh;overflow:auto">${html}</div>`;document.body.appendChild(m);return m}
 const DRILL_EX={
   b2:{t:"Capas de la atmósfera",truco:"De abajo arriba: «<b>T</b>odos <b>E</b>stamos <b>M</b>uy <b>T</b>ranquilos <b>E</b>studiando» → Troposfera, Estratosfera, Mesosfera, Termosfera, Exosfera. La capa de <b>ozono</b> está en la <b>estratosfera</b> (la 2.ª).",campos:[["1.ª (abajo)",["troposfera"]],["2.ª",["estratosfera"]],["3.ª",["mesosfera"]],["4.ª",["termosfera"]],["5.ª (arriba)",["exosfera"]],["¿Dónde está el ozono?",["estratosfera"]]]},
@@ -3383,9 +3384,9 @@ function extraSuggestions(){const out=[];const lv=k=>levelOf(k);
 
 /* ---------- Escúchalo (lectura en voz alta del navegador) ---------- */
 const TTS=window.speechSynthesis||null;let ttsVoice=null;
-function pickVoice(){if(!TTS)return;const vs=TTS.getVoices();ttsVoice=vs.find(v=>/^es-ES/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null}
+function pickVoice_v8(){if(!TTS)return;const vs=TTS.getVoices();ttsVoice=vs.find(v=>/^es-ES/i.test(v.lang))||vs.find(v=>/^es/i.test(v.lang))||null}
 if(TTS){pickVoice();TTS.onvoiceschanged=pickVoice}
-function speak(text){if(!TTS)return;TTS.cancel();const u=new SpeechSynthesisUtterance(String(text).replace(/\*/g,"").replace(/·/g,","));u.lang="es-ES";if(ttsVoice)u.voice=ttsVoice;u.rate=.92;TTS.speak(u);logEvent({evento:"escúchalo"})}
+function speak_v8(text){if(!TTS)return;TTS.cancel();const u=new SpeechSynthesisUtterance(String(text).replace(/\*/g,"").replace(/·/g,","));u.lang="es-ES";if(ttsVoice)u.voice=ttsVoice;u.rate=.92;TTS.speak(u);logEvent({evento:"escúchalo"})}
 function stopSpeak(){if(TTS)TTS.cancel()}
 window.addEventListener("hashchange",stopSpeak);
 function ttsAlways(){return !!LS.get("ttsAlways",false)}
@@ -3573,7 +3574,7 @@ async function checkUpdate(){if(location.protocol==="file:"||!navigator.onLine)r
   if(m&&verCmp(m[1],APP_VERSION)>0){LS.set("updPend",m[1]);tryReload()}}catch(e){}}
 /* Pantallas donde no hay ninguna tarea a medias: inicio, plan, listas de fichas, progreso e informe */
 const SAFE_PAGES=["inicio","plan","fichas","progreso","informe",""];
-function safeToReload(){const h=curHash||"inicio";if(!SAFE_PAGES.includes(h)&&!/^(asig-|fechas$)/.test(h))return false;if(document.querySelector(".modal"))return false;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return false;try{if(window.speechSynthesis&&speechSynthesis.speaking)return false}catch(e){}return true}
+function safeToReload(){const h=curHash||"inicio";if(!SAFE_PAGES.includes(h)&&!/^(asig-|fechas$|premios$)/.test(h))return false;if(document.querySelector(".modal"))return false;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return false;try{if(window.speechSynthesis&&speechSynthesis.speaking)return false}catch(e){}return true}
 function tryReload(){const p=LS.get("updPend",null);if(!p)return;if(verCmp(p,APP_VERSION)<=0){LS.set("updPend",null);return}
   const last=LS.get("updTry",0);if(Date.now()-last<15*60e3)return;   // si la nueva aún no se ve tras recargar, no insistir enseguida
   if(!safeToReload())return;try{persist()}catch(e){}LS.set("updTry",Date.now());LS.set("updFrom",APP_VERSION);location.reload()}
@@ -3655,7 +3656,7 @@ async function checkTemas(){if(location.protocol==="file:"||!navigator.onLine||T
 /* ---------- Agenda: fechas (controles, exámenes, recuperaciones) y lo visto en clase. Se guarda también en el script para verla en cualquier aparato ---------- */
 function agenda(){const a=LS.get("agenda",null);return a&&a.fechas?a:{fechas:[],vistos:{},ts:0}}
 function agendaMerge(a,b){if(!b||!b.fechas)return a;const F={};[...(a.fechas||[]),...(b.fechas||[])].forEach(f=>{if(f&&f.id&&(!F[f.id]||(F[f.id].ts||0)<(f.ts||0)))F[f.id]=f});
-  const V=Object.assign({},b.vistos||{});Object.entries(a.vistos||{}).forEach(([k,v])=>{if(!V[k]||(V[k].ts||0)<(v.ts||0))V[k]=v});return {fechas:Object.values(F),vistos:V,ts:Math.max(a.ts||0,b.ts||0)}}
+  const V=Object.assign({},b.vistos||{});Object.entries(a.vistos||{}).forEach(([k,v])=>{if(!V[k]||(V[k].ts||0)<(v.ts||0))V[k]=v});const pa=(a.pTs||0)>=(b.pTs||0);return {fechas:Object.values(F),vistos:V,ts:Math.max(a.ts||0,b.ts||0),premios:pa?a.premios:b.premios,pTs:Math.max(a.pTs||0,b.pTs||0)}}
 async function agendaCall(acc,data){const c=cfg();if(!c.url||!navigator.onLine)return null;try{const r=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"agenda",accion:acc,clave:c.clave||"",agenda:data})});const j=await r.json();return j&&j.agenda||null}catch(e){return null}}
 async function agendaSync(push){const srv=await agendaCall("leer");const loc=agenda();const m=srv?agendaMerge(loc,srv):loc;LS.set("agenda",m);
   if(push||(srv&&JSON.stringify(m)!==JSON.stringify(srv)))await agendaCall("guardar",m);if(srv&&/^(inicio|fechas)$/.test(curHash||"inicio")&&JSON.stringify(m)!==JSON.stringify(loc))render()}
@@ -3679,7 +3680,7 @@ const CAT=[
  {s:"mat",t:"Tablas: las que más fallas",m:5,g:"tablas",base:.5},
  {s:"mat",t:"Números naturales (tema 1)",m:8,g:"diag:mat1"},
  {s:"mat",t:"Números enteros (tema 2)",m:8,g:"diag:mat2"},
- {s:"ing",t:"Verbos irregulares",m:8,g:"verbs",p:{fam:"all"},base:3},
+ {s:"ing",t:"Verbos irregulares",m:8,g:"verbs",p:{fam:"all"},base:3,fam:true},
  {s:"ing",t:"Past simple y past continuous",m:8,g:"diag:ing1",base:2.5},
  {s:"ing",t:"Present perfect y artículos",m:8,g:"diag:ing3",base:1.5},
  {s:"ing",t:"Vocabulario: viajes (escríbelo en inglés)",m:6,g:"tarjetas-viaje"},
@@ -3717,7 +3718,7 @@ function genBlocks(ds,tanda,goal,used){const out=[];let sum=0;const F=fechasProx
   const inF=(it,f)=>f.s===it.s&&(!f.units||!f.units.length||f.units.includes(it.u));
   const boost=it=>F.reduce((b,f)=>b+(inF(it,f)?4*(1-f.days/8):0),0);
   const pick=flt=>{let best=null,bs=-1e9;pool.forEach(it=>{if(used.has(it.g)||!flt(it))return;const sc=itemScore(it,ds,boost(it));if(sc>bs){bs=sc;best=it}});return best};
-  const add=it=>{if(!it)return;used.add(it.g);out.push([it.s,it.t,it.m,it.g,1,it.p||{},tanda]);sum+=it.m};
+  const add=it=>{if(!it)return;used.add(it.g);let t=it.t,p=it.p||{};if(it.fam){const F=VERBS[Math.floor(Date.parse(ds+"T12:00")/864e5)%VERBS.length];p={fam:F[0]};t="Verbos irregulares: "+F[1].toLowerCase()}out.push([it.s,t,it.m,it.g,1,p,tanda]);sum+=it.m};
   F.forEach(f=>{if(f.days===2&&tanda===1){if((f.units||[]).includes("1ev-"+f.s)&&typeof EXGEN!=="undefined"&&EXGEN[f.s]&&!used.has("ex-"+f.s))add({s:f.s,t:"Examen de práctica de "+SNAME[f.s]+" ("+f.tipo.toLowerCase()+" en 2 días)",m:20,g:"ex-"+f.s});
       else add(pick(it=>inF(it,f)&&String(it.g).startsWith("diag:")))}
     if(f.days===1&&tanda===1){add(pick(it=>inF(it,f)&&/^(tarjetas-|oral:|ficha-)/.test(it.g)));add(pick(it=>inF(it,f)))}});
@@ -3749,11 +3750,11 @@ function afterBlockDone(d,i){if(!d.cont)return afterBlockDone0(d,i);if(d.d!==tod
     if(more.length){more.forEach(b=>d.b.push(b));saveCont(d);logEvent({evento:"bloques añadidos para llegar a "+CONT_GOAL+" min",materia:"llevaba "+ef+" min de estudio efectivo"});return}}
   const next=T.find(x=>x.n>t.n&&x.idx.some(k=>!planDone[d.d+"#"+k]));
   if(next){logEvent({evento:"sesión 1 terminada",materia:ef+" min de estudio efectivo hoy"});LS.set("brk",{d:d.d,start:Date.now(),tarde:true,finde:true});return}
-  LS.set("brk",null);logEvent({evento:"día completado",materia:ef+" min de estudio efectivo hoy"})}
+  LS.set("brk",null);logEvent({evento:"día completado",materia:ef+" min de estudio efectivo hoy"});dayDone(d.d)}
 
 /* ---------- Minutos de estudio efectivo: solo cuentan si está en una tarea, con la app delante y tocando algo ---------- */
 let lastIn=Date.now();["pointerdown","keydown","wheel","touchstart","input"].forEach(e=>document.addEventListener(e,()=>{lastIn=Date.now()},true));
-const NOTASK=/^(inicio|plan|progreso|informe|fechas|asig-.*|)$/;
+const NOTASK=/^(inicio|plan|progreso|informe|fechas|premios|asig-.*|)$/;
 function efmToday(){const e=LS.get("efm",{});return e.d===todayStr()?Math.floor((e.s||0)/60):0}
 function effTick(){const h=curHash||"inicio";if(document.hidden||NOTASK.test(h)||document.querySelector(".modal.away"))return;if(document.hasFocus&&!document.hasFocus())return;
   let speaking=false;try{speaking=window.speechSynthesis&&speechSynthesis.speaking}catch(e){}
@@ -3764,7 +3765,7 @@ setInterval(effTick,5000);
 
 /* ---------- Un bloque termina cuando se cumplen el tiempo previsto y un mínimo de 10 preguntas ---------- */
 const TIMED=/^(diag:|verbs|tipo|tablas|mapas|tarjetas-|combinadas|problemas|posiciones|redondeo|mcd|rocas)/;
-function needMore(b,id){if(!TIMED.test(b[3]||""))return false;if(b[5]&&(b[5].sim||b[5].nivel))return false;const a=LS.get("act",null);if(!a||a.id!==id)return true;return (a.eff||0)<b[2]*60*.9||(a.q||0)<10}
+function needMore(b,id){if(!TIMED.test(b[3]||""))return false;if((prog[id]||0)>=3)return false;if(b[5]&&(b[5].sim||b[5].nivel))return false;const a=LS.get("act",null);if(!a||a.id!==id)return true;return (a.eff||0)<b[2]*60*.9||(a.q||0)<10}
 function offerMore(b,id){const a=LS.get("act",null)||{};const leftMin=Math.max(1,Math.round(b[2]-(a.eff||0)/60));const shortT=(a.eff||0)<b[2]*60*.9,qn=Math.max(0,10-(a.q||0));
   setTimeout(()=>{if(document.querySelector(".modal.more"))return;const m=document.createElement("div");m.className="modal more";m.setAttribute("role","dialog");m.setAttribute("aria-modal","true");
     m.innerHTML=`<div class="modal-box"><h2>¡Bien! Sigue un poco más</h2><p>Para terminar este bloque ${shortT?`te quedan unos <b>${leftMin} min</b>`:""}${shortT&&qn?" y ":""}${qn?`faltan <b>${qn} preguntas</b>`:""}. Haz otra ronda.</p><div class="row"><button class="btn" data-a>Otra ronda</button><button class="btn ghost" data-b>Ahora no</button></div></div>`;
@@ -3877,8 +3878,8 @@ function viewHome(){
     ${fl?`<section class="exams" aria-label="Próximas fechas">${fl}</section>`:""}
     <section class="card"><h2>2ª evaluación</h2><div class="tiles">${SUBJ.map(s=>sTile(s,2)).join("")}</div></section>
     <section class="card"><h2>1ª evaluación · repaso</h2><div class="tiles">${SUBJ.map(s=>sTile(s,1)).join("")}</div></section>
-    <div class="row" style="gap:10px"><button class="btn ghost" data-go="fechas">📅 Mis fechas${F.length?` (${F.length})`:""}</button>${results.length?`<button class="btn ghost" data-go="progreso">📈 Mi progreso</button>`:""}</div>`;
-  bindPlan($("#app"))}
+    <div class="row" style="gap:10px;flex-wrap:wrap"><button class="btn ghost" data-go="fechas">📅 Mis fechas${F.length?` (${F.length})`:""}</button><button class="btn ghost" data-go="premios">🎁 Mis premios</button><button class="btn ghost" id="vozbtn">🔊 Voz</button>${results.length?`<button class="btn ghost" data-go="progreso">📈 Mi progreso</button>`:""}</div>`;
+  bindPlan($("#app"));const vb=$("#vozbtn");if(vb)vb.addEventListener("click",voiceDialog)}
 
 /* ---------- Página de cada asignatura ---------- */
 function itemTile(it,s){const k=it.go;let st="";
@@ -3978,6 +3979,113 @@ async function syncPush(){if(syncBusy||!LS.get("syncDirty",false))return;await s
 let syncT=null;function syncSoon(){LS.set("syncDirty",true);clearTimeout(syncT);syncT=setTimeout(syncPush,20000)}
 setInterval(()=>{if(LS.get("syncDirty",false))syncPush()},5*60e3);
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&LS.get("syncDirty",false))syncPush();else if(!document.hidden)syncPull().then(n=>{if(n&&NOTASK.test(curHash||"inicio"))render()})});
+
+/* ====================== v11: voz más natural, puntos por esfuerzo, racha con comodín, premios, explicación antes de repetir ====================== */
+
+/* ---------- Voz: la mejor voz española del aparato (en Chromebook, la de Google), y se puede elegir ---------- */
+function voiceRank(v){const n=(v.name||"")+" "+(v.voiceURI||"");let s=0;if(/^es-ES/i.test(v.lang))s+=20;else if(/^es/i.test(v.lang))s+=8;else return -1;
+  if(/natural|neural|online|premium|enhanced|mejorad/i.test(n))s+=12;if(/google/i.test(n))s+=10;if(!v.localService)s+=3;if(/chrome ?os|espeak/i.test(n))s-=6;return s}
+function esVoices(){if(!TTS)return [];return TTS.getVoices().filter(v=>voiceRank(v)>=0).sort((a,b)=>voiceRank(b)-voiceRank(a))}
+function pickVoice(){if(!TTS)return;const L=esVoices();const want=LS.get("voz",null);ttsVoice=(want&&L.find(v=>v.voiceURI===want))||L[0]||null}
+function speak(text){if(!TTS)return;TTS.cancel();if(!ttsVoice)pickVoice();
+  const t=String(text).replace(/\*/g,"").replace(/·/g,",").replace(/\s*→\s*/g,", ").replace(/\s+/g," ").trim();
+  const parts=t.match(/[^.!?¿¡:;]+[.!?:;]*/g)||[t];   // frase a frase: pausas más naturales y no se corta en textos largos
+  parts.forEach(p=>{const s=p.trim();if(!s)return;const u=new SpeechSynthesisUtterance(s);u.lang="es-ES";if(ttsVoice)u.voice=ttsVoice;u.rate=LS.get("vozRate",.95);u.pitch=1.03;TTS.speak(u)});
+  logEvent({evento:"escúchalo"})}
+try{if(TTS){TTS.onvoiceschanged=pickVoice;pickVoice()}}catch(e){}
+function voiceDialog(){const L=esVoices();const cur=ttsVoice&&ttsVoice.voiceURI;
+  const m=modalBox(`<h2>La voz que lee</h2><p class="small muted">Prueba las voces y quédate con la que se entienda mejor.</p>
+   ${L.length?`<div class="col" style="gap:6px;max-height:50vh;overflow:auto">${L.map((v,i)=>`<label class="vchk"><input type="radio" name="vz" value="${i}"${v.voiceURI===cur?" checked":""}> ${esc(v.name)}${v.localService?"":" · en línea"}</label>`).join("")}</div>`:'<p>Este aparato no tiene voces en español.</p>'}
+   <label class="vchk" style="margin-top:8px">Velocidad <input type="range" id="vzr" min="0.75" max="1.15" step="0.05" value="${LS.get("vozRate",.95)}"></label>
+   <div class="row"><button class="btn ghost" data-t>Probar</button><button class="btn" data-ok>Guardar</button></div>`);
+  const sel=()=>{const r=m.querySelector('input[name="vz"]:checked');return r?L[+r.value]:ttsVoice};
+  m.querySelector("[data-t]").addEventListener("click",()=>{const v=sel();LS.set("vozRate",+m.querySelector("#vzr").value);const keep=ttsVoice;ttsVoice=v;speak("Hola. Así es como te leo las preguntas. ¿Se entiende bien?");ttsVoice=keep});
+  m.querySelector("[data-ok]").addEventListener("click",()=>{const v=sel();if(v){LS.set("voz",v.voiceURI);ttsVoice=v}LS.set("vozRate",+m.querySelector("#vzr").value);logEvent({evento:"voz elegida",sub:v?v.name:""});m.remove()})}
+
+/* ---------- Puntos por esfuerzo ---------- */
+function ptsInit(){const t=todayStr();const ok=results.filter(r=>sameDay(r.ts,t)&&r.total&&r.materia!=="Tarjetas"&&!String(r.key).startsWith("ex-")).reduce((s,r)=>s+(r.ok||0),0);const min=efmToday();
+  const p={tot:Math.floor(min/3)+Math.floor(ok*2/10),raw:(ok*2)%10,d:{}};p.d[t]=p.tot;LS.set("pts2",p);const H=LS.get("efmH",{});H[t]=min;LS.set("efmH",H);return p}
+function pts2(){return LS.get("pts2",null)||ptsInit()}
+function addXP(n){if(!n)return;const p=pts2();p.raw=(p.raw||0)+n;let g=0;while(p.raw>=10){p.raw-=10;g++}LS.set("pts2",p);if(g)addPts(g,"",true)}
+function addPts(n,why,toast){if(!n)return;const x=pts2();const t=todayStr();x.d[t]=(x.d[t]||0)+n;x.tot=(x.tot||0)+n;LS.set("pts2",x);
+  if(toast)try{const el=document.createElement("div");el.className="xptoast";el.textContent="+"+n+(why?" "+why:"");document.body.appendChild(el);setTimeout(()=>el.remove(),1600)}catch(e){}}
+let ptsSec=0;
+setInterval(()=>{pts2();const e=LS.get("efm",{});if(e.d!==todayStr())return;const s=e.s||0;const H=LS.get("efmH",{});const min=Math.floor(s/60);
+  if((H[e.d]||0)<min){const gain=Math.floor(min/3)-Math.floor((H[e.d]||0)/3);H[e.d]=min;LS.set("efmH",H);if(gain>0)addPts(gain,"",false)}},5000);
+function logro(txt,pts){const L=LS.get("logros",[]);L.unshift({d:todayStr(),t:txt});LS.set("logros",L.slice(0,60));if(pts)addPts(pts,"¡"+txt+"!",true)}
+function errDone(key,ok){const E=LS.get("errP",{});const e=E[key];errDone0(key,ok);if(ok&&e)logro("Superado: "+String(e.label||"un error que repetías").slice(0,60),3)}
+function diasOk(){return LS.get("diasOk",{})}
+function weekMon(ds){const d=new Date(ds+"T12:00");const w=(d.getDay()+6)%7;return addDays(ds,-w)}
+function rachaDias(){const D=diasOk();let t=todayStr();if(!D[t])t=addDays(t,-1);let n=0;const used={};
+  for(let k=0;k<200&&t>=CONT_FROM;k++){if(D[t])n++;else{const w=weekMon(t);if(used[w])break;used[w]=1}t=addDays(t,-1)}return n}
+function diasSemana(ds){const m=weekMon(ds||todayStr());let n=0;for(let i=0;i<7;i++)if(diasOk()[addDays(m,i)])n++;return n}
+function ptsLibres(){const sp=LS.get("canjes",[]).filter(c=>c.tipo==="puntos").reduce((s,c)=>s+(c.coste||0),0);return Math.max(0,(pts2().tot||0)-sp)}
+function xpHtml(){const st=rachaDias(),lib=ptsLibres(),sem=diasSemana();
+  return `<button class="xpbar" data-go="premios" style="width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit" aria-label="Mis premios"><span class="flame">${st?"🔥":"⭐"}</span><div style="flex:1;display:flex;flex-direction:column;gap:2px"><div class="row" style="justify-content:space-between;gap:6px"><b>${lib} puntos para premios</b><span class="small muted">${st?`Racha: ${st} ${st===1?"día":"días"}`:"Empieza tu racha"} · ${sem} ${sem===1?"día completo":"días completos"} esta semana</span></div><span class="small muted">Ganas puntos estudiando: 1 por cada 3 minutos, 1 por cada 5 aciertos y 5 por completar el día. Toca aquí para ver tus premios.</span></div></button>`}
+
+/* ---------- Al completar el día: mensaje concreto sobre lo que ha hecho ---------- */
+function dayDone(ds){const D=diasOk();if(D[ds])return;D[ds]=efmToday();LS.set("diasOk",D);addPts(5,"por completar el día",true);if(diasSemana(ds)===5)setTimeout(()=>addPts(5,"por 5 días esta semana",true),1800);
+  const rs=results.filter(r=>sameDay(r.ts,ds)&&r.total);const ok=rs.reduce((s,r)=>s+(r.ok||0),0),tot=rs.reduce((s,r)=>s+(r.total||0),0);
+  const lg=LS.get("logros",[]).filter(l=>l.d===ds).map(l=>l.t);const st=rachaDias();
+  const lines=[`Hoy has hecho <b>${efmToday()} minutos</b> de estudio de verdad.`];if(tot)lines.push(`Has acertado <b>${ok} de ${tot}</b> preguntas.`);lg.slice(0,3).forEach(t=>lines.push(esc(t)+"."));if(st>1)lines.push(`Llevas <b>${st} días</b> seguidos.`);
+  setTimeout(()=>{const m=modalBox(`<h2>¡Práctica de hoy completada!</h2>${lines.map(l=>`<p style="margin:4px 0">${l}</p>`).join("")}<div class="row"><button class="btn" data-ok>¡Bien!</button><button class="btn ghost" data-p>Ver mis premios</button></div>`);
+    m.querySelector("[data-ok]").addEventListener("click",()=>{m.remove();render()});m.querySelector("[data-p]").addEventListener("click",()=>{m.remove();go("premios")})},1500);
+  logEvent({evento:"día completo (premios)",materia:efmToday()+" min",sub:"racha "+st+" días · "+diasSemana(ds)+" días completos esta semana"})}
+
+/* ---------- Mis premios y mi esfuerzo ---------- */
+const PREMIOS_DEF=[{id:"p1",t:"Pizza para cenar el viernes",tipo:"dias",coste:5},{id:"p2",t:"Un regalito a elegir (hasta 2 €)",tipo:"puntos",coste:50}];
+function premios(){const a=agenda();return Array.isArray(a.premios)?a.premios:PREMIOS_DEF}
+function viewPremios(){const P=premios(),lib=ptsLibres(),sem=diasSemana(),wk=weekMon(todayStr());const C=LS.get("canjes",[]);const H=LS.get("efmH",{}),D=diasOk();
+  const days=[];for(let i=13;i>=0;i--){const ds=addDays(todayStr(),-i);if(ds<CONT_FROM)continue;days.push([ds,H[ds]||0,!!D[ds]])}
+  const mx=Math.max(60,...days.map(x=>x[1]));
+  const bars=`<div class="ebars">${days.map(([ds,m,ok])=>`<div class="eb" title="${fmtDate(ds)}: ${m} min"><i style="height:${Math.round(100*m/mx)}%" class="${ok?"ok":""}"></i><span>${new Date(ds+"T12:00").getDate()}</span></div>`).join("")}<div class="eline" style="bottom:${Math.round(100*30/mx)}%"></div></div>`;
+  const card=p=>{let pr,can=false,txt;
+    if(p.tipo==="dias"){const done=C.some(c=>c.id===p.id&&c.wk===wk);pr=Math.min(1,sem/p.coste);can=sem>=p.coste&&!done;txt=done?"¡Conseguido esta semana!":`${sem} de ${p.coste} días completos esta semana`}
+    else{pr=Math.min(1,lib/p.coste);can=lib>=p.coste;txt=`${Math.min(lib,p.coste)} de ${p.coste} puntos`}
+    return `<div class="prem"><b>${esc(p.t)}</b><div class="ring"><i style="width:${Math.round(pr*100)}%"></i></div><div class="row" style="justify-content:space-between"><span class="small muted">${txt}</span>${can?`<button class="btn small" data-can="${esc(p.id)}">¡Lo quiero!</button>`:""}</div></div>`};
+  const lg=LS.get("logros",[]).slice(0,8);
+  $("#app").innerHTML=`<div class="wrap" style="gap:16px"><button class="back" data-go="inicio">← Volver</button><h1>Mis premios</h1>
+   <section class="card"><h2>Mis premios</h2>${P.map(card).join("")||'<p class="muted">Todavía no hay premios.</p>'}<p class="small muted">Los premios de días se cuentan de lunes a domingo.</p></section>
+   <section class="card"><h2>Mi esfuerzo</h2><p style="margin:0 0 6px">🔥 Racha: <b>${rachaDias()} días</b> · Esta semana: <b>${sem}</b> días completos · Puntos: <b>${lib}</b></p><p class="small muted" style="margin:0 0 8px">Un día sin práctica a la semana no rompe la racha.</p>
+     <p class="small" style="margin:0 0 4px">Minutos de estudio de verdad cada día (la línea es la meta de 30):</p>${bars}
+     ${lg.length?`<h3>Lo que has conseguido</h3><ul style="margin:0;padding-left:1.2em">${lg.map(l=>`<li>${esc(l.t)} <span class="small muted">(${fmtDate(l.d)})</span></li>`).join("")}</ul>`:""}</section>
+   <details class="card"><summary>Para papá o mamá: cambiar los premios</summary><div id="pedit"></div></details></div>`;
+  const a=$("#app");a.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  a.querySelectorAll("[data-can]").forEach(b=>b.addEventListener("click",()=>{const p=P.find(x=>x.id===b.dataset.can);pinAsk(`Enséñaselo a papá o mamá para que lo confirmen: «${esc(p.t)}».`,()=>{const C2=LS.get("canjes",[]);C2.push({id:p.id,t:p.t,tipo:p.tipo,coste:p.tipo==="puntos"?p.coste:0,wk,d:todayStr(),ts:Date.now()});LS.set("canjes",C2);syncSoon();logEvent({evento:"premio conseguido",materia:p.t});viewPremios()})}));
+  a.querySelector("details").addEventListener("toggle",e=>{if(!e.target.open)return;pinAsk("Introduce el PIN para cambiar los premios.",()=>premEdit(),()=>{e.target.open=false})},{once:true})}
+function pinAsk(msg,ok,cancel){const m=modalBox(`<p>${msg}</p><form class="row" id="pk"><input id="pkin" class="txtin" type="password" inputmode="numeric" autocomplete="off" style="width:9ch;letter-spacing:.3em" aria-label="PIN"><button class="btn">Confirmar</button><button type="button" class="btn ghost" data-x>Cancelar</button></form><span id="pkm" class="small muted"></span>`);
+  m.querySelector("#pkin").focus();m.querySelector("[data-x]").addEventListener("click",()=>{m.remove();if(cancel)cancel()});
+  m.querySelector("#pk").addEventListener("submit",e=>{e.preventDefault();if(pinHash(m.querySelector("#pkin").value.trim())===PIN_H){m.remove();ok()}else{m.querySelector("#pkm").textContent="PIN incorrecto.";m.querySelector("#pkin").value=""}})}
+function premEdit(){const box=$("#pedit");if(!box)return;const P=premios().map(p=>Object.assign({},p));
+  const draw=()=>{box.innerHTML=`${P.map((p,i)=>`<div class="row" style="gap:6px;flex-wrap:wrap;margin:6px 0"><input class="txtin" data-i="${i}" data-f="t" value="${esc(p.t)}" style="flex:2;min-width:12em;max-width:none"><select class="txtin" data-i="${i}" data-f="tipo" style="flex:1;min-width:9em"><option value="dias"${p.tipo==="dias"?" selected":""}>días completos en la semana</option><option value="puntos"${p.tipo==="puntos"?" selected":""}>puntos</option></select><input class="txtin" data-i="${i}" data-f="coste" type="number" min="1" value="${p.coste}" style="width:6em"><button class="linkbtn" data-del="${i}">Quitar</button></div>`).join("")}
+    <div class="row"><button class="btn ghost small" id="padd">Añadir premio</button><button class="btn small" id="psave">Guardar premios</button></div><p class="small muted">Como referencia: un día completo de 30 minutos da unos 20 puntos (10 por los minutos, unos 5 por los aciertos y 5 por completarlo). Una semana buena, unos 100.</p>`;
+    box.querySelectorAll("[data-f]").forEach(el=>el.addEventListener("input",()=>{const p=P[+el.dataset.i];p[el.dataset.f]=el.dataset.f==="coste"?Math.max(1,+el.value||1):el.value}));
+    box.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{P.splice(+b.dataset.del,1);draw()}));
+    box.querySelector("#padd").addEventListener("click",()=>{P.push({id:"p"+Date.now().toString(36),t:"Nuevo premio",tipo:"puntos",coste:200});draw()});
+    box.querySelector("#psave").addEventListener("click",()=>{const a=agenda();a.premios=P.filter(p=>String(p.t).trim());a.pTs=Date.now();a.ts=Date.now();LS.set("agenda",a);logEvent({evento:"premios cambiados",sub:a.premios.map(p=>p.t+" ("+p.coste+" "+(p.tipo==="dias"?"días":"puntos")+")").join(" · ")});agendaSync(true);viewPremios()})};draw()}
+
+/* ---------- Antes de repetir una ronda: si falla lo mismo dos veces, primero la explicación ---------- */
+function repeatedFails(key){const R=results.filter(r=>r.key===key&&Date.now()-r.ts<45*60e3).slice(0,2);if(R.length<2)return [];const a=new Set(R[0].fallos||[]);return (R[1].fallos||[]).filter(f=>a.has(f))}
+function explainCard(key){const F=repeatedFails(key);if(!F.length)return null;const D=DIAG[key];const items=[];
+  F.slice(0,3).forEach(f=>{const q=D&&D.qs&&D.qs.find(x=>qkey(x)===f);
+    if(q){items.push(`<li><b>${esc(q.q)}</b><br>Respuesta: <b>${esc(q.o?q.o[0]:String(q.n))}</b>${EXPL[q.q]?"<br>"+EXPL[q.q]:q.e?"<br>"+esc(q.e):""}</li>`);return}
+    const T=cbParseTyped(String(f).replace(/\s*=.*$/,""));if(T){const v=cbValue(T);const nums=T.filter(x=>x.t==="n").map(x=>x.v);
+      let why="";if(nums.length===2&&/\+|−|-/.test(f)&&!/[·:]/.test(f)){const s=/\s[−-]\s*\(/.test(f)?"Restar un negativo es sumar su contrario: − (−a) = + a. ":"";why=s+"Si los signos son distintos, restas los números y pones el signo del que es más grande (sin mirar el signo).";}
+      else if(/[·:]/.test(f))why="Signos iguales → resultado positivo. Signos distintos → resultado negativo.";
+      items.push(`<li><b>${esc(f)} = ${fmtZ(v)}</b>${why?"<br>"+why:""}</li>`)}});
+  return items.length?items:null}
+const offerMore0=offerMore;
+offerMore=function(b,id){const key=blockKey(b[3]||"");const ex=key?explainCard(key):null;if(!ex)return offerMore0(b,id);
+  setTimeout(()=>{if(document.querySelector(".modal.more"))return;const a=LS.get("act",null)||{};const m=modalBox(`<h2>Antes de la siguiente ronda</h2><p>Esto lo has fallado en las dos últimas rondas. Léelo con calma:</p><ul style="padding-left:1.2em;display:flex;flex-direction:column;gap:8px">${ex.join("")}</ul><div class="row"><button class="btn" data-a>Entendido, otra ronda</button><button class="btn ghost" data-b>Ahora no</button></div>`);m.classList.add("more");
+    logEvent({evento:"explicación antes de repetir",bloque:b[1],sub:repeatedFails(key).slice(0,3).join(" · ")});
+    m.querySelector("[data-a]").addEventListener("click",()=>{m.remove();const target=targetOf(b);try{localStorage.removeItem("m1e:st:"+target)}catch(e){}LS.set("bp",{target,params:b[5]||{},blk:id});logEvent({evento:"otra ronda",bloque:b[1]});if(curHash===target){state={};render();window.scrollTo(0,0)}else go(target)});
+    m.querySelector("[data-b]").addEventListener("click",()=>{m.remove();go("inicio")})},1400)};
+
+/* ---------- Actualización: al volver a Inicio pregunta a GitHub si el archivo ha cambiado (consulta mínima) ---------- */
+let pageTag=null;
+async function headTag(){try{const r=await fetch(location.href.split("#")[0].split("?")[0],{method:"HEAD",cache:"no-store"});if(!r.ok)return null;return r.headers.get("etag")||r.headers.get("last-modified")||null}catch(e){return null}}
+setTimeout(async()=>{pageTag=await headTag()},3000);
+window.addEventListener("hashchange",async()=>{if(!/^(inicio|)$/.test(curHash||"")||location.protocol==="file:")return;const t=await headTag();if(t&&pageTag&&t!==pageTag){LS.set("updTry",0);await checkUpdate()}});
 
 bootV9();
 </script>

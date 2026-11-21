@@ -300,7 +300,7 @@ textarea{width:100%;min-height:160px;font:inherit;font-size:.85rem;border-radius
 .syncnote{font-size:.8rem;color:var(--soft)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<style>.vchk{display:flex;gap:8px;align-items:flex-start;padding:6px 0;cursor:pointer}.vchk input{margin-top:3px;width:18px;height:18px}.vgrp{margin:6px 0 10px}.vgrp>b{display:block;margin-bottom:2px}.frow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)}.tile[disabled],.tile[aria-disabled="true"]{opacity:.55}#ff label{display:flex;flex-direction:column;gap:4px;font-weight:600}#ff label.vchk{flex-direction:row;font-weight:400;align-items:center}#ff select,#ff input[type=date]{max-width:none}details.card summary{cursor:pointer;font-weight:600}</style>
+<style>.vchk{display:flex;gap:8px;align-items:flex-start;padding:6px 0;cursor:pointer}.vchk input{margin-top:3px;width:18px;height:18px}.vgrp{margin:6px 0 10px}.vgrp>b{display:block;margin-bottom:2px}.frow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.08)}.tile[disabled],.tile[aria-disabled="true"]{opacity:.55}#ff label{display:flex;flex-direction:column;gap:4px;font-weight:600}#ff label.vchk{flex-direction:row;font-weight:400;align-items:center}#ff select,#ff input[type=date]{max-width:none}details.card summary{cursor:pointer;font-weight:600}.toastv{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#24403c;color:#fff;padding:12px 18px;border-radius:14px;font-weight:600;z-index:9999;max-width:min(92vw,520px);text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.25)}</style>
 
 <div class="wrap" id="app"></div>
 <div class="timer" id="timer" hidden></div>
@@ -982,7 +982,7 @@ function saveResult(r){tagResult(r);try{r.ev=evOfKey(r.key)}catch(e){}try{r.ayud
   setTimeout(()=>{const m=r.cuenta===false?null:autoMark(r.key);logEvent(Object.assign({evento:"resultado"},r,{bloque_completado:m||""}))},0);
   r.id=r.id||("r"+Date.now()+Math.random().toString(36).slice(2,6));
   r.ts=r.ts||Date.now();
-  results.unshift(r);LS.set("results",results.slice(0,200));
+  results.unshift(r);LS.set("results",results.slice(0,200));try{syncSoon()}catch(e){}
   if(DB){DB.collection("resultados").doc(r.id).set(r).catch(()=>{})}
 }
 
@@ -1113,6 +1113,7 @@ function viewQuiz(key){
   if(i>=qs.length) return quizEnd(key,D);
   const q=qs[i];
   if(!isPureTest()&&!q.retry&&!q.vf&&!state.answered&&(state.stuckN||0)<2&&isStuck(q))return stuckCard(key,D,q);
+  calmaApply(q);
   if(q.wr===undefined){const r0=q.o&&q.o[0]||"";q.wr=(key==="bio1"||key==="bio2")&&!isPureTest()&&!!q.o&&!q.vf&&!q.retry&&!q.gen&&r0.length<=28&&r0.split(" ").length<=3&&!/\d/.test(r0)&&!/^(sí|si|no|verdadero|falso)$/i.test(r0)&&!/^(sí|si|no)\b/i.test(r0)&&state.i%2===0}
   const prog=qs.map((x,j)=>`<i class="${j<state.ans.length?state.ans[j]:j===i?"cur":""}${x.retry?" re":""}"></i>`).join("");
   $("#app").innerHTML=`<div data-s="${D.s}" class="wrap" style="gap:16px">
@@ -1125,7 +1126,7 @@ function viewQuiz(key){
       ${q.vf?`<div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${vfStatement(q,q.vf)}</p>${listenBtn("qlisten")}</div>
       <div class="opts" id="opts"><button class="opt" data-vf="1">Verdadero</button><button class="opt" data-vf="0">Falso</button></div>`:`
       <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:nowrap"><p class="qtext">${esc(q.q)}${q.n!==undefined&&!q.o&&/[×:−+]/.test(q.q)?" =":""}</p>${q.o?listenBtn("qlisten"):""}</div>${qImg(q)}
-      ${q.wr&&!state.fixing?`<p class="small muted" style="margin:0">Escríbela tú, sin opciones: así te lo preguntarán en el examen.</p><form class="numin" id="wf"><input id="win" class="txtin" autocomplete="off" spellcheck="false" aria-label="Tu respuesta" style="max-width:none;flex:1"><button class="btn">Comprobar</button></form>`
+      ${q.wr&&!state.fixing?`<p class="small muted" style="margin:0">${q.calma?"Escríbela tú: así se piensa mejor. Si no la sabes, pulsa «No lo sé».":"Escríbela tú, sin opciones: así te lo preguntarán en el examen."}</p><form class="numin" id="wf"><input id="win" class="txtin" autocomplete="off" spellcheck="false" aria-label="Tu respuesta" style="max-width:none;flex:1"><button class="btn">Comprobar</button></form>`
         :q.opts?`<div class="opts" id="opts">${q.opts.map((o,j)=>`<button class="opt" data-o="${j}">${esc(o)}</button>`).join("")}</div>`
         :`<form class="numin" id="nf"><input id="nin" inputmode="${q.n<0?"text":"numeric"}" autocomplete="off" aria-label="Tu respuesta"${q.n<0||/[−-]\s*\d|\(−/.test(q.q)?' data-keys="−"':""}><button class="btn">Comprobar</button></form>`}`}
       <div id="fb"></div><div id="fix"></div>
@@ -1142,7 +1143,7 @@ function viewQuiz(key){
     $("#after").innerHTML=`<button class="btn" id="next">${i+1<qs.length?"Siguiente →":"Ver resultado"}</button>`;$("#next").addEventListener("click",()=>{state.i++;state.answered=false;state.fixing=false;viewQuiz(key)});$("#next").focus()};
   const finish=(res)=>{
     if(state.answered)return;state.answered=true;state.ans.push(res);qhRecord(q,res==="ok");
-    {const dt=state.t0?Math.round((Date.now()-state.t0)/100)/10:0;state.qlog=state.qlog||[];state.qlog.push((q.retry?"rep ":"")+(state.qlog.length+1)+") "+q.t+": "+(res==="ok"?"bien":res==="ns"?"no lo sé":"mal")+" "+String(dt).replace(".",",")+" s"+(state.heard===state.i?" · escuchada":"")+(state.awayCur?" · salió de la app":"")+(res==="ko"&&state.pick?" · eligió «"+String(state.pick).slice(0,40)+"»":""));state.awayCur=false}const wasRushed=res!=="ns"?rushCheck(q):false;
+    {const dt=state.t0?Math.round((Date.now()-state.t0)/100)/10:0;state.qlog=state.qlog||[];state.qlog.push((q.retry?"rep ":"")+(state.qlog.length+1)+") "+q.t+": "+(res==="ok"?"bien":res==="ns"?"no lo sé":"mal")+" "+String(dt).replace(".",",")+" s"+(state.heard===state.i?" · escuchada":"")+(state.awayCur?" · salió de la app":"")+(res==="ko"&&state.pick?" · eligió «"+String(state.pick).slice(0,40)+"»":""));state.awayCur=false}calmaCheck(q,res);if(q.calma)state.calma=Math.max(0,(state.calma||0)-1);const wasRushed=res!=="ns"?rushCheck(q):false;
     if(!wasRushed)addXP(res==="ok"&&!q.retry?2:1);
     if(res!=="ok"&&!q.retry&&!q.gen&&!qs.some(x=>x.retry&&qkey(x)===qkey(q)))qs.push(Object.assign({},q,{retry:true,opts:q.o?shuffle(q.o):null}));
     if(res!=="ok"&&!q.retry&&!q.gen&&!q.vf)errNote("q:"+key+":"+qkey(q),q.q,{t:"q",dk:key,qk:qkey(q)},D.s);
@@ -1205,7 +1206,7 @@ function quizEnd(key,D){
   if(state.mini==="prueba de la ficha")learnF=null;
   const pass=!practice||(!rushed&&!learnF);
   const T5=(state.times||[]).slice(0,5),T6=(state.times||[]).slice(5),avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1).replace(".",","):"–";
-  if(!state.saved){state.saved=true;saveResult({key,materia:D.title,sub:D.sub+(state.mini?" · "+state.mini:"")+((state.attempt||1)>=2?" · 2º intento":""),ok,total:qs.length,ns,temas,fallos:qs.filter((q,j)=>ans[j]!=="ok").map(q=>qkey(q)),recuperadas:retr?fixed+"/"+retr:undefined,rapidas:state.rush||0,cuenta:pass,preguntas:(state.qlog||[]).join(" | "),fuera:state.awayN?state.awayN+" veces, "+Math.round(state.awayS||0)+" s en total":"",texto:`segundos por pregunta: 1.ª-5.ª ${avg(T5)} · 6.ª en adelante ${avg(T6)}`})}
+  if(!state.saved){state.saved=true;saveResult({key,n:Math.max(0,qs.length-(state.fastWrong||0)),materia:D.title,sub:D.sub+(state.mini?" · "+state.mini:"")+((state.attempt||1)>=2?" · 2º intento":""),ok,total:qs.length,ns,temas,fallos:qs.filter((q,j)=>ans[j]!=="ok").map(q=>qkey(q)),recuperadas:retr?fixed+"/"+retr:undefined,rapidas:state.rush||0,cuenta:pass,preguntas:(state.qlog||[]).join(" | "),fuera:state.awayN?state.awayN+" veces, "+Math.round(state.awayS||0)+" s en total":"",texto:`segundos por pregunta: 1.ª-5.ª ${avg(T5)} · 6.ª en adelante ${avg(T6)}`})}
   const failedQs=qs.filter((q,j)=>ans[j]!=="ok");
   const pct=ok/qs.length;
   const rushedQs=qs.filter(q=>(state.rqk||[]).includes(qkey(q)));
@@ -1614,7 +1615,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-20.2";
+const APP_VERSION="2026-11-21.1";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Mi práctica diaria</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -1625,7 +1626,7 @@ function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=t
     if(!navigator.onLine){$("#lgm").textContent="Necesitas conexión a internet para entrar.";return}
     $("#lgm").style.color="var(--soft)";$("#lgm").textContent="Comprobando…";
     try{const r=await fetch(REGISTRO_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"login",clave:pass,ts:new Date().toISOString(),disp:deviceInfo()})});const j=await r.json();
-      if(j.ok){LS.set("auth",{pass,nombre:j.nombre||"",desde:Date.now()});m.hidden=true;$("#infbtn").hidden=false;flushLog();render();setTimeout(aiTick,1500)}
+      if(j.ok){LS.set("auth",{pass,nombre:j.nombre||"",desde:Date.now()});m.hidden=true;$("#infbtn").hidden=false;flushLog();render();syncPull().then(n=>{if(n){loadContDays();render()}});agendaSync(false);setTimeout(aiTick,1500)}
       else{$("#lgm").style.color="var(--ko)";$("#lgm").textContent="Contraseña incorrecta.";$("#lgp").value=""}}
     catch(err){$("#lgm").style.color="var(--ko)";$("#lgm").textContent="No se ha podido conectar. Revisa la conexión e inténtalo otra vez."}})}
 function logEvent(ev){const c=cfg();if(!c.url)return;const box=LS.get("outbox",[]);box.push(Object.assign({ts:new Date().toISOString(),disp:deviceInfo(),ayuda:(ayudaNow()||{}).v||""},ev));LS.set("outbox",box.slice(-300));flushLog()}
@@ -3560,7 +3561,7 @@ document.addEventListener("click",e=>{if(e.target&&e.target.id==="aychg"){const 
 /* ---------- Salir de la app (otra pestaña u otra ventana) mientras estudia ---------- */
 let awayT0=null;
 function awayStart(){if(awayT0||!curHash||curHash==="inicio")return;awayT0=Date.now()}
-function awayEnd(){if(!awayT0)return;const s=(Date.now()-awayT0)/1000;awayT0=null;if(s<3)return;
+function awayEnd0(){if(!awayT0)return;const s=(Date.now()-awayT0)/1000;awayT0=null;if(s<3)return;
   if(state&&typeof state==="object"){state.awayN=(state.awayN||0)+1;state.awayS=(state.awayS||0)+s;state.awayCur=true}
   if(s>=10)logEvent({evento:"salió de la app",materia:curHash,sub:Math.round(s)+" s fuera"})}
 document.addEventListener("visibilitychange",()=>{document.hidden?awayStart():awayEnd()});
@@ -3754,7 +3755,7 @@ function afterBlockDone(d,i){if(!d.cont)return afterBlockDone0(d,i);if(d.d!==tod
 let lastIn=Date.now();["pointerdown","keydown","wheel","touchstart","input"].forEach(e=>document.addEventListener(e,()=>{lastIn=Date.now()},true));
 const NOTASK=/^(inicio|plan|progreso|informe|fechas|asig-.*|)$/;
 function efmToday(){const e=LS.get("efm",{});return e.d===todayStr()?Math.floor((e.s||0)/60):0}
-function effTick(){const h=curHash||"inicio";if(document.hidden||NOTASK.test(h))return;if(document.hasFocus&&!document.hasFocus())return;
+function effTick(){const h=curHash||"inicio";if(document.hidden||NOTASK.test(h)||document.querySelector(".modal.away"))return;if(document.hasFocus&&!document.hasFocus())return;
   let speaking=false;try{speaking=window.speechSynthesis&&speechSynthesis.speaking}catch(e){}
   if(Date.now()-lastIn>90000&&!speaking)return;
   const ds=todayStr();const e=LS.get("efm",{});if(e.d!==ds){e.d=ds;e.s=0}e.s=(e.s||0)+5;LS.set("efm",e);
@@ -3777,7 +3778,7 @@ function autoMark(key){const d=PLAN.find(p=>p.d===todayStr());if(!d)return null;
   else for(const i of seq(d)){if(!planDone[d.d+"#"+i]&&blockMatches(d.b[i][3],key)){idx=i;break}}
   if(idx<0)return null;const b=d.b[idx],id=d.d+"#"+idx;prog[id]=(prog[id]||0)+1;LS.set("prog",prog);
   if(d.cont){act=LS.get("act",null);if(!act||act.id!==id||act.finished){startSession(id);act=LS.get("act",null)}
-    if(act&&act.id===id){const r=results[0];if(r&&r.key===key)act.q=(act.q||0)+(r.n||r.total||0);LS.set("act",act)}}
+    if(act&&act.id===id){const r=results[0];if(r&&r.key===key)act.q=(act.q||0)+(r.n!=null?r.n:(r.total||0));LS.set("act",act)}}
   if(prog[id]>=roundsFor(b)){
     if(d.cont&&needMore(b,id)){offerMore(b,id);tick();return null}
     planDone[id]=true;savePlan();const a2=LS.get("act",null);
@@ -3921,9 +3922,62 @@ function viewFechas(){const t=todayStr();const A=fechasVivas();const prox=A.filt
   agendaSync(false)}
 
 /* ---------- Arranque: primero los temas, luego la app ---------- */
-async function bootV9(){initUnits1();await Promise.race([loadUnits(),new Promise(r=>setTimeout(r,4000))]);loadContDays();
+async function bootV9(){initUnits1();await Promise.race([Promise.all([loadUnits(),auth()?syncPull():0]),new Promise(r=>setTimeout(r,6000))]);loadContDays();
   applyAIPlans();state=restore(curHash);render();if(!auth())showLogin();setTimeout(aiTick,2500);setInterval(aiTick,15*60e3);
   setTimeout(()=>agendaSync(false),3000);setInterval(checkTemas,10*60e3);document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkTemas();agendaSync(false)}})}
+
+/* ====================== v10: salir de la app, respuestas sin pensar y progreso guardado con su usuario ====================== */
+
+/* ---------- Al volver a la app: el tiempo fuera no cuenta; si ha sido largo, que lo explique ella ---------- */
+function realWords(t){const W=String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").split(/[^a-zñ]+/).filter(Boolean);
+  const real=W.filter(w=>(w.length>=2||/^[aeoyu]$/.test(w))&&/[aeiouy]/.test(w)&&!/(.)\1\1/.test(w)&&!/[^aeiouy]{5}/.test(w));return {W,real}}
+function toastMsg(txt,ms){const t=document.createElement("div");t.className="toastv";t.textContent=txt;document.body.appendChild(t);setTimeout(()=>t.remove(),ms||6000)}
+function awayEnd(){if(!awayT0)return;const s=(Date.now()-awayT0)/1000;const h=curHash||"inicio";
+  if(s>7200){awayT0=null;return}                       // la app se quedó abierta (por ejemplo, toda la noche): no es una salida
+  awayEnd0();if(NOTASK.test(h)||s<60)return;
+  const min=Math.max(1,Math.round(s/60)),ef=efmToday(),goal=goalMin(todayStr());
+  const info=`Has estado fuera ${min} min. Ese tiempo no cuenta: llevas ${ef} de ${goal} min de estudio.`;
+  if(s<180||document.querySelector(".modal.away")){toastMsg(info);return}
+  const m=modalBox(`<p class="small muted" style="margin:0">${esc(info)}</p><h2>¿Qué ha pasado mientras estabas fuera?</h2><p>Cuéntamelo con tus palabras. <b>Escribe al menos 5 palabras.</b></p>
+    <textarea id="awtx" class="txtin" rows="3" style="max-width:none;width:100%;box-sizing:border-box"></textarea><p class="small" id="awmsg" style="color:var(--ko);min-height:1.2em;margin:4px 0"></p><div class="row"><button class="btn" id="awok">Seguir</button></div>`);
+  m.classList.add("away");const tx=m.querySelector("#awtx");tx.focus();
+  ["paste","drop"].forEach(ev=>tx.addEventListener(ev,e=>{e.preventDefault();m.querySelector("#awmsg").textContent="Aquí no se puede pegar: escríbelo tú."}));
+  m.querySelector("#awok").addEventListener("click",()=>{const t=tx.value.trim();const {W,real}=realWords(t);
+    if(real.length<5||real.length/Math.max(1,W.length)<.6){m.querySelector("#awmsg").textContent=real.length<5?`Explícalo con al menos 5 palabras (llevas ${real.length}).`:"Eso no parecen palabras. Escríbelo con frases cortas, aunque tenga faltas.";
+      if(W.length>=5&&real.length/Math.max(1,W.length)<.6)logEvent({evento:"explicación sin sentido",materia:"al volver a la app",sub:t.slice(0,80)});return}
+    m.remove();logEvent({evento:"explica por qué salió",materia:h,sub:min+" min fuera",texto:t.slice(0,500)})})}
+
+/* ---------- Respuestas sin pensar: un fallo rápido avisa; el segundo hace que las 4 siguientes se escriban ---------- */
+const FAST_S=3;
+function calmaCheck(q,res){if(!state.t0||isPureTest()||q.retry||q.vf||q.wr||!q.o||res!=="ko")return;const dt=(Date.now()-state.t0)/1000;if(dt>=FAST_S||state.heard===state.i)return;
+  state.fastWrong=(state.fastWrong||0)+1;
+  const recent=state.fwAt!=null&&state.i-state.fwAt<=6;
+  if(!state.fw||!recent){state.fw=1;state.fwAt=state.i;logEvent({evento:"aviso: falla por contestar rápido",materia:curHash});
+    setTimeout(()=>{const f=$("#fb");if(f)f.insertAdjacentHTML("beforeend",`<div class="fb ns"><strong>Has contestado muy rápido y has fallado.</strong>Piensa antes de tocar. Si vuelve a pasar, las 4 siguientes preguntas saldrán sin opciones y tendrás que escribir tú la respuesta.</div>`)},0);return}
+  state.fw=0;state.fwAt=null;state.calma=4;logEvent({evento:"preguntas escritas por contestar rápido",materia:curHash});
+  setTimeout(()=>{const f=$("#fb");if(f)f.insertAdjacentHTML("beforeend",`<div class="fb ns"><strong>Otra vez muy rápido.</strong>Las 4 siguientes preguntas las vas a escribir tú, sin opciones: así se piensa mejor. Si no la sabes, pulsa «No lo sé».</div>`)},0)}
+function calmaApply(q){if(state.calma>0&&q.wr===undefined&&!state.answered&&!q.vf&&!q.retry&&q.o&&String(q.o[0]).length<=25){q.wr=true;q.calma=true}}
+
+/* ---------- Su progreso se guarda con su usuario (en el script), no en el aparato ---------- */
+const SYNC_SKIP=/^(auth|cfg|outbox|act|bp|brk|agenda|updPend|updTry|updFrom|temasTry|syncTs|syncDirty|st:.*|aiplan.*|aifail.*|aioff.*|eve:.*)$/;
+function syncCollect(){const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!k.startsWith("m1e:"))continue;const kk=k.slice(4);if(SYNC_SKIP.test(kk))continue;o[kk]=localStorage.getItem(k)}}catch(e){}return o}
+function mergeObj(a,b){const o=Object.assign({},a);Object.entries(b||{}).forEach(([k,v])=>{if(!(k in o))o[k]=v;else if(typeof v==="number"&&typeof o[k]==="number")o[k]=Math.max(v,o[k]);else if(v===true||v===1)o[k]=v});return o}
+function syncMerge(loc,srv,srvNewer){const out=Object.assign({},loc);const P=s=>{try{return JSON.parse(s)}catch(e){return null}};
+  Object.entries(srv||{}).forEach(([k,sv])=>{if(SYNC_SKIP.test(k))return;const lv=loc[k];if(lv===undefined){out[k]=sv;return}if(lv===sv)return;const a=P(lv),b=P(sv);
+    if(k==="results"&&Array.isArray(a)&&Array.isArray(b)){const M={};[...a,...b].forEach(r=>{if(r&&(r.id||r.ts))M[r.id||("t"+r.ts)]=r});out[k]=JSON.stringify(Object.values(M).sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,200));return}
+    if((k==="plan"||k==="prog"||k.startsWith("deck-"))&&a&&b&&typeof a==="object"&&typeof b==="object"&&!Array.isArray(a)){out[k]=JSON.stringify(mergeObj(a,b));return}
+    if(srvNewer)out[k]=sv});return out}
+async function syncCall(acc,datos){const c=cfg();if(!c.url||!navigator.onLine)return null;try{const r=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"progreso",accion:acc,clave:c.clave||"",datos,ts:Date.now()})});const j=await r.json();return j&&j.progreso!==undefined?j:null}catch(e){return null}}
+function syncApply(o){let n=0;Object.entries(o).forEach(([k,v])=>{try{if(localStorage.getItem("m1e:"+k)!==v){localStorage.setItem("m1e:"+k,v);n++}}catch(e){}});
+  if(n){results=LS.get("results",[]);planDone=LS.get("plan",{});prog=LS.get("prog",{})}return n}
+let syncBusy=false;
+async function syncPull(){if(syncBusy)return 0;syncBusy=true;try{const j=await syncCall("leer");if(!j||!j.progreso){return 0}let srv;try{srv=JSON.parse(j.progreso)}catch(e){return 0}
+    const loc=syncCollect();const srvNewer=(j.ts||0)>LS.get("syncTs",0);const m=syncMerge(loc,srv,srvNewer);const n=syncApply(m);if(srvNewer)LS.set("syncTs",j.ts||0);
+    if(n){LS.set("syncDirty",true);logEvent({evento:"progreso recuperado de su usuario",sub:n+" datos"})}return n}finally{syncBusy=false}}
+async function syncPush(){if(syncBusy||!LS.get("syncDirty",false))return;await syncPull();syncBusy=true;try{const datos=JSON.stringify(syncCollect());const j=await syncCall("guardar",datos);if(j&&j.ok){LS.set("syncTs",j.ts||Date.now());LS.set("syncDirty",false)}}finally{syncBusy=false}}
+let syncT=null;function syncSoon(){LS.set("syncDirty",true);clearTimeout(syncT);syncT=setTimeout(syncPush,20000)}
+setInterval(()=>{if(LS.get("syncDirty",false))syncPush()},5*60e3);
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&LS.get("syncDirty",false))syncPush();else if(!document.hidden)syncPull().then(n=>{if(n&&NOTASK.test(curHash||"inicio"))render()})});
 
 bootV9();
 </script>

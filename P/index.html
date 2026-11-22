@@ -1616,7 +1616,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-22.1";
+const APP_VERSION="2026-11-22.2";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Mi práctica diaria</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -3840,7 +3840,7 @@ function viewTarjetas(dk){
 /* ---------- Problemas: si el resultado final es correcto, vale, aunque la forma de escribirlo no sea la buena ---------- */
 function pbChain(P,segs,s,raw){if(segs.length<2)return false;const U0=cbParseTyped(segs[0]);if(U0&&cbValue(U0)===P.ans)return false;
   const L=cbParseTyped(segs[segs.length-1]);const lv=L?cbValue(L):null;if(lv!==P.ans)return false;
-  const T=segs.map(x=>cbParseTyped(x));if(!T.some(x=>x&&x.length>1))return false;if(!T.some(x=>x&&x.some(y=>y.t==="n"&&y.v<0)))return false;
+  const T=segs.map(x=>cbParseTyped(x));if(!T.some(x=>x&&x.length>1))return false;if(!T.slice(0,-1).some(x=>x&&x.length>1&&cbValue(x)===P.ans))return false;if(!T.some(x=>x&&x.some(y=>y.t==="n"&&y.v<0)))return false;
   if(!s.tries)s.ok++;s.done=true;beep(880,.15);logEvent({evento:"problema: resultado bien, mal escrito",materia:"Problemas con negativos",sub:raw});
   s.msg=`<div class="fb ok"><strong>¡El resultado está bien!</strong> Cuidado con cómo lo escribes: «${esc(raw)}». Cada «=» tiene que unir dos cosas que valgan lo mismo, y los números tienen que ser los del enunciado. Así queda mejor: ${esc(P.sol)}</div><button class="btn" id="pnext">Siguiente →</button>`;
   viewProblemas();return true}
@@ -3987,11 +3987,13 @@ function voiceRank(v){const n=(v.name||"")+" "+(v.voiceURI||"");let s=0;if(/^es-
   if(/natural|neural|online|premium|enhanced|mejorad/i.test(n))s+=12;if(/google/i.test(n))s+=10;if(!v.localService)s+=3;if(/chrome ?os|espeak/i.test(n))s-=6;return s}
 function esVoices(){if(!TTS)return [];return TTS.getVoices().filter(v=>voiceRank(v)>=0).sort((a,b)=>voiceRank(b)-voiceRank(a))}
 function pickVoice(){if(!TTS)return;const L=esVoices();const want=LS.get("voz",null);ttsVoice=(want&&L.find(v=>v.voiceURI===want))||L[0]||null}
-function speak(text){if(!TTS)return;TTS.cancel();if(!ttsVoice)pickVoice();
+let speakLog=0;
+function speak(text){if(!TTS)return;try{TTS.cancel()}catch(e){}if(!ttsVoice)pickVoice();setTimeout(()=>speak2(text),80)}
+function speak2(text){
   const t=String(text).replace(/\*/g,"").replace(/·/g,",").replace(/\s*→\s*/g,", ").replace(/\s+/g," ").trim();
   const parts=t.match(/[^.!?¿¡:;]+[.!?:;]*/g)||[t];   // frase a frase: pausas más naturales y no se corta en textos largos
   parts.forEach(p=>{const s=p.trim();if(!s)return;const u=new SpeechSynthesisUtterance(s);u.lang="es-ES";if(ttsVoice)u.voice=ttsVoice;u.rate=LS.get("vozRate",.95);u.pitch=1.03;TTS.speak(u)});
-  logEvent({evento:"escúchalo"})}
+  if(Date.now()-speakLog>4000){speakLog=Date.now();logEvent({evento:"escúchalo"})}}
 try{if(TTS){TTS.onvoiceschanged=pickVoice;pickVoice()}}catch(e){}
 function voiceDialog(){const L=esVoices();const cur=ttsVoice&&ttsVoice.voiceURI;
   const m=modalBox(`<h2>La voz que lee</h2><p class="small muted">Prueba las voces y quédate con la que se entienda mejor.</p>

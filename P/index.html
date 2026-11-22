@@ -1616,7 +1616,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-23.2";
+const APP_VERSION="2026-11-23.3";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Mi práctica diaria</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -1627,7 +1627,7 @@ function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=t
     if(!navigator.onLine){$("#lgm").textContent="Necesitas conexión a internet para entrar.";return}
     $("#lgm").style.color="var(--soft)";$("#lgm").textContent="Comprobando…";
     try{const r=await fetch(REGISTRO_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"login",clave:pass,ts:new Date().toISOString(),disp:deviceInfo()})});const j=await r.json();
-      if(j.ok){LS.set("auth",{pass,nombre:j.nombre||"",desde:Date.now()});m.hidden=true;$("#infbtn").hidden=false;flushLog();render();syncPull().then(n=>{if(n){loadContDays();render()}});agendaSync(false);setTimeout(aiTick,1500)}
+      if(j.ok){LS.set("auth",{pass,nombre:j.nombre||"",desde:Date.now()});m.hidden=true;$("#infbtn").hidden=false;flushLog();render();syncPull().then(n=>{if(n)render()});agendaSync(false);setTimeout(aiTick,1500)}
       else{$("#lgm").style.color="var(--ko)";$("#lgm").textContent="Contraseña incorrecta.";$("#lgp").value=""}}
     catch(err){$("#lgm").style.color="var(--ko)";$("#lgm").textContent="No se ha podido conectar. Revisa la conexión e inténtalo otra vez."}})}
 function logEvent(ev){const c=cfg();if(!c.url)return;const box=LS.get("outbox",[]);box.push(Object.assign({ts:new Date().toISOString(),disp:deviceInfo(),ayuda:(ayudaNow()||{}).v||""},ev));LS.set("outbox",box.slice(-300));flushLog()}
@@ -3923,7 +3923,7 @@ function viewFechas(){const t=todayStr();const A=fechasVivas();const prox=A.filt
   agendaSync(false)}
 
 /* ---------- Arranque: primero los temas, luego la app ---------- */
-async function bootV9(){initUnits1();await Promise.race([Promise.all([loadUnits(),auth()?syncPull():0]),new Promise(r=>setTimeout(r,6000))]);loadContDays();
+async function bootV9(){initUnits1();await Promise.race([Promise.all([loadUnits(),auth()?syncPull():0]),new Promise(r=>setTimeout(r,6000))]);loadContDays();window.bootDone=true;
   applyAIPlans();state=restore(curHash);render();if(!auth())showLogin();setTimeout(aiTick,2500);setInterval(aiTick,15*60e3);
   setTimeout(()=>agendaSync(false),3000);setInterval(checkTemas,10*60e3);document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkTemas();agendaSync(false)}})}
 
@@ -3960,17 +3960,24 @@ function calmaCheck(q,res){if(!state.t0||isPureTest()||q.retry||q.vf||q.wr||!q.o
 function calmaApply(q){if(state.calma>0&&q.wr===undefined&&!state.answered&&!q.vf&&!q.retry&&q.o&&String(q.o[0]).length<=25){q.wr=true;q.calma=true}}
 
 /* ---------- Su progreso se guarda con su usuario (en el script), no en el aparato ---------- */
-const SYNC_SKIP=/^(auth|cfg|outbox|act|bp|brk|agenda|updPend|updTry|updFrom|temasTry|syncTs|syncDirty|st:.*|aiplan.*|aifail.*|aioff.*|eve:.*)$/;
+const SYNC_SKIP=/^(auth|cfg|dev|voz|outbox|act|bp|brk|agenda|updPend|updTry|updFrom|temasTry|syncTs|syncDirty|st:.*|aiplan.*|aifail.*|aioff.*|eve:.*)$/;
 function syncCollect(){const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k||!k.startsWith("m1e:"))continue;const kk=k.slice(4);if(SYNC_SKIP.test(kk))continue;o[kk]=localStorage.getItem(k)}}catch(e){}return o}
 function mergeObj(a,b){const o=Object.assign({},a);Object.entries(b||{}).forEach(([k,v])=>{if(!(k in o))o[k]=v;else if(typeof v==="number"&&typeof o[k]==="number")o[k]=Math.max(v,o[k]);else if(v===true||v===1)o[k]=v});return o}
 function syncMerge(loc,srv,srvNewer){const out=Object.assign({},loc);const P=s=>{try{return JSON.parse(s)}catch(e){return null}};
   Object.entries(srv||{}).forEach(([k,sv])=>{if(SYNC_SKIP.test(k))return;const lv=loc[k];if(lv===undefined){out[k]=sv;return}if(lv===sv)return;const a=P(lv),b=P(sv);
     if(k==="results"&&Array.isArray(a)&&Array.isArray(b)){const M={};[...a,...b].forEach(r=>{if(r&&(r.id||r.ts))M[r.id||("t"+r.ts)]=r});out[k]=JSON.stringify(Object.values(M).sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,200));return}
-    if((k==="plan"||k==="prog"||k.startsWith("deck-"))&&a&&b&&typeof a==="object"&&typeof b==="object"&&!Array.isArray(a)){out[k]=JSON.stringify(mergeObj(a,b));return}
+    const obj=x=>x&&typeof x==="object"&&!Array.isArray(x);
+    if((k==="plan"||k==="prog"||k==="efmH"||k==="diasOk"||k==="insignias"||k==="aciertos"||k.startsWith("deck-"))&&obj(a)&&obj(b)){out[k]=JSON.stringify(mergeObj(a,b));return}
+    if(k==="efm"&&obj(a)&&obj(b)){out[k]=JSON.stringify(a.d===b.d?{d:a.d,s:Math.max(a.s||0,b.s||0)}:(a.d>b.d?a:b));return}
+    if(k==="pts2"&&obj(a)&&obj(b)){const top=(b.tot||0)>(a.tot||0)?b:a;out[k]=JSON.stringify({tot:Math.max(a.tot||0,b.tot||0),raw:top.raw||0,d:mergeObj(a.d||{},b.d||{})});return}
+    if(k==="canjes"&&Array.isArray(a)&&Array.isArray(b)){const M={};[...a,...b].forEach(c=>{if(c)M[(c.ts||"")+"|"+c.id]=c});out[k]=JSON.stringify(Object.values(M).sort((x,y)=>(x.ts||0)-(y.ts||0)));return}
+    if(k==="logros"&&Array.isArray(a)&&Array.isArray(b)){const M={};[...a,...b].forEach(l=>{if(l)M[l.d+"|"+l.t]=l});out[k]=JSON.stringify(Object.values(M).sort((x,y)=>x.d<y.d?1:x.d>y.d?-1:0).slice(0,60));return}
+    if(k.startsWith("cont:")&&obj(a)&&obj(b)&&Array.isArray(a.b)&&Array.isArray(b.b)){   // el plan de un día: manda el que ya estaba guardado, salvo que el local sea el mismo con bloques añadidos
+      const pre=(x,y)=>x.b.length<=y.b.length&&JSON.stringify(x.b)===JSON.stringify(y.b.slice(0,x.b.length));out[k]=pre(b,a)?lv:sv;return}
     if(srvNewer)out[k]=sv});return out}
 async function syncCall(acc,datos){const c=cfg();if(!c.url||!navigator.onLine)return null;try{const r=await fetch(c.url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({tipo:"progreso",accion:acc,clave:c.clave||"",datos,ts:Date.now()})});const j=await r.json();return j&&j.progreso!==undefined?j:null}catch(e){return null}}
-function syncApply(o){let n=0;Object.entries(o).forEach(([k,v])=>{try{if(localStorage.getItem("m1e:"+k)!==v){localStorage.setItem("m1e:"+k,v);n++}}catch(e){}});
-  if(n){results=LS.get("results",[]);planDone=LS.get("plan",{});prog=LS.get("prog",{})}return n}
+function syncApply(o){let n=0,cont=false;Object.entries(o).forEach(([k,v])=>{try{if(localStorage.getItem("m1e:"+k)!==v){localStorage.setItem("m1e:"+k,v);n++;if(k.startsWith("cont:"))cont=true}}catch(e){}});
+  if(n){results=LS.get("results",[]);planDone=LS.get("plan",{});prog=LS.get("prog",{});if(cont&&window.bootDone){for(let i=PLAN.length-1;i>=0;i--)if(PLAN[i].cont)PLAN.splice(i,1);loadContDays()}}return n}
 let syncBusy=false;
 async function syncPull(){if(syncBusy)return 0;syncBusy=true;try{const j=await syncCall("leer");if(!j||!j.progreso){return 0}let srv;try{srv=JSON.parse(j.progreso)}catch(e){return 0}
     const loc=syncCollect();const srvNewer=(j.ts||0)>LS.get("syncTs",0);const m=syncMerge(loc,srv,srvNewer);const n=syncApply(m);if(srvNewer)LS.set("syncTs",j.ts||0);

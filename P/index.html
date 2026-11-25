@@ -1616,7 +1616,7 @@ function deviceInfo(){let id=LS.get("dev",null);if(!id){id="d"+Math.random().toS
   const ua=navigator.userAgent;const so=/CrOS/.test(ua)?"ChromeOS (Chromebook)":/Android/.test(ua)?"Android":/iPhone|iPad|iPod/.test(ua)?"iOS":/Windows/.test(ua)?"Windows":/Mac OS X/.test(ua)?"macOS":/Linux/.test(ua)?"Linux":"Otro";
   const nav=/Edg\//.test(ua)?"Edge":/OPR\//.test(ua)?"Opera":/Firefox\//.test(ua)?"Firefox":/Chrome\//.test(ua)?"Chrome":/Safari\//.test(ua)?"Safari":"Otro";
   return {id,so,nav,movil:/Mobi|Android|iPhone/.test(ua),pantalla:screen.width+"x"+screen.height,ver:APP_VERSION}}
-const APP_VERSION="2026-11-23.3";
+const APP_VERSION="2026-11-26.1";
 function authFailed(){LS.set("auth",null);showLogin("Tu contraseña ya no es válida. Vuelve a escribirla.")}
 function showLogin(msg){const m=$("#login");m.hidden=false;$("#infbtn").hidden=true;
   m.innerHTML=`<div class="login-box"><h1>Mi práctica diaria</h1><p>Escribe tu contraseña para empezar. Así tu progreso se guarda y puedes seguir en cualquier dispositivo.</p>
@@ -1758,9 +1758,9 @@ function blockFrac(id,b){if(planDone[id])return 1;return Math.min(1,(prog[id]||0
 function sameDay(ts,ds){const d=new Date(ts);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")===ds}
 function fmtClock(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 function alertSound(){if(cfg().sonidos===false)return;beep(523,.25);setTimeout(()=>beep(659,.25),300);setTimeout(()=>beep(523,.4),600)}
-function startSession(id){if(LS.get("brk",null))endBreak();const [d,i]=id.split("#");{const bb=PLAN.find(p=>p.d===d).b[+i];if(bb[3]==="verbs"){const t=bb[1].toLowerCase();const h=bb[5]&&bb[5].fam?bb[5].fam:t.includes("ought")?"ought":t.includes("3 iguales")?"no":t.includes("i → a → u")?"iau":"all";LS.set("verbHint",h)}}const act=LS.get("act",null);if(act&&act.id===id&&!act.finished)return;
+function startSession0(id){if(LS.get("brk",null))endBreak();const [d,i]=id.split("#");{const bb=PLAN.find(p=>p.d===d).b[+i];if(bb[3]==="verbs"){const t=bb[1].toLowerCase();const h=bb[5]&&bb[5].fam?bb[5].fam:t.includes("ought")?"ought":t.includes("3 iguales")?"no":t.includes("i → a → u")?"iau":"all";LS.set("verbHint",h)}}const act=LS.get("act",null);if(act&&act.id===id&&!act.finished)return;
   LS.set("act",{id,d,i:+i,start:Date.now(),last:Date.now(),idle:0});const b=PLAN.find(p=>p.d===d).b[+i];logEvent({evento:"sesión empezada",bloque:b[1],estimado:b[2]})}
-function finishSession(id,b){const act=LS.get("act",null);if(!act||act.id!==id||act.finished)return;
+function finishSession0(id,b){const act=LS.get("act",null);if(!act||act.id!==id||act.finished)return;
   const real=Math.max(1,Math.round((Date.now()-act.start)/60000));act.finished=true;act.end=Date.now();LS.set("act",act);
   const ses=LS.get("sesiones",[]);ses.push({fecha:act.d,bloque:b[1],materia:SNAME[b[0]],estimado:b[2],real,parones:act.idle||0,rondas:roundsFor(b),hora:new Date(act.start).toTimeString().slice(0,5)});LS.set("sesiones",ses.slice(-300));
   logEvent({evento:"sesión completada",bloque:b[1],estimado:b[2],real,parones:act.idle||0});beep(988,.2);setTimeout(()=>beep(1319,.35),220)}
@@ -3749,8 +3749,9 @@ function afterBlockDone(d,i){if(!d.cont)return afterBlockDone0(d,i);if(d.d!==tod
   if(ef<goal-1){const used=new Set(d.b.map(b=>b[3]));const more=genBlocks(d.d,t.n,Math.max(5,goal-ef),used).slice(0,2);
     if(more.length){more.forEach(b=>d.b.push(b));saveCont(d);logEvent({evento:"bloques añadidos para llegar a "+CONT_GOAL+" min",materia:"llevaba "+ef+" min de estudio efectivo"});return}}
   const next=T.find(x=>x.n>t.n&&x.idx.some(k=>!planDone[d.d+"#"+k]));
-  if(next){logEvent({evento:"sesión 1 terminada",materia:ef+" min de estudio efectivo hoy"});LS.set("brk",{d:d.d,start:Date.now(),tarde:true,finde:true});return}
-  LS.set("brk",null);logEvent({evento:"día completado",materia:ef+" min de estudio efectivo hoy"});dayDone(d.d)}
+  const g=dayGoalState();
+  if(next){if(!g.s1){g.s1=true;LS.set("goalHit",g);logEvent({evento:"sesión 1 terminada",materia:ef+" min de estudio efectivo hoy"})}LS.set("brk",{d:d.d,start:Date.now(),tarde:true,finde:true});return}
+  LS.set("brk",null);if(!g.done){g.done=true;g.s1=true;LS.set("goalHit",g);logEvent({evento:"día completado",materia:ef+" min de estudio efectivo hoy"})}dayDone(d.d)}
 
 /* ---------- Minutos de estudio efectivo: solo cuentan si está en una tarea, con la app delante y tocando algo ---------- */
 let lastIn=Date.now();["pointerdown","keydown","wheel","touchstart","input"].forEach(e=>document.addEventListener(e,()=>{lastIn=Date.now()},true));
@@ -3864,9 +3865,9 @@ function viewHome(){
     today=xpHtml()+`<section class="card today">
       <div class="top"><div><h2>${pd.rel==="Hoy"?"Práctica de hoy":pd.rel+" toca"}</h2><p class="muted small">${d.t}, ${fmtDate(d.d)}${isWeekend(d.d)?" · 2 sesiones de "+CONT_GOAL+" min, juntas o separadas":""}</p>${pd.rel==="Hoy"?ayudaChip():""}</div></div>
       ${pd.rel==="Hoy"?`<div class="dbar" role="progressbar" aria-valuenow="${ef}" aria-valuemin="0" aria-valuemax="${goal}" aria-label="Minutos de estudio hoy"><i style="width:${pct}%" class="${pct>=100?"full":""}"></i></div>
-      <p class="small muted" style="margin:0">${allDone&&ef>=goal-1?"¡Práctica de hoy completada!":`${ef} de ${goal} min de estudio`}</p>`:""}
+      <p class="small muted" style="margin:0">${ef>=goal||diasOk()[d.d]?"¡Práctica de hoy completada!":`${ef} de ${goal} min de estudio`}</p>`:""}
       ${pendingList().length?`<div class="pendbox"><b>Para ver juntos (${pendingList().length})</b><ul>${pendingList().map(x=>`<li>${esc(x.materia)}: ${esc(x.detalle)}</li>`).join("")}</ul><p class="small muted">Cuando papá o mamá estén, lo veis juntos.</p></div>`:""}
-      ${allDone&&pd.rel==="Hoy"?`<div class="extra"><h3>¿Te apetece seguir? Es opcional</h3><div class="row">${extraSuggestions().map((x,k)=>`<button class="btn ghost" data-extra="${k}">${esc(x[0])} · ${x[1]}</button>`).join("")}</div></div>`:""}
+      ${(allDone||ef>=goal)&&pd.rel==="Hoy"?`<div class="extra"><h3>¿Te apetece seguir? Es opcional</h3><div class="row">${extraSuggestions().map((x,k)=>`<button class="btn ghost" data-extra="${k}">${esc(x[0])} · ${x[1]}</button>`).join("")}</div></div>`:""}
       <div class="blocks">${tot?dayHtml(d,true):'<p class="muted">Hoy no hay nada.</p>'}</div>
     </section>`}
   const F=fechasVivas().filter(f=>f.fecha>=t).slice(0,3);
@@ -4175,6 +4176,26 @@ function starGame(host,done){let n=0,left=20,live=true;host.innerHTML=`<div clas
     const life=Math.max(650,1300-n*25);s.addEventListener("pointerdown",e=>{e.preventDefault();if(!live||s.dataset.hit)return;s.dataset.hit=1;n++;host.querySelector("#sgn").textContent=n;s.classList.add("hit");try{beep(1046+((n%5)*60),.06)}catch(er){}setTimeout(()=>s.remove(),180)});
     F.appendChild(s);setTimeout(()=>{if(!s.dataset.hit)s.remove()},life);setTimeout(spawn,Math.max(380,750-n*12))};
   spawn();const tm=setInterval(()=>{left--;const t=host.querySelector("#sgt");if(t)t.textContent=left;if(left<=0){clearInterval(tm);live=false;setTimeout(()=>done(n),300)}},1000)}
+/* ====================== v14: el día se completa con los minutos de estudio; cada bloque guarda su tiempo aunque se cambie a otro ====================== */
+/* Cada bloque guarda sus minutos y preguntas aunque se abra otro entre medias */
+function startSession(id){const t=todayStr();const act=LS.get("act",null);const acc=LS.get("blkacc",{});
+  if(!(act&&act.id===id&&!act.finished)){
+    if(act&&act.id&&!act.finished&&act.d===t)acc[act.id]={eff:act.eff||0,q:act.q||0};
+    Object.keys(acc).forEach(k=>{if(k.slice(0,10)!==t)delete acc[k]});LS.set("blkacc",acc)}
+  startSession0(id);
+  const a=LS.get("act",null);const s=acc[id];if(a&&a.id===id&&s&&!a.eff&&!a.q){a.eff=s.eff;a.q=s.q;LS.set("act",a)}}
+function finishSession(id,b){finishSession0(id,b);const acc=LS.get("blkacc",{});if(acc[id]){delete acc[id];LS.set("blkacc",acc)}}
+/* El día se completa al llegar a los minutos (30 entre semana, 60 el fin de semana), aunque queden bloques */
+function dayGoalState(){const g=LS.get("goalHit",{});return g.d===todayStr()?g:{d:todayStr()}}
+function goalCheck(){const t=todayStr();const d=PLAN.find(p=>p.d===t);if(!d||!d.cont)return;const ef=efmToday(),g=dayGoalState();
+  if(isWeekend(t)&&ef>=CONT_GOAL&&ef<goalMin(t)&&!g.s1){g.s1=true;LS.set("goalHit",g);logEvent({evento:"sesión 1 terminada",materia:ef+" min de estudio efectivo hoy"});toastMsg("¡Sesión 1 hecha: "+ef+" minutos! La segunda, cuando quieras.",6000)}
+  if(ef>=goalMin(t)&&!g.done){g.done=true;g.s1=true;LS.set("goalHit",g);LS.set("brk",null);logEvent({evento:"día completado",materia:ef+" min de estudio efectivo hoy"});
+    if(NOTASK.test(curHash||"inicio")&&!document.querySelector(".modal,.celeb"))dayDone(t);
+    else{LS.set("celebPend",t);toastMsg("¡Ya llevas "+ef+" minutos: práctica de hoy hecha! Cuando termines esto, vuelve a Inicio.",7000)}}}
+setInterval(goalCheck,5000);
+/* La celebración espera a que esté en Inicio: nunca corta un ejercicio */
+setInterval(()=>{const t=todayStr();if(LS.get("celebPend",null)===t&&NOTASK.test(curHash||"inicio")&&!document.querySelector(".modal,.celeb")){LS.set("celebPend",null);dayDone(t)}},1500);
+
 bootV9();
 </script>
 
